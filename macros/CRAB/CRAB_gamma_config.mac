@@ -1,0 +1,29 @@
+# VERBOSITY
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/process/em/verbose 0
+
+#GEOMETRY
+/Geometry/CRAB/gas_pressure 10. bar
+/Geometry/CRAB/chamber_diam  15. cm
+/Geometry/CRAB/chamber_length 25. cm
+/Geometry/CRAB/chamber_thickn 1. um
+/Geometry/CRAB/SourcePosition -8 0 0
+
+
+# GENERATOR
+/Generator/SingleParticle/max_energy 2 keV
+/Generator/SingleParticle/min_energy 300 keV
+/Generator/SingleParticle/region LAB
+/Generator/SingleParticle/particle gamma
+/Generator/SingleParticle/momentum 1 0 0
+
+#Actions
+#/Actions/DefaultEventAction/energy_threshold 1 keV
+#/Actions/DefaultEventAction/max_energy 3.00 GeV
+
+# PERSISTENCY
+/nexus/persistency/eventType background
+/nexus/persistency/outputFile gamma31
+/run/printProgress 2

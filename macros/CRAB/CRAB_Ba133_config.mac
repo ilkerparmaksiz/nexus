@@ -1,0 +1,29 @@
+# VERBOSITY
+/run/verbose 0
+/event/verbose 0
+/tracking/verbose 0
+/process/em/verbose 0
+
+#GEOMETRY
+/Geometry/CRAB/gas_pressure     10. bar
+
+
+# GENERATOR
+/Generator/CrabSourceGenerator/region LAB
+
+#Ba133
+/Generator/CrabSourceGenerator/atomic_number 56
+/Generator/CrabSourceGenerator/mass_number 133
+
+
+/Generator/CrabSourceGenerator/decay_rate 100000 nCi
+/Generator/CrabSourceGenerator/event_window 13
+
+#Actions
+/Actions/DefaultEventAction/energy_threshold 1 keV
+/Actions/DefaultEventAction/max_energy 3.00 MeV
+
+# PERSISTENCY
+/nexus/persistency/eventType background
+/nexus/persistency/outputFile Ba133_13us_100uCi_1event_
+#/run/printProgress 100
