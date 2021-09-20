@@ -38,7 +38,7 @@ CrabSourceGenerator::CrabSourceGenerator():
         event_window_(0),
         N_Decays_per_s_(0.),
         region_(""),
-        msg_(nullptr), geom_(nullptr)
+        msg_(nullptr), geom_(nullptr),NDecays(1)
 {
     msg_ = new G4GenericMessenger(this, "/Generator/CrabSourceGenerator/",
 
@@ -72,6 +72,10 @@ CrabSourceGenerator::CrabSourceGenerator():
 
     msg_->DeclarePropertyWithUnit("decay_rate","nCi", N_Decays_per_s_,  "Rate of Decays in Bq");
 
+    G4GenericMessenger::Command& NDecays_number_cmd =
+            msg_->DeclareProperty("NDecays", NDecays, "Number of Decays");
+    NDecays_number_cmd.SetParameterName("NDecays", false);
+    NDecays_number_cmd.SetRange("NDecays > 0");
     // Load the detector geometry, which will be used for the generation of vertices
     const DetectorConstruction* detconst = dynamic_cast<const DetectorConstruction*>
     (G4RunManager::GetRunManager()->GetUserDetectorConstruction());
@@ -112,19 +116,26 @@ void CrabSourceGenerator::GeneratePrimaryVertex(G4Event* event)
     G4int N_Decays=DecayRateinBq*event_window_;
     //Printing Some Values
     G4cout<<"-----Printing Setting Values----" <<G4endl;
-    G4cout<<"event_window(us)--> "<<event_window_<<G4endl;
-    G4cout<<"N_Decays_per_s(nCi)--> "<<N_Decays_per_s_<<G4endl;
-    G4cout<<"DecayRateInBq--> "<<DecayRateinBq<<G4endl;
-    G4cout<<"NumberOfDecays--> "<<N_Decays<<G4endl;
 
-    if(event_window_==0){
-        decay_time_=event_window_;
-        EventsWithWindow(event,decay_time_);
-    }else{
+    if(event_window_>0){
+        G4cout<<"NumberOfDecays--> "<<N_Decays<<G4endl;
+        G4cout<<"event_window(us)--> "<<event_window_<<G4endl;
+        G4cout<<"N_Decays_per_s(nCi)--> "<<N_Decays_per_s_<<G4endl;
+        G4cout<<"DecayRateInBq--> "<<DecayRateinBq<<G4endl;
+    }
+    else{
+        G4cout<<"NumberOfDecays--> "<<NDecays<<G4endl;
+    }
+    //if time window is zero then run sim for specified number of Particles
+    if(event_window_<=0){
+        if (NDecays==0) NDecays=1;
+        for(G4int i=0;i<NDecays;i++){
+            decay_time_=event_window_;
+            EventsWithWindow(event,decay_time_);
+        }
+    }else{ //run sim for a given us time window
         for(G4int Decay=0;Decay<N_Decays;Decay++){
             decay_time_=G4UniformRand()*event_window_;
-            // G4cout<< decay_time_ <<G4endl;
-
             EventsWithWindow(event,decay_time_);
         }
     }

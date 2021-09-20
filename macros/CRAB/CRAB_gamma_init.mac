@@ -24,4 +24,4 @@
 /nexus/RegisterRunAction DefaultRunAction
 
 #Config
-/nexus/RegisterMacro macros/CRAB_gamma_config.mac
+/nexus/RegisterMacro macros/CRAB/CRAB_gamma_config.mac

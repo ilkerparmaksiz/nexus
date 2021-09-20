@@ -22,4 +22,4 @@
 /nexus/RegisterRunAction DefaultRunAction
 
 #Config
-/nexus/RegisterMacro macros/CRAB_Ba133_config.mac
+/nexus/RegisterMacro macros/CRAB/CRAB_Ba133_config.mac

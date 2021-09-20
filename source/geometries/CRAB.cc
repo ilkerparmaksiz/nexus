@@ -58,7 +58,9 @@ namespace nexus{
         G4GenericMessenger::Command&  source_position_cmd =msg_->DeclarePropertyWithUnit("SourcePosition","cm",vtx_,"vtx");
         source_position_cmd.SetParameterName("vtx", false);
 
-        }
+
+
+    }
 
     CRAB::~CRAB()
     {
@@ -78,7 +80,7 @@ namespace nexus{
 
         //Creating the Steel Cylinder that we use
         G4Tubs* chamber_solid =new G4Tubs("CHAMBER", 0., (chamber_diam/2. + chamber_thickn),(chamber_length/2. + chamber_thickn), 0.,twopi);
-        G4LogicalVolume* chamber_logic =new G4LogicalVolume(chamber_solid,G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR"), "CHAMBER"); // materials::Steel()
+        G4LogicalVolume* chamber_logic =new G4LogicalVolume(chamber_solid,materials::Steel(), "CHAMBER"); //
 
         // Placing the gas in the chamber
 

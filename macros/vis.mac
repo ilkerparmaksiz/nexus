@@ -45,6 +45,26 @@
 # Parameter (omittable). Options: "smooth", "rich"
 /vis/scene/add/trajectories smooth
 
+# Many other options are available with /vis/modeling and /vis/filtering.
+# For example, to select colour by particle ID:
+/vis/modeling/trajectories/create/drawByParticleID
+/vis/modeling/trajectories/drawByParticleID-0/set e- red
+/vis/modeling/trajectories/drawByParticleID-0/set e+ blue
+/vis/modeling/trajectories/drawByParticleID-0/set nu_e white
+/vis/modeling/trajectories/drawByParticleID-0/set anti_nu_e white
+/vis/modeling/trajectories/drawByParticleID-0/set geantino white
+/vis/modeling/trajectories/drawByParticleID-0/set gamma blue
+/vis/modeling/trajectories/drawByParticleID-0/set alpha yellow
+/vis/modeling/trajectories/drawByParticleID-0/set GenericIon grey
+/vis/modeling/trajectories/drawByParticleID-0/set opticalphoton green
+# Re-establish auto refreshing and verbosity:
+/vis/viewer/set/autoRefresh true
+/vis/verbose warnings
+# Axes, scale, etc.
+/vis/scene/add/scale   # Simple scale line
+/vis/scene/add/axes    # Simple axes: x=red, y=green, z=blue.
+#/vis/scene/add/text 0 0 0 mm 40 -100 -200 LogVol:Absorber
+#
 # Requests viewer to accumulate hits, tracks, etc. at end of event.
 # 1st param (omittable): "accumulate" or "refresh"
 # 2nd param (omittable): <integer> (default = 100)

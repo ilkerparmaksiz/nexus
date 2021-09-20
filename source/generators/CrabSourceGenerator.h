@@ -44,6 +44,7 @@ namespace nexus{
         G4String region_;
         G4GenericMessenger* msg_;
         const GeometryBase* geom_;
+        G4int NDecays;
 
     };
 

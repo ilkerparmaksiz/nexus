@@ -21,4 +21,4 @@
 /nexus/RegisterRunAction DefaultRunAction
 
 #Config
-/nexus/RegisterMacro macros/CRAB_Cs137_config.mac
+/nexus/RegisterMacro macros/CRAB/CRAB_Cs137_config.mac
