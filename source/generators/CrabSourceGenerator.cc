@@ -115,7 +115,7 @@ void CrabSourceGenerator::GeneratePrimaryVertex(G4Event* event)
     G4int DecayRateinBq=(N_Decays_per_s_)*37*1e-6;
     G4int N_Decays=DecayRateinBq*event_window_;
     //Printing Some Values
-    G4cout<<"-----Printing Setting Values----" <<G4endl;
+    /*G4cout<<"-----Printing Setting Values----" <<G4endl;
 
     if(event_window_>0){
         G4cout<<"NumberOfDecays--> "<<N_Decays<<G4endl;
@@ -125,7 +125,7 @@ void CrabSourceGenerator::GeneratePrimaryVertex(G4Event* event)
     }
     else{
         G4cout<<"NumberOfDecays--> "<<NDecays<<G4endl;
-    }
+    }*/
     //if time window is zero then run sim for specified number of Particles
     if(event_window_<=0){
         if (NDecays==0) NDecays=1;
