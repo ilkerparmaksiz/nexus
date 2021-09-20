@@ -168,10 +168,11 @@ def getTracks(file,Current_Event=0):
 def main():
 
     #EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build/source/Ba133_2mm222.h5") # For multiprocessing
-    EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build2/source/Cs137_2mm1M.h5",6) # For multiprocessing
+    #EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build2/source/Cs137_2mm1M.h5",6) # For multiprocessing
+    EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build2/source/Ba133_1M.h5",6) # For multiprocessing
     #EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build/source/Ba133_2mm222.h5",False)
 
-    Hist1d("Cs137_2mm_1M",EnergyValues,np.arange(1,500,10),0,0)
+    Hist1d("Ba133_2mm_1M",EnergyValues,np.arange(1,500,10),0,0)
 if __name__ == "__main__":
     st=time.time()
     main()
