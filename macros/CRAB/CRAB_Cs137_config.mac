@@ -5,24 +5,30 @@
 /process/em/verbose 0
 
 #GEOMETRY
-/Geometry/CRAB/gas_pressure     10. bar
+/Geometry/CRAB/gas_pressure 10. bar
+/Geometry/CRAB/chamber_diam  15. cm
+/Geometry/CRAB/chamber_length 25. cm
+/Geometry/CRAB/chamber_thickn 2. mm
+/Geometry/CRAB/SourcePosition -8 0 0 cm
 
 
 # GENERATOR
 /Generator/CrabSourceGenerator/region LAB
 #Cs133
 /Generator/CrabSourceGenerator/atomic_number 55
-/Generator/CrabSourceGenerator/mass_number 139
+/Generator/CrabSourceGenerator/mass_number 137
 
 
 /Generator/CrabSourceGenerator/decay_rate 100000 nCi
-/Generator/CrabSourceGenerator/event_window 13
+#/Generator/CrabSourceGenerator/event_window 13
+#works only if event_window is zero
+#/Generator/CrabSourceGenerator/NDecays 1
 
 #Actions
-/Actions/DefaultEventAction/energy_threshold 1 keV
-/Actions/DefaultEventAction/max_energy 3.00 MeV
+/Actions/DefaultEventAction/energy_threshold 100 eV
+#/Actions/DefaultEventAction/max_energy 1.00 GeV
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile Cs137_13us_100uCi_1event_
+/nexus/persistency/outputFile Cs137_2mm12
 #/run/printProgress 100

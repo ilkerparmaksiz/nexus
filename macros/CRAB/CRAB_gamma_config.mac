@@ -8,13 +8,13 @@
 /Geometry/CRAB/gas_pressure 10. bar
 /Geometry/CRAB/chamber_diam  15. cm
 /Geometry/CRAB/chamber_length 25. cm
-/Geometry/CRAB/chamber_thickn 1. um
-/Geometry/CRAB/SourcePosition -8 0 0
+/Geometry/CRAB/chamber_thickn 2. mm
+/Geometry/CRAB/SourcePosition -12 0 0
 
 
 # GENERATOR
-/Generator/SingleParticle/max_energy 2 keV
-/Generator/SingleParticle/min_energy 300 keV
+/Generator/SingleParticle/max_energy 31 keV
+/Generator/SingleParticle/min_energy 31 keV
 /Generator/SingleParticle/region LAB
 /Generator/SingleParticle/particle gamma
 /Generator/SingleParticle/momentum 1 0 0
@@ -25,5 +25,5 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile gamma31
+/nexus/persistency/outputFile gamma31_2mm_10k
 /run/printProgress 2
