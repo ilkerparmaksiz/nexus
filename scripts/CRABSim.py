@@ -26,7 +26,7 @@ def Hist2d(title,Energys,Times,binss,xlimit,ylimit):
     plt.show()
 
 #Create a custom 1d Histogram
-def Hist1d(title,Energys,Bins,xlimit,ylimit,limits=False,FileSave=True):
+def Hist1d(title,Energys,Bins,xlimit,ylimit,FileSave,limits=False):
     fig, ax = plt.subplots(figsize=(8,8))
     plt.hist(Energys,bins=Bins,alpha=0.7,label=title)
     plt.ylabel("Counts",fontsize=26)
@@ -70,7 +70,7 @@ def Plot2d(title,x,y):
     plt.show()
 
 #This draws two circles on the top of an other
-def Circle(pltX,pltY,title,LarCirR=75,SmallCirR=35,xlimit=100,ylimit=100,FileSave=False):
+def Circle(pltX,pltY,title,FileSave,LarCirR=75,SmallCirR=35,xlimit=100,ylimit=100):
     fig,ax = plt.subplots(figsize=(8,8))
     plt.title(title)
     plt.plot(pltX,pltY)
@@ -92,8 +92,11 @@ def Circle(pltX,pltY,title,LarCirR=75,SmallCirR=35,xlimit=100,ylimit=100,FileSav
     plt.grid(True)
     plt.tight_layout()
     if(FileSave):
-        plt.savefig('/home/ilker/Pictures/Sim/'+title + '.png')
-    plt.show()
+        savetit='/home/ilker/Pictures/Sim/'+title + '.png'
+        print(f"saving the picture at {savetit}")
+        plt.savefig(savetit)
+    else:
+        plt.show()
 
 #This function runs and collects data if processes > 1 it will do multiprocessing
 def RunEvents(file,Processes=4):
@@ -185,11 +188,13 @@ def getTracks(file,Current_Event=0):
 
 
 #Gets the Tracks and as well as energies
-def RunEventsDic(file,Processes=4):
+def RunEventsDic(file,Processes=4,TotalLimit=0):
     data=ReadFile(file)
     theEvents={}
-    #TotalEvents=int(data['MC']['configuration'][2][1])
-    TotalEvents=1000
+    if TotalLimit==0:
+        TotalEvents=int(data['MC']['configuration'][2][1])
+    else:
+        TotalEvents=TotalLimit
     print(f"Processing Your Events at {file}")
     print(f"Currently there are {TotalEvents} events")
 
@@ -269,38 +274,36 @@ def EnergyAndTracks(data,xRLower,xRHigher,theEvents,EventLimit=0,fudicalR=35,fdc
         print(f" There are only {FudicalCount} out of {TotalEvents} in the fudical volume")
 
 
-def PlotRandomEvents(theEvents,NPlots,LowE,HighE,pretitle,EventLimit=0,FileSave=False):
+def PlotRandomEvents(theEvents,NPlots,LowE,HighE,pretitle,FileSave=True):
 
     QualfEnergys=[]
     for Event in theEvents:
         if(theEvents[Event][1]>=LowE and theEvents[Event][1]<=HighE):
             QualfEnergys.append(Event)
-    print(len(QualfEnergys))
+    #print(len(QualfEnergys))
     for plot in range(0,NPlots):
         Event=random.choice(QualfEnergys)
-        title=str(pretitle) + "_Tracks with" + str(theEvents[Event][1]) + " keV"
+        title=str(pretitle) + "_Tracks_" + str(round(theEvents[Event][1],2)) + "keV"
         Circle(theEvents[Event][0][1],theEvents[Event][0][2],title,FileSave)
 
 
-def PlotEnergySpec(theEvents,title,binss=np.arange(1,500,10)):
+def PlotEnergySpec(theEvents,title,binss=np.arange(1,500,10),FileSave=True):
     Energys=[]
     for Event in theEvents:
         Energys.append(theEvents[Event][1])
-    Hist1d(title,Energys,binss,0,0)
+    Hist1d(title,Energys,binss,0,0,FileSave)
 def main():
 
-    #EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build/source/Ba133_2mm222.h5") # For multiprocessing
-    #EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build2/source/Cs137_2mm1M.h5",6) # For multiprocessing
-    #EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build2/source/Ba133_1M.h5",6) # For multiprocessing
-    theEvents=RunEventsDic("/home/ilker/Dropbox/nexus/build/source/Cs137_2mm12.h5",1) # For multiprocessing
-    PlotEnergySpec(theEvents,"Energy Spectrum of Cs137_2mm")
+    # Get the Qualified Events
+    theEvents=RunEventsDic("/home/ilker/Dropbox/nexus/build2/source/Ba133_1M.h5",8) # For multiprocessing
+    #theEvents=RunEventsDic("/home/ilker/Dropbox/nexus/build2/source/Cs137_2mm1M.h5",8) # For multiprocessing
+    PlotEnergySpec(theEvents,"Energy Spectrum of Ba133_2mm")
 
     #Plot RondomEvents From Region of Interest
-    PlotRandomEvents(theEvents,5,100,200,"CS137",EventLimit=0,FileSave=True)
-    PlotRandomEvents(theEvents,5,400,500,"CS137",EventLimit=0,FileSave=True)
-    #EnergyValues=RunEvents("/home/ilker/Dropbox/nexus/build/source/Ba133_2mm222.h5",False)
+    PlotRandomEvents(theEvents,5,100,200,"Ba133")
+    PlotRandomEvents(theEvents,5,400,500,"Ba133")
 
 if __name__ == "__main__":
     st=time.time()
     main()
-    print("--- %s minutes ---" %((time.time()-st)/60))
+    print("--- Finished in  %s minutes ---" %((time.time()-st)/60))
