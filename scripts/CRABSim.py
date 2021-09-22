@@ -3,9 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import h5py as h
 import time
+import pickle
 import os
 import random
 #Create a custom 2d Histogram
+saveFile="/media/ilker/writable/DATA/pic/"
 def Hist2d(title,Energys,Times,binss,xlimit,ylimit):
     fig,ax = plt.subplots(figsize=(8,8))
     plt.hist2d(Energys,Times,bins=binss,cmap=plt.cm.BuGn_r)
@@ -22,7 +24,7 @@ def Hist2d(title,Energys,Times,binss,xlimit,ylimit):
     plt.grid(True)
     plt.tight_layout()
 
-    plt.savefig('/home/ilker/Dropbox/nexus/build/source/'+title + '.png')
+    plt.savefig(saveFile+title + '.png')
     plt.show()
 
 #Create a custom 1d Histogram
@@ -43,7 +45,7 @@ def Hist1d(title,Energys,Bins,xlimit,ylimit,FileSave,limits=False):
     plt.grid(True)
     plt.tight_layout()
     if(FileSave):
-        savetit='/home/ilker/Pictures/Sim/'+title + '.png'
+        savetit=saveFile+title + '.png'
         print(f"saving the picture at {savetit}")
         plt.savefig(savetit)
     else:
@@ -92,7 +94,7 @@ def Circle(pltX,pltY,title,FileSave,LarCirR=75,SmallCirR=35,xlimit=100,ylimit=10
     plt.grid(True)
     plt.tight_layout()
     if(FileSave):
-        savetit='/home/ilker/Pictures/Sim/'+title + '.png'
+        savetit=saveFile+title + '.png'
         print(f"saving the picture at {savetit}")
         plt.savefig(savetit)
     else:
@@ -188,7 +190,7 @@ def getTracks(file,Current_Event=0):
 
 
 #Gets the Tracks and as well as energies
-def RunEventsDic(file,Processes=4,TotalLimit=0):
+def RunEventsDic(file,npFileName,Processes=4,TotalLimit=0):
     data=ReadFile(file)
     theEvents={}
     if TotalLimit==0:
@@ -217,6 +219,11 @@ def RunEventsDic(file,Processes=4,TotalLimit=0):
     else:
         EnergyAndTracks(data,0,TotalEvents,theEvents)
 
+    npFileName=npFileName+".dat"
+    np.save(npFileName,theEvents)
+
+   # with open(npFileName, 'wb') as outfile:
+        #pickle.dump(theEvents, outfile, protocol=pickle.HIGHEST_PROTOCOL)
     return theEvents
 
 
@@ -226,35 +233,39 @@ def EnergyAndTracks(data,xRLower,xRHigher,theEvents,EventLimit=0,fudicalR=35,fdc
     if(EventLimit>0):
         TotalEvents=EventLimit
 
+
     FudicalCount=0
     for Current_Event in range(xRLower,TotalEvents):
-
         Current_Hit_Mask = data['MC']['hits']['event_id'] == Current_Event
 
         Current_Particle_Mask = data["MC"]['particles']['event_id'] == Current_Event
+        Hits_PIDs=data['MC']['hits'][Current_Hit_Mask]['particle_id']
+        Current_Particles=data['MC']['particles'][Current_Particle_Mask]
 
-        Electron_Mask = data['MC']['particles'][Current_Particle_Mask]['particle_name'] == b'e-'
+        Electron_Mask = Current_Particles['particle_name'] == b'e-'
+        Gamma_Mask = Current_Particles['particle_name'] == b'gamma'
 
-        #Gamma_Mask = data['MC']['particles'][Current_Particle_Mask]['particle_name'] == b'gamma'
-        #Gamma_PIDS = data['MC']['particles'][Current_Particle_Mask]['particle_id']
 
-        #Electron_MIDS = data["MC"]['particles'][Current_Particle_Mask][Electron_Mask]['mother_id']
+        Electron_MIDS = Current_Particles[Electron_Mask]['mother_id']
+        Gamma_PIDS = Current_Particles[Gamma_Mask]['particle_id']
 
-        #Mothers=np.in1d(Gamma_PIDS,Electron_MIDS)
 
-        #MotherEnergy=data['MC']['particles'][Current_Particle_Mask][Mothers]['kin_energy']
-        #print(MotherEnergy*1000)
+        Mothers=np.in1d(Gamma_PIDS,Electron_MIDS)
 
-        Electron_PIDS = data["MC"]['particles'][Current_Particle_Mask][Electron_Mask]['particle_id']
+        MotherEnergy=Current_Particles[Gamma_Mask][Mothers]['kin_energy']*1e3
 
-        A = data["MC"]['hits'][Current_Hit_Mask]['particle_id']
-        Hit_Electron_Maks = np.in1d(A, Electron_PIDS)
-        ElectronData=data["MC"]['hits'][Current_Hit_Mask][Hit_Electron_Maks]
+
+        Electron_PIDS = data['MC']['particles'][Current_Particle_Mask][Electron_Mask]['particle_id']
+
+
+        Hit_Electron_Maks = np.in1d(Hits_PIDs, Electron_PIDS)
+        ElectronData=data['MC']['hits'][Current_Hit_Mask][Hit_Electron_Maks]
 
         TotalEventEnergy=ElectronData["energy"].sum()*1e3
-        Xhits=data["MC"]['hits'][Current_Hit_Mask][Hit_Electron_Maks]["x"]
-        Yhits=data["MC"]['hits'][Current_Hit_Mask][Hit_Electron_Maks]["y"]
-        Zhits=data["MC"]['hits'][Current_Hit_Mask][Hit_Electron_Maks]["z"]
+
+        Xhits=data['MC']['hits'][Current_Hit_Mask][Hit_Electron_Maks]["x"]
+        Yhits=data['MC']['hits'][Current_Hit_Mask][Hit_Electron_Maks]["y"]
+        Zhits=data['MC']['hits'][Current_Hit_Mask][Hit_Electron_Maks]["z"]
 
         #Checking the Radius if in the boundaries
         fRadius=np.sqrt(Yhits*Yhits+Zhits*Zhits)
@@ -267,7 +278,7 @@ def EnergyAndTracks(data,xRLower,xRHigher,theEvents,EventLimit=0,fudicalR=35,fdc
         FudicalCount=FudicalCount+1
 
         Tracks=np.array([Xhits,Yhits,Zhits])
-        theEvents[Current_Event]=[Tracks,TotalEventEnergy,TrksCntIntheFudi]
+        theEvents[Current_Event]=[Tracks,TotalEventEnergy,TrksCntIntheFudi,MotherEnergy]
 
 
     if(fdcount):
@@ -280,7 +291,7 @@ def PlotRandomEvents(theEvents,NPlots,LowE,HighE,pretitle,FileSave=True):
     for Event in theEvents:
         if(theEvents[Event][1]>=LowE and theEvents[Event][1]<=HighE):
             QualfEnergys.append(Event)
-    #print(len(QualfEnergys))
+    print(f"Events at ({LowE} - {HighE}) -> {len(QualfEnergys)}")
     for plot in range(0,NPlots):
         Event=random.choice(QualfEnergys)
         title=str(pretitle) + "_Tracks_" + str(round(theEvents[Event][1],2)) + "keV"
@@ -292,16 +303,44 @@ def PlotEnergySpec(theEvents,title,binss=np.arange(1,500,10),FileSave=True):
     for Event in theEvents:
         Energys.append(theEvents[Event][1])
     Hist1d(title,Energys,binss,0,0,FileSave)
+
+def PlotMotherEnergySpec(theEvents,title,binss=np.arange(1,500,10),FileSave=True):
+    Energys=[]
+    for Event in theEvents:
+        MotherE=theEvents[Event][3]
+        Energys.extend(MotherE)
+    Hist1d(title,Energys,binss,0,0,FileSave)
+
+def LoadPickleFile(file):
+    with open(file, 'rb') as f:
+        theEvents=pickle.load(f)
+    return theEvents
+
 def main():
 
     # Get the Qualified Events
-    theEvents=RunEventsDic("/home/ilker/Dropbox/nexus/build2/source/Ba133_1M.h5",8) # For multiprocessing
-    #theEvents=RunEventsDic("/home/ilker/Dropbox/nexus/build2/source/Cs137_2mm1M.h5",8) # For multiprocessing
-    PlotEnergySpec(theEvents,"Energy Spectrum of Ba133_2mm")
+    #theEvents=RunEventsDic("/media/ilker/writable/DATA/Ba133_2mm_100000.h5",6) # For multiprocessing
+    #theEvents=RunEventsDic("/media/ilker/writable/DATA/Cs137_2mm_100000.h5","/media/ilker/writable/DATA/Cs137_2mm",6) # For multiprocessing
+    theEvents=RunEventsDic("/home/ilker/Dropbox/nexus/build/source/Ba133_1M.h5","/media/ilker/writable/DATA/Ba_2mm_1M",8) # For multiprocessing
+    #PlotEnergySpec(theEvents,"Energy Spectrum of Ba133_10mm_100k")
+    PlotMotherEnergySpec(theEvents,"Ba133 In Fudical")
 
     #Plot RondomEvents From Region of Interest
-    PlotRandomEvents(theEvents,5,100,200,"Ba133")
-    PlotRandomEvents(theEvents,5,400,500,"Ba133")
+    PlotRandomEvents(theEvents,1,10,200,"Ba133_2mm")
+    PlotRandomEvents(theEvents,1,300,400,"Ba133_2mm")
+
+
+    # Get the Qualified Events
+    #theEvents=RunEventsDic("/media/ilker/writable/DATA/Cs137_10mm_100000.h5",6) # For multiprocessing
+    #theEvents=RunEventsDic("/home/ilker/Dropbox/nexus/build2/source/Cs137_2mm1M.h5",8) # For multiprocessing
+    #PlotEnergySpec(theEvents,"Energy Spectrum of Cs137_10mm_100k")
+
+    #Plot RondomEvents From Region of Interest
+    #PlotRandomEvents(theEvents,2,10,200,"Cs137_10mm_100k")
+    #PlotRandomEvents(theEvents,2,300,400,"Cs137_10mm_100k")
+
+
+
 
 if __name__ == "__main__":
     st=time.time()
