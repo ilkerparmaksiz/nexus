@@ -30,6 +30,10 @@ namespace nexus {
             G4double chamber_diam   ;
             G4double chamber_length ;
             G4double chamber_thickn ;
+            G4double SourceEn_diam   ;
+            G4double SourceEn_length ;
+            G4double SourceEn_thickn ;
+            G4double SourceEn_holedia ;
             G4double gas_pressure_;
             G4ThreeVector vtx_;
             G4ThreeVector vertex;

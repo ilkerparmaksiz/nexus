@@ -7,16 +7,16 @@
 #GEOMETRY
 /Geometry/CRAB/gas_pressure 10. bar
 /Geometry/CRAB/chamber_diam  15. cm
-/Geometry/CRAB/chamber_length 25. cm
+/Geometry/CRAB/chamber_length 47.84 cm
 /Geometry/CRAB/chamber_thickn 2. mm
-/Geometry/CRAB/SourcePosition -8 0 0 cm
+/Geometry/CRAB/SourcePosition 0 0 0 cm
 
 
 # GENERATOR
 /Generator/CrabSourceGenerator/region LAB
-#Cs133
-/Generator/CrabSourceGenerator/atomic_number 55
-/Generator/CrabSourceGenerator/mass_number 137
+#Sr90
+/Generator/CrabSourceGenerator/atomic_number 38
+/Generator/CrabSourceGenerator/mass_number 90
 
 
 /Generator/CrabSourceGenerator/decay_rate 100000 nCi
@@ -30,5 +30,5 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/writable/DATA/Cs137_2mm_1mm_away_1M_OCT5
+/nexus/persistency/outputFile /media/ilker/writable/DATA/Sr90_2mm_10k_10bar
 #/run/printProgress 100

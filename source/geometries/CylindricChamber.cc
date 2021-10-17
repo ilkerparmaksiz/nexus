@@ -66,8 +66,7 @@ namespace nexus {
 
     // GAS ///////////////////////////////////////////////////////////
 
-    G4Tubs* gas_solid =
-      new G4Tubs("GAS", 0., chamber_diam/2., chamber_length/2., 0., twopi);
+    G4Tubs* gas_solid =new G4Tubs("GAS", 0., chamber_diam/2., chamber_length/2., 0., twopi);
 
     G4Material* gxe = materials::GXe(10.*bar);
     gxe->SetMaterialPropertiesTable(opticalprops::GXe(10.*bar, 303));

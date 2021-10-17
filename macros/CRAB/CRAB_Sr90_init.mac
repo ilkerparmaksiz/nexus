@@ -1,0 +1,25 @@
+
+#Physicslist
+/PhysicsList/RegisterPhysics G4EmStandardPhysics_option4
+/PhysicsList/RegisterPhysics G4DecayPhysics
+/PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
+/PhysicsList/RegisterPhysics G4OpticalPhysics
+
+#Geometry
+/nexus/RegisterGeometry CRAB
+
+#Generator
+#/nexus/RegisterGenerator Kr83mGenerator
+#/nexus/RegisterGenerator IonGenerator
+/nexus/RegisterGenerator CrabSourceGenerator
+
+#FileSave
+/nexus/RegisterPersistencyManager PersistencyManager
+
+#Actions
+/nexus/RegisterTrackingAction DefaultTrackingAction
+/nexus/RegisterEventAction DefaultEventAction
+/nexus/RegisterRunAction DefaultRunAction
+
+#Config
+/nexus/RegisterMacro macros/CRAB/CRAB_Sr90_config.mac

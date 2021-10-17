@@ -43,7 +43,6 @@ target_link_libraries(nexus-test ${ROOT_LIBRARIES}
                                  ${GSL_LIBRARIES})
 
 ############################################################
-
 add_executable(nexus nexus.cc
 		                 $<TARGET_OBJECTS:nexus_actions>
 	                   $<TARGET_OBJECTS:nexus_base>

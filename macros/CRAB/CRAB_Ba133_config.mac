@@ -9,7 +9,7 @@
 /Geometry/CRAB/chamber_diam  15. cm
 /Geometry/CRAB/chamber_length 25. cm
 /Geometry/CRAB/chamber_thickn 2. mm
-/Geometry/CRAB/SourcePosition -8 0 0
+/Geometry/CRAB/SourcePosition -12 0 0
 
 
 # GENERATOR
@@ -29,5 +29,6 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile Ba133_2mm222
+#/nexus/persistency/outputFile Ba133_2mm222
+/nexus/persistency/outputFile /media/ilker/writable/DATA/Ba133_2mm_100000
 #/run/printProgress 100
