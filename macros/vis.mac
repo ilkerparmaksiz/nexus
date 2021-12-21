@@ -69,3 +69,4 @@
 # 1st param (omittable): "accumulate" or "refresh"
 # 2nd param (omittable): <integer> (default = 100)
 /vis/scene/endOfEventAction accumulate
+/vis/viewer/update

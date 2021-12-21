@@ -9,11 +9,23 @@
 /Geometry/CRAB/chamber_diam  15. cm
 /Geometry/CRAB/chamber_length 47.84 cm
 /Geometry/CRAB/chamber_thickn 2. mm
-/Geometry/CRAB/SourcePosition 0 0 0 cm
+#/Geometry/CRAB/SourcePosition -4.5 -4.5 -4.5 cm
+/Geometry/CRAB/SourcePosition -5.4 0 0 cm
+#/Geometry/CRAB/SourcePosition 0 0 0 cm
+
+#Active
+/Geometry/CRAB/Active_diam 8.5 cm
+/Geometry/CRAB/Active_length 45 cm
+
+#SourceEncloser
+/Geometry/CRAB/SourceEn_diam 10 mm
+/Geometry/CRAB/SourceEn_holedi 1 mm
+/Geometry/CRAB/SourceEn_offset 5.7 cm
+
 
 
 # GENERATOR
-/Generator/CrabSourceGenerator/region LAB
+/Generator/CrabSourceGenerator/region GAS
 #Sr90
 /Generator/CrabSourceGenerator/atomic_number 38
 /Generator/CrabSourceGenerator/mass_number 90
@@ -30,5 +42,5 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/writable/DATA/Sr90_2mm_10k_10bar
+/nexus/persistency/outputFile /media/ilker/writable/DATA/Sr90Encl_1mm_5_7_offset_nov2_100kv2
 #/run/printProgress 100

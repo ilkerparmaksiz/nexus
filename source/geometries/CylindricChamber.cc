@@ -82,8 +82,7 @@ namespace nexus {
     const G4double active_diam   = chamber_diam;
     const G4double active_length = chamber_length/2.;
 
-    G4Tubs* active_solid =
-      new G4Tubs("ACTIVE", 0., active_diam/2., active_length/2., 0, twopi);
+    G4Tubs* active_solid =new G4Tubs("ACTIVE", 0., active_diam/2., active_length/2., 0, twopi);
 
     G4LogicalVolume* active_logic =
       new G4LogicalVolume(active_solid, gxe, "ACTIVE");
