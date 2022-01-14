@@ -186,8 +186,8 @@ namespace nexus{
         LabVa->SetForceWireframe(false);
         //GasVa->SetForceWireframe(false);
         GasVa->SetForceWireframe(true);
-        ActiveVa->SetForceWireframe(true);
-        Active->SetVisAttributes(G4VisAttributes::Invisible);
+        ActiveVa->SetForceCloud(true);
+        Active->SetVisAttributes(ActiveVa);
         Gas->SetVisAttributes(GasVa);
         //SourceHolderVa->SetForceSolid(true);
         SourceHolderVa->SetForceWireframe(false);

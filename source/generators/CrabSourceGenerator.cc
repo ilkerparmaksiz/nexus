@@ -110,7 +110,6 @@ G4ParticleDefinition* CrabSourceGenerator::IonDefinition()
 }
 void CrabSourceGenerator::GeneratePrimaryVertex(G4Event* event)
 {
-
     //Converting nCi to Bq 1nCi to 37 Bq
     G4int DecayRateinBq=(N_Decays_per_s_)*37*1e-6;
     G4int N_Decays=DecayRateinBq*event_window_;
@@ -133,13 +132,15 @@ void CrabSourceGenerator::GeneratePrimaryVertex(G4Event* event)
             decay_time_=event_window_;
             EventsWithWindow(event,decay_time_);
         }
-    }else{ //run sim for a given us time window
-        for(G4int Decay=0;Decay<N_Decays;Decay++){
+    }else
+    { //run sim for a given us time window
+
+        for(G4int Decay=0;Decay<N_Decays;Decay++)
+        {
             decay_time_=G4UniformRand()*event_window_;
             EventsWithWindow(event,decay_time_);
         }
     }
-
 
 }
 void CrabSourceGenerator::EventsWithWindow(G4Event*event,G4double decay_time){
@@ -160,3 +161,4 @@ void CrabSourceGenerator::EventsWithWindow(G4Event*event,G4double decay_time){
     vertex->SetPrimary(ion);
     event->AddPrimaryVertex(vertex);
 }
+
