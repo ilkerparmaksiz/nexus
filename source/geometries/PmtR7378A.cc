@@ -59,6 +59,10 @@ namespace nexus {
     G4LogicalVolume* pmt_logic =
       new G4LogicalVolume(pmt_solid, aluminum, "PMT_R7378A");
 
+    G4VisAttributes vis_body = nexus::TitaniumGreyAlpha();;
+    vis_body.SetForceSolid(true);
+    pmt_logic->SetVisAttributes(vis_body);
+
     this->SetLogicalVolume(pmt_logic);
 
 
