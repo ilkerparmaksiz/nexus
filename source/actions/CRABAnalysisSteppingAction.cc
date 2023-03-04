@@ -307,7 +307,7 @@ void CRABAnalysisSteppingAction::UserSteppingAction(const G4Step* step)
         } else if(boundary->GetStatus()==Absorption ) {
             G4String detector_name = step->GetPostStepPoint()->GetTouchableHandle()->GetVolume()->GetName();
 
-            if(!(detector_name=="S1_PHOTOCATHODE" || detector_name=="S2_PHOTOCATHODE")){
+            if(!(detector_name=="Anode_PHOTOCATHODE" || detector_name=="Cathode_PHOTOCATHODE")){
                 return;
             }
             detectorCounts::iterator Absit=ObservedPhotons.find(detector_name);

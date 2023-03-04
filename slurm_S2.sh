@@ -16,7 +16,7 @@ SEED=`echo "scale = 2;  $JOBNUMBER" | bc`
 
 ## Path to output files and G4Executable
 #outputDir="/media/argon/Ilker/CRAB/Sim/new/S2"
-outputDir="/media/ilker/Ilker/SimResults/Dec_21_2022"
+outputDir="/mnt/Ilker/SimResults/March_3_2022"
 PathToG4Executable="/home/ilker/Projects/nexus/build/nexus"
 
 
@@ -28,7 +28,7 @@ NumberOfEvents=1
 
 ### Options
 drift=true
-EL=false
+EL=true
 cluster=true
 HideNeddle=false
 HideCollimator=true

@@ -212,9 +212,9 @@ namespace nexus{
 
 
         //////////////////////////////////////////
-
+        G4double PeekRodExtend=0.6*cm;
         // G4double FielCageGap=(160.3+29.55)*mm;
-        G4double FielCageGap=21.26*cm;
+        G4double FielCageGap=21.26*cm-PeekRodExtend;
         
         // Placing the gas in the chamber
         G4Tubs* gas_solid =new G4Tubs("GAS", 0., chamber_diam/2., chamber_length/2., 0., twopi);
@@ -289,7 +289,7 @@ namespace nexus{
         G4Tubs* PEEK_Rod_Solid_buffer = new G4Tubs("PEEK_Rod", 0., PEEK_Rod_OD/2., 1.1*cm/2.0, 0., twopi);
         G4LogicalVolume* PEEK_logic_buffer = new G4LogicalVolume(PEEK_Rod_Solid_buffer, PEEK, "PEEK_Rod_B");
 
-        G4Tubs* PEEK_Rod_Solid_buffer_end = new G4Tubs("PEEK_Rod", 0., PEEK_Rod_OD/2., 3.37*cm/2.0, 0., twopi);
+        G4Tubs* PEEK_Rod_Solid_buffer_end = new G4Tubs("PEEK_Rod", 0., PEEK_Rod_OD/2., 3.37*cm/2.0+PeekRodExtend/2, 0., twopi);
         G4LogicalVolume* PEEK_logic_buffer_end = new G4LogicalVolume(PEEK_Rod_Solid_buffer_end, PEEK, "PEEK_Rod_BE");
 
 
@@ -331,8 +331,8 @@ namespace nexus{
 
         ///
         //Adding the PMTs in here
-        pmt1_->SetPMTName("S2");
-        pmt2_->SetPMTName("S1");
+        pmt1_->SetPMTName("Cathode");
+        pmt2_->SetPMTName("Anode");
         pmt1_->Construct();
         pmt2_->Construct();
 
@@ -406,174 +406,206 @@ namespace nexus{
 
 
         // FieldCage
-        // G4double FieldCagePos=chamber_length/2-((129)*mm)-FielCageGap/2-ElGap_/2;
-        // G4double EL_pos=chamber_length/2-FielCageGap/2-((326)*mm)-ElGap_/2;
-        // G4VPhysicalVolume *FieldCage_Phys;
-        // FieldCage_Phys=new G4PVPlacement(0,G4ThreeVector(0,0,FieldCagePos/2),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,false);
-
-        G4double FieldCagePos=-0*cm;
+         /*G4double FieldCagePos=chamber_length/2-((129)*mm)-FielCageGap/2-ElGap_/2;
+         G4double EL_pos=chamber_length/2-FielCageGap/2-((326)*mm)-ElGap_/2;
+         G4VPhysicalVolume *FieldCage_Phys;
+         FieldCage_Phys=new G4PVPlacement(0,G4ThreeVector(0,0,FieldCagePos/2),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,false);
+          */
+        G4double FieldCagePos=-0*cm+PeekRodExtend;
         // G4double EL_pos=-FielCageGap-ElGap_;
-        G4double EL_pos=-10.98*cm;
+        G4double EL_pos=-10.98*cm+PeekRodExtend;
 
-        // G4VPhysicalVolume * FieldCage_Phys=new G4PVPlacement(0,G4ThreeVector(0,0,FieldCagePos/2),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,false);
+      //FieldCage
+      G4VPhysicalVolume * FieldCage_Phys=new G4PVPlacement(0,G4ThreeVector(0,0,FieldCagePos/2),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,false);
 
-        // Field Cage Rings
-        G4VPhysicalVolume * FR_FC_10 = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 5*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_9  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 4*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_8  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 3*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_7  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 2*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_6  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 1*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_5  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_4  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 1*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_3  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 2*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_2  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 3*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_FC_1  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-
-
-        // // EL Field Rings
-        G4VPhysicalVolume * FR_EL_3  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - 1.3*cm - 0.7*cm - 1.3*cm - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_EL_2  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - 1.3*cm - 0.7*cm - 1.3*cm - 2*cm - FR_thick - 1*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * FR_EL_1  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - 1.3*cm - 0.7*cm - 1.3*cm - 2*cm - FR_thick), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      // Field Cage Rings
+      G4VPhysicalVolume * FR_FC_10 = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 5*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_9  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 4*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_8  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 3*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_7  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 2*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_6  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 + 1*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_5  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_4  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 1*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_3  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 2*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_2  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 3*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_FC_1  = new G4PVPlacement(0, G4ThreeVector(0,0, -FR_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
 
 
-        // PEEK Rods
-
-        G4double x_rot_3 = 5*std::sin(120*deg)*cm;
-        G4double y_rot_3 = -5*std::cos(120*deg)*cm;
-        G4double x_rot_2 = 5*std::sin(-120*deg)*cm;
-        G4double y_rot_2 = -5*std::cos(-120*deg)*cm;
+      // // EL Field Rings
+      G4VPhysicalVolume * FR_EL_3  = new G4PVPlacement(0, G4ThreeVector(0,0, PeekRodExtend-FR_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - 1.3*cm - 0.7*cm - 1.3*cm - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_EL_2  = new G4PVPlacement(0, G4ThreeVector(0,0, PeekRodExtend-FR_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - 1.3*cm - 0.7*cm - 1.3*cm - 2*cm - FR_thick - 1*(FR_thick + PEEK_Rod_thick)), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * FR_EL_1  = new G4PVPlacement(0, G4ThreeVector(0,0, PeekRodExtend-FR_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - 1.3*cm - 0.7*cm - 1.3*cm - 2*cm - FR_thick), FR_logic, FR_logic->GetName(), gas_logic, 0, 0, false);
 
 
-        G4VPhysicalVolume * PEEK_FC_10_1  = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, 1*cm/2.0 + 5*(FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_9_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 + 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_8_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 + 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_7_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 + 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_6_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 + 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_5_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_4_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_3_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_2_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 - 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_1_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      // PEEK Rods
 
-        G4VPhysicalVolume * PEEK_FC_10_2  = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, 1*cm/2.0  + 5*(FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_9_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  + 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_8_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  + 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_7_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  + 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_6_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  + 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_5_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0 ), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_4_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_3_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_2_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_1_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-
-        G4VPhysicalVolume * PEEK_FC_10_3  = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, 1*cm/2.0 + 5*(FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_9_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  + 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_8_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  + 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_7_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  + 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_6_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  + 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_5_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0 ), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_4_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_3_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_2_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_FC_1_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4double x_rot_3 = 5*std::sin(120*deg)*cm;
+      G4double y_rot_3 = -5*std::cos(120*deg)*cm;
+      G4double x_rot_2 = 5*std::sin(-120*deg)*cm;
+      G4double y_rot_2 = -5*std::cos(-120*deg)*cm;
 
 
-        G4VPhysicalVolume * PEEK_EL_1_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, 1.1*cm/2.0          - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_2_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_3_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_4_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, 3.37*cm/2.0         - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick) - FR_thick - 3.37*cm), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_10_1  = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, 1*cm/2.0 + 5*(FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_9_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 + 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_8_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 + 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_7_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 + 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_6_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 + 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_5_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_4_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_3_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_2_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 - 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_1_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0 - 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
 
-        G4VPhysicalVolume * PEEK_EL_1_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, 1.1*cm/2.0          - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_2_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_3_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_4_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, 3.37*cm/2.0         - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick) - FR_thick - 3.37*cm), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_10_2  = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, 1*cm/2.0  + 5*(FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_9_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  + 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_8_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  + 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_7_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  + 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_6_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  + 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_5_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0 ), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_4_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_3_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_2_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_1_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
 
-        G4VPhysicalVolume * PEEK_EL_1_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, 1.1*cm/2.0          - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_2_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_3_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-        G4VPhysicalVolume * PEEK_EL_4_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, 3.37*cm/2.0         - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick) - FR_thick - 3.37*cm), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 0, 0, false);
-
-
-        // EL_Gap
-        new G4PVPlacement(0, G4ThreeVector(0.,0.,EL_pos),EL_logic,EL_solid->GetName(),gas_logic, 0,0, false);
-
-        G4VPhysicalVolume * EL_Ring_Plus        = new G4PVPlacement(0, G4ThreeVector(0.,0., EL_thick/2.0 - FR_thick - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick), EL_ring_logic, EL_solid->GetName(), gas_logic, 0,0, false);
-
-        // Place the Mesh bits
-        G4VPhysicalVolume * EL_Mesh_Plus_plus = new G4PVPlacement(0, G4ThreeVector(0.,0., EL_thick/2.0 - FR_thick - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - EL_thick/2.0), ELP_Disk_logic, ELP_Disk_logic->GetName(), gas_logic, 0,0, false);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size,  EL_mesh_thick, ELP_Disk_logic, EL_Hex_logic);
-
-        G4VPhysicalVolume * EL_Ring_Plus_plus   = new G4PVPlacement(0, G4ThreeVector(0.,0., EL_thick/2.0 - FR_thick - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick), EL_ring_logic, EL_solid->GetName(), gas_logic, 0,0, false);
-
-        // Place the Mesh bits
-        G4VPhysicalVolume * EL_Mesh_Plus =new G4PVPlacement(0, G4ThreeVector(0.,0.,  EL_thick/2.0 - FR_thick - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick + EL_thick/2.0), ELPP_Disk_logic, ELPP_Disk_logic->GetName(), gas_logic, 0,0, false);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size,  EL_mesh_thick, ELPP_Disk_logic, EL_Hex_logic);
-
-
-        // Cathode
-        G4VPhysicalVolume * Cathode       = new G4PVPlacement(0, G4ThreeVector(0.,0., EL_thick/2.0 + 1*cm + 5*(FR_thick + PEEK_Rod_thick)), EL_ring_logic, EL_solid->GetName(), gas_logic, 0,0, false);
-
-        // Place the Mesh bits
-        G4VPhysicalVolume * Cathode_EL_Mesh =new G4PVPlacement(0, G4ThreeVector(0.,0.,  EL_thick/2.0 + 1*cm + 5*(FR_thick + PEEK_Rod_thick ) - EL_thick/2.0), Cathode_Disk_logic, Cathode_Disk_logic->GetName(), gas_logic, 0,0, false);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size,  EL_mesh_thick, Cathode_Disk_logic, EL_Hex_logic);
+      G4VPhysicalVolume * PEEK_FC_10_3  = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, 1*cm/2.0 + 5*(FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_9_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  + 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_8_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  + 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_7_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  + 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_6_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  + 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_5_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0 ), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_4_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 1*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_3_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 2*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_2_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 3*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_FC_1_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
 
 
-        // MgF2 Windows
-        G4double window_posz = chamber_length/2 + chamber_thickn;
-        // G4VPhysicalVolume* lensPhysical = new G4PVPlacement(0, G4ThreeVector(0., 0., window_posz), MgF2_window_logic,"MgF2_WINDOW1", lab_logic_volume,false, 0, false);
+      G4VPhysicalVolume * PEEK_EL_1_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, 1.1*cm/2.0          - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick+PeekRodExtend), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_2_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 1*(FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_3_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_4_1   = new G4PVPlacement(0, G4ThreeVector(0,-5*cm, 3.37*cm/2.0         - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick) - FR_thick - 3.37*cm+PeekRodExtend/2), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 0, 0, false);
 
-        G4VPhysicalVolume* lensPhysical = new G4PVPlacement(0, G4ThreeVector(0., 0., window_posz+ maxLensLength/2.0), lensLogical,"MgF2_WINDOW1", gas_logic,false, 0, false);
-        new G4PVPlacement(0, G4ThreeVector(0., 0., -window_posz), MgF2_window_logic,"MgF2_WINDOW2", gas_logic, false, 1, false);
+      G4VPhysicalVolume * PEEK_EL_1_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, 1.1*cm/2.0          - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick+PeekRodExtend), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_2_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 1*(FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_3_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_4_2   = new G4PVPlacement(0, G4ThreeVector(x_rot_2, y_rot_2, 3.37*cm/2.0         - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick) - FR_thick - 3.37*cm+PeekRodExtend/2), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 0, 0, false);
 
-        //PMT Tubes
-        G4VPhysicalVolume *PMT_Tube_Phys0=new G4PVPlacement(0,G4ThreeVector(0,0,PMT_pos+LongPMTTubeOffset),PMT_Tube_Logic0,PMT_Tube_Logic0->GetName(),lab_logic_volume,false,0,false);
-        G4VPhysicalVolume *PMT_Tube_Phys1=new G4PVPlacement(pmt1rotate,G4ThreeVector(0,0,-(PMT_pos-PMT_offset)-offset),PMT_Tube_Logic1,PMT_Tube_Logic1->GetName(),lab_logic_volume,false,0,false);
-        //PMT Tube Vacuum
-
-        G4VPhysicalVolume *PMT_Tube_Vacuum_Phys0=new G4PVPlacement(0,G4ThreeVector(0,0,PMT_pos+LongPMTTubeOffset),InsideThePMT_Tube_Logic0,"PMT_TUBE_VACUUM0",lab_logic_volume,false,0,false);
-        G4VPhysicalVolume *PMT_Tube_Vacuum_Phys1=new G4PVPlacement(pmt1rotate,G4ThreeVector(0,0,-(PMT_pos-PMT_offset)-offset),InsideThePMT_Tube_Logic1,"PMT_TUBE_VACUUM1",lab_logic_volume,false,0,false);
-
-        // PMT Tube Block
-        new G4PVPlacement(0,G4ThreeVector(0,0,PMT_pos-PMT_offset+PMT_Tube_Length0-PMT_Tube_Block_Thickness/2+LongPMTTubeOffset),PMT_Block_Logic0,PMT_Block_Logic0->GetName(),lab_logic_volume,false,0,false);
-        new G4PVPlacement(pmt1rotate,G4ThreeVector(0,0,-(PMT_pos-PMT_offset+PMT_Tube_Length1-PMT_Tube_Block_Thickness/2)-offset),PMT_Block_Logic,PMT_Block_Logic->GetName(),lab_logic_volume,false,1,false);
-
-        // PMTs
-        new G4PVPlacement(pmt1rotate,G4ThreeVector (0,0,((PMT3_Pos_)-pmt1_->Length()/2-PMT_Tube_Length1/2-MgF2_window_thickness_/2)),pmt1_logic,pmt1_->GetPMTName(),InsideThePMT_Tube_Logic0,true,0,false);
-        new G4PVPlacement(pmt1rotate,G4ThreeVector (0,0,(PMT1_Pos_-pmt1_->Length()/2-MgF2_window_thickness_/2)),pmt2_logic,pmt2_->GetPMTName(),InsideThePMT_Tube_Logic1,true,0,false);
+      G4VPhysicalVolume * PEEK_EL_1_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, 1.1*cm/2.0          - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick+PeekRodExtend), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_2_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 1*(FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_3_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, PEEK_Rod_thick/2.0  - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
+      G4VPhysicalVolume * PEEK_EL_4_3   = new G4PVPlacement(0, G4ThreeVector(x_rot_3, y_rot_3, 3.37*cm/2.0         - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick - 2*cm - FR_thick - 2*(FR_thick + PEEK_Rod_thick) - FR_thick - 3.37*cm+PeekRodExtend/2) , PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 0, 0, false);
 
 
-        // Define a rotation matrix to orient all detector pieces along y direction
-        G4RotationMatrix* rotateZ_120 = new G4RotationMatrix();
-        rotateZ_120->rotateZ(120.*deg);
-        G4RotationMatrix* rotateZ_m120 = new G4RotationMatrix();
-        rotateZ_m120->rotateZ(-120.*deg);
+      // EL_Gap
+      new G4PVPlacement(0, G4ThreeVector(0.,0.,EL_pos),EL_logic,EL_solid->GetName(),gas_logic, 0,0, false);
 
-        x_rot_3 = 5.7*std::sin(120*deg)*cm;
-        y_rot_3 = -5.7*std::cos(120*deg)*cm;
-        x_rot_2 = 5.7*std::sin(-120*deg)*cm;
-        y_rot_2 = -5.7*std::cos(-120*deg)*cm;
+      G4VPhysicalVolume * EL_Ring_Plus        = new G4PVPlacement(0, G4ThreeVector(0.,0., PeekRodExtend+EL_thick/2.0 - FR_thick - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick), EL_ring_logic, EL_solid->GetName(), gas_logic, 0,0, false);
 
-        // Brackets
-        G4VPhysicalVolume* bracketPhysical1 = new G4PVPlacement(0,  G4ThreeVector (0,(-5.7)*cm, EL_pos),bracket_logical,"bracketPhysical",gas_logic, false,0,false);  
-        G4VPhysicalVolume* bracketPhysical2 = new G4PVPlacement(rotateZ_120,  G4ThreeVector (x_rot_2, y_rot_2, EL_pos),bracket_logical,"bracketPhysical",gas_logic, false,0,false);  
-        G4VPhysicalVolume* bracketPhysical3 = new G4PVPlacement(rotateZ_m120,  G4ThreeVector (x_rot_3, y_rot_3, EL_pos),bracket_logical,"bracketPhysical",gas_logic, false,0,false);  
+      // Place the Mesh bits
+      G4VPhysicalVolume * EL_Mesh_Plus_plus = new G4PVPlacement(0, G4ThreeVector(0.,0., PeekRodExtend+EL_thick/2.0 - FR_thick - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - EL_thick/2.0), ELP_Disk_logic, ELP_Disk_logic->GetName(), gas_logic, 0,0, false);
+      HexCreator->PlaceHexagons(nHole, EL_hex_size,  EL_mesh_thick, ELP_Disk_logic, EL_Hex_logic);
 
+      G4VPhysicalVolume * EL_Ring_Plus_plus   = new G4PVPlacement(0, G4ThreeVector(0.,0., PeekRodExtend+EL_thick/2.0 - FR_thick - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick), EL_ring_logic, EL_solid->GetName(), gas_logic, 0,0, false);
 
-        /// CRAB0 Lens
-        //lens = new ::UltraFresnelLens(MgF2_window_diam_,13,MgF2,labPhysical,G4ThreeVector(0., 0., window_posz));
+      // Place the Mesh bits
+      G4VPhysicalVolume * EL_Mesh_Plus =new G4PVPlacement(0, G4ThreeVector(0.,0.,  PeekRodExtend+EL_thick/2.0 - FR_thick - 4*(FR_thick + PEEK_Rod_thick) - 2.5*cm - EL_thick - ElGap_ - EL_thick + EL_thick/2.0), ELPP_Disk_logic, ELPP_Disk_logic->GetName(), gas_logic, 0,0, false);
+      HexCreator->PlaceHexagons(nHole, EL_hex_size,  EL_mesh_thick, ELPP_Disk_logic, EL_Hex_logic);
 
 
+      // Cathode
+      G4VPhysicalVolume * Cathode       = new G4PVPlacement(0, G4ThreeVector(0.,0., EL_thick/2.0 + 1*cm + 5*(FR_thick + PEEK_Rod_thick)), EL_ring_logic, EL_solid->GetName(), gas_logic, 0,0, false);
 
-        // Define this volume as an ionization sensitive detector
-        //FieldCage_Logic->SetUserLimits(new G4UserLimits(1*mm));
-        IonizationSD* sensdet = new IonizationSD("/CRAB/FIELDCAGE");
-        //Active_logic->SetSensitiveDetector(sensdet);
-        FieldCage_Logic->SetSensitiveDetector(sensdet);
-        G4SDManager::GetSDMpointer()->AddNewDetector(sensdet);
+      // Place the Mesh bits
+      G4VPhysicalVolume * Cathode_EL_Mesh =new G4PVPlacement(0, G4ThreeVector(0.,0.,  EL_thick/2.0 + 1*cm + 5*(FR_thick + PEEK_Rod_thick ) - EL_thick/2.0), Cathode_Disk_logic, Cathode_Disk_logic->GetName(), gas_logic, 0,0, false);
+      HexCreator->PlaceHexagons(nHole, EL_hex_size,  EL_mesh_thick, Cathode_Disk_logic, EL_Hex_logic);
 
 
-        // Electrical Field
-        if(efield_){
+      // MgF2 Windows
+      G4double window_posz = chamber_length/2 + chamber_thickn;
+      // G4VPhysicalVolume* lensPhysical = new G4PVPlacement(0, G4ThreeVector(0., 0., window_posz), MgF2_window_logic,"MgF2_WINDOW1", lab_logic_volume,false, 0, false);
+
+      G4VPhysicalVolume* lensPhysical = new G4PVPlacement(0, G4ThreeVector(0., 0., window_posz+ maxLensLength/2.0), lensLogical,"MgF2_WINDOW1", gas_logic,false, 0, false);
+      new G4PVPlacement(0, G4ThreeVector(0., 0., -window_posz), MgF2_window_logic,"MgF2_WINDOW2", gas_logic, false, 1, false);
+
+      //PMT Tubes
+      G4VPhysicalVolume *PMT_Tube_Phys0=new G4PVPlacement(0,G4ThreeVector(0,0,PMT_pos+LongPMTTubeOffset),PMT_Tube_Logic0,PMT_Tube_Logic0->GetName(),lab_logic_volume,false,0,false);
+      G4VPhysicalVolume *PMT_Tube_Phys1=new G4PVPlacement(pmt1rotate,G4ThreeVector(0,0,-(PMT_pos-PMT_offset)-offset),PMT_Tube_Logic1,PMT_Tube_Logic1->GetName(),lab_logic_volume,false,0,false);
+      //PMT Tube Vacuum
+
+      G4VPhysicalVolume *PMT_Tube_Vacuum_Phys0=new G4PVPlacement(0,G4ThreeVector(0,0,PMT_pos+LongPMTTubeOffset),InsideThePMT_Tube_Logic0,"PMT_TUBE_VACUUM0",lab_logic_volume,false,0,false);
+      G4VPhysicalVolume *PMT_Tube_Vacuum_Phys1=new G4PVPlacement(pmt1rotate,G4ThreeVector(0,0,-(PMT_pos-PMT_offset)-offset),InsideThePMT_Tube_Logic1,"PMT_TUBE_VACUUM1",lab_logic_volume,false,0,false);
+
+      // PMT Tube Block
+      new G4PVPlacement(0,G4ThreeVector(0,0,PMT_pos-PMT_offset+PMT_Tube_Length0-PMT_Tube_Block_Thickness/2+LongPMTTubeOffset),PMT_Block_Logic0,PMT_Block_Logic0->GetName(),lab_logic_volume,false,0,false);
+      new G4PVPlacement(pmt1rotate,G4ThreeVector(0,0,-(PMT_pos-PMT_offset+PMT_Tube_Length1-PMT_Tube_Block_Thickness/2)-offset),PMT_Block_Logic,PMT_Block_Logic->GetName(),lab_logic_volume,false,1,false);
+
+      // PMTs
+      new G4PVPlacement(pmt1rotate,G4ThreeVector (0,0,((PMT3_Pos_)-pmt1_->Length()/2-PMT_Tube_Length1/2-MgF2_window_thickness_/2)),pmt1_logic,pmt1_->GetPMTName(),InsideThePMT_Tube_Logic0,true,0,false);
+      new G4PVPlacement(pmt1rotate,G4ThreeVector (0,0,(PMT1_Pos_-pmt1_->Length()/2-MgF2_window_thickness_/2)),pmt2_logic,pmt2_->GetPMTName(),InsideThePMT_Tube_Logic1,true,0,false);
+
+
+      // Define a rotation matrix to orient all detector pieces along y direction
+      G4RotationMatrix* rotateZ_120 = new G4RotationMatrix();
+      rotateZ_120->rotateZ(120.*deg);
+      G4RotationMatrix* rotateZ_m120 = new G4RotationMatrix();
+      rotateZ_m120->rotateZ(-120.*deg);
+
+      x_rot_3 = 5.7*std::sin(120*deg)*cm;
+      y_rot_3 = -5.7*std::cos(120*deg)*cm;
+      x_rot_2 = 5.7*std::sin(-120*deg)*cm;
+      y_rot_2 = -5.7*std::cos(-120*deg)*cm;
+
+      // Brackets
+      G4VPhysicalVolume* bracketPhysical1 = new G4PVPlacement(0,  G4ThreeVector (0,(-5.7)*cm, EL_pos),bracket_logical,"bracketPhysical",gas_logic, false,0,false);
+      G4VPhysicalVolume* bracketPhysical2 = new G4PVPlacement(rotateZ_120,  G4ThreeVector (x_rot_2, y_rot_2, EL_pos),bracket_logical,"bracketPhysical",gas_logic, false,0,false);
+      G4VPhysicalVolume* bracketPhysical3 = new G4PVPlacement(rotateZ_m120,  G4ThreeVector (x_rot_3, y_rot_3, EL_pos),bracket_logical,"bracketPhysical",gas_logic, false,0,false);
+
+
+      /// CRAB0 Lens
+      //lens = new ::UltraFresnelLens(MgF2_window_diam_,13,MgF2,labPhysical,G4ThreeVector(0., 0., window_posz));
+
+
+
+      // Define this volume as an ionization sensitive detector
+      //FieldCage_Logic->SetUserLimits(new G4UserLimits(1*mm));
+      IonizationSD* sensdet = new IonizationSD("/CRAB/FIELDCAGE");
+      //Active_logic->SetSensitiveDetector(sensdet);
+      FieldCage_Logic->SetSensitiveDetector(sensdet);
+      G4SDManager::GetSDMpointer()->AddNewDetector(sensdet);
+
+        // Source Holder
+
+        G4VPhysicalVolume * Needle_Phys;
+        if(!HideSourceHolder_){
+            // Particle Source Holder
+            //Rotation Matrix
+
+            // Needle Solid
+
+            G4RotationMatrix* NeedleRotate = new G4RotationMatrix();
+            NeedleRotate->rotateY(90.*deg);
+            //NeedleRotate->rotateX(+10*deg);
+            G4ThreeVector NeedlePos={vtx_[0]-NeedleOffset,vtx_[1],vtx_[2]-FieldCagePos/2};
+            G4ThreeVector CollPosition={NeedlePos[0]-5*mm,NeedlePos[1],NeedlePos[2]};
+
+            Needle_Phys= new G4PVPlacement(NeedleRotate,NeedlePos,Needle_Logic,Needle->GetName(),FieldCage_Logic,true,0,false);
+            if(!HideCollimator_) {
+                new G4PVPlacement(NeedleRotate,CollPosition,Coll_Logic,CollimatorWithBlock->GetName(),FieldCage_Logic,true,0,false);
+            }
+            G4RotationMatrix* rotateHolder = new G4RotationMatrix();
+            rotateHolder->rotateY(90.*deg);
+
+            //new G4PVPlacement(rotateHolder, G4ThreeVector(-SourceEn_offset,0,0), SourceHolChamber_logic, SourceHolChamber_solid->GetName(),gas_logic, false, 0, false);
+            //new G4PVPlacement(rotateHolder, G4ThreeVector(-SourceEn_offset-SourceEn_length/2,0,0), SourceHolChamberBlock_logic, SourceHolChamberBlock_solid->GetName(),gas_logic, false, 0, false);
+
+            NeedleEyePointSample=new CylinderPointSampler2020(NeedleyepRMin,NeedleyepRMax+2*nm,NeedleyepDz,0,twopi, rotateHolder,G4ThreeVector(NeedlePos[0],NeedlePos[1],NeedlePos[2]+FieldCagePos/2));
+
+        }
+
+      // Electrical Field
+      if(efield_){
+            FielCageGap=(160.3+29.55)*mm;
+            FieldCagePos=chamber_length/2-((129)*mm)-FielCageGap/2-ElGap_/2;
+            EL_pos=chamber_length/2-FielCageGap/2-((326)*mm)-ElGap_/2;
 
             UniformElectricDriftField* field = new UniformElectricDriftField();
 
@@ -614,34 +646,7 @@ namespace nexus{
         }
 
 
-        // Source Holder
 
-        G4VPhysicalVolume * Needle_Phys;
-        if(!HideSourceHolder_){
-            // Particle Source Holder
-            //Rotation Matrix
-
-            // Needle Solid
-
-            G4RotationMatrix* NeedleRotate = new G4RotationMatrix();
-            NeedleRotate->rotateY(90.*deg);
-            //NeedleRotate->rotateX(+10*deg);
-            G4ThreeVector NeedlePos={vtx_[0]-NeedleOffset,vtx_[1],vtx_[2]-FieldCagePos/2};
-            G4ThreeVector CollPosition={NeedlePos[0]-5*mm,NeedlePos[1],NeedlePos[2]};
-
-            Needle_Phys= new G4PVPlacement(NeedleRotate,NeedlePos,Needle_Logic,Needle->GetName(),FieldCage_Logic,true,0,false);
-            if(!HideCollimator_) {
-                new G4PVPlacement(NeedleRotate,CollPosition,Coll_Logic,CollimatorWithBlock->GetName(),FieldCage_Logic,true,0,false);
-            }
-            G4RotationMatrix* rotateHolder = new G4RotationMatrix();
-            rotateHolder->rotateY(90.*deg);
-
-            //new G4PVPlacement(rotateHolder, G4ThreeVector(-SourceEn_offset,0,0), SourceHolChamber_logic, SourceHolChamber_solid->GetName(),gas_logic, false, 0, false);
-            //new G4PVPlacement(rotateHolder, G4ThreeVector(-SourceEn_offset-SourceEn_length/2,0,0), SourceHolChamberBlock_logic, SourceHolChamberBlock_solid->GetName(),gas_logic, false, 0, false);
-
-            NeedleEyePointSample=new CylinderPointSampler2020(NeedleyepRMin,NeedleyepRMax+2*nm,NeedleyepDz,0,twopi, rotateHolder,G4ThreeVector(NeedlePos[0],NeedlePos[1],NeedlePos[2]+FieldCagePos/2));
-
-        }
 
 
         /// OpticalSurface
@@ -828,13 +833,13 @@ namespace nexus{
         G4LogicalVolume * ELLogic=lvStore->GetVolume("EL_GAP");
         G4VisAttributes ELVis=nexus::BlueAlpha();
         ELVis.SetForceCloud(true);
-        ELLogic->SetVisAttributes(G4VisAttributes::GetInvisible());
+        ELLogic->SetVisAttributes(ELVis);
 
         // FieldCage
         G4LogicalVolume * FieldCage=lvStore->GetVolume("FIELDCAGE");
         G4VisAttributes FielCageVis=nexus::Red();
         FielCageVis.SetForceCloud(true);
-        FieldCage->SetVisAttributes(G4VisAttributes::GetInvisible());
+        FieldCage->SetVisAttributes(FielCageVis);
 
 
         SourceHolder->SetVisAttributes(SourceHolderVa);

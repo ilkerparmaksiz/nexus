@@ -5,9 +5,9 @@
 /process/em/verbose 0
 ## Making sure electroluminescence is turned on
 ## Nexus Physics List
-/PhysicsList/Nexus/clustering           false
-/PhysicsList/Nexus/drift                false
-/PhysicsList/Nexus/electroluminescence  false
+/PhysicsList/Nexus/clustering           true
+/PhysicsList/Nexus/drift                true
+/PhysicsList/Nexus/electroluminescence  true
 ### Total E 6536920 eV /22 eV 297132.7 Electrons
 ##Solid Angle Calculation
 ## 291826.7857142857142857*970*0.7*0.105*((0.5)^2/(4(35)^2)
@@ -15,8 +15,8 @@
 
 
 /Geometry/CRAB/gas_pressure 9.7 bar
-#/Geometry/CRAB/scinYield 25510 1/MeV
-/Geometry/CRAB/scinYield 0 1/MeV
+/Geometry/CRAB/scinYield 25510 1/MeV
+#/Geometry/CRAB/scinYield 0 1/MeV
 /Geometry/CRAB/ELYield 926 1/cm
 #/Geometry/CRAB/ELYield 1.43 1/cm
 /Geometry/CRAB/chamber_diam  15. cm
@@ -48,7 +48,7 @@
 # GENERATOR
 ## Source Enclosures
 /Geometry/CRAB/HideSource false
-/Geometry/CRAB/HideCollimator false
+/Geometry/CRAB/HideCollimator true
 
 #/Generator/CrabSourceGenerator/region FIELDCAGE
 /Generator/CrabSourceGenerator/region OUTER_SURFACE
@@ -80,6 +80,6 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /home/ilker/Desktop/electrons_1kv2
+/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/Betas
 #/nexus/persistency/outputFile test
 #/run/printProgress 100
