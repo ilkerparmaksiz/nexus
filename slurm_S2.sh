@@ -16,8 +16,15 @@ SEED=`echo "scale = 2;  $JOBNUMBER" | bc`
 
 ## Path to output files and G4Executable
 #outputDir="/media/argon/Ilker/CRAB/Sim/new/S2"
-outputDir="/mnt/Ilker/SimResults/March_3_2022"
-PathToG4Executable="/home/ilker/Projects/nexus/build/nexus"
+source setup.sh
+SimDir="/mnt/Ilker/CRAB/Mar4_2023"
+
+[ ! -d "${SimDir}" ] && mkdir $SimDir
+
+outputDir="${SimDir}/Closer"
+
+[ ! -d "${outputDir}" ] && mkdir $outputDir
+PathToG4Executable="/home/argon/Projects/Ilker/New_CRAB/build/nexus"
 
 
 #outputDir="/media/ilker/Ilker/SimResults/Sim/S2"
@@ -30,6 +37,7 @@ NumberOfEvents=1
 drift=true
 EL=true
 cluster=true
+
 HideNeddle=false
 HideCollimator=true
 
@@ -39,13 +47,13 @@ Run=S2
 ###Info
 ANumber=82
 Mass=210
-Syield=0   ##25510   ## 1/MeV
-ELYield=0    ##926    ## photons/cm*electron
+Syield=25510   ##25510   ## 1/MeV
+ELYield=925    ##926    ## photons/cm*electron
 ELifeTime=1000
 ELGap=7
 
 ## Source Position
-pos="-1.6 0 -5"
+pos="-1 0 -5"
 ## Naming Macro and Root Files
 NAME="${Run}_${SEED}"
 OUT="${NAME}_${Pressure}_bar"
@@ -55,9 +63,10 @@ PhotonFile="Photon_${NAME}.txt"
 ## Paths to the Filles
 
 RootFile="${outputDir}/output/${OUT}"
-
+[ ! -d "${outputDir}/output" ] &&  mkdir $outputDir/output
 ## InitMacro
 
+[ ! -d "${outputDir}/macros" ] && mkdir $outputDir/macros
 ## making the macro
 init_MACRO="${outputDir}/macros/${InitMACRO}"
 
@@ -67,15 +76,17 @@ config_MACRO="${outputDir}/macros/${configMACRO}"
 ## Counts
 PathToCounts="${outputDir}/counts"
 
+[ ! -d "$PathToCounts" ] && mkdir $PathToCounts
+
 echo "Removing Older Files ..."
-rm $init_MACRO
-rm $config_MACRO
-rm $PathToCounts/$PhotonFile
-rm "$RootFile.h5"
+[ -f "${init_MACRO}" ] && rm $init_MACRO && echo " Removed ${init_MACRO}"
+[ -f "${config_MACRO}" ] && rm $config_MACRO && echo " Removed ${config_MACRO}"
+[ -f "${PathToCounts}/${PhotonFile}" ] && rm $PathToCounts/$PhotonFile && echo "Removed ${PhotonFile}"
+[ -f "${RootFile}.h5" ] && rm "$RootFile.h5" && echo "Removed $RootFile.h5"
 
 echo $init_MACRO
 
-###P
+
 #Physics
 echo "/PhysicsList/RegisterPhysics G4EmStandardPhysics_option4"  >>${init_MACRO}
 echo "/PhysicsList/RegisterPhysics G4DecayPhysics"  >>${init_MACRO}

@@ -17,7 +17,7 @@
 /Geometry/CRAB/gas_pressure 9.7 bar
 /Geometry/CRAB/scinYield 25510 1/MeV
 #/Geometry/CRAB/scinYield 0 1/MeV
-/Geometry/CRAB/ELYield 926 1/cm
+/Geometry/CRAB/ELYield 925 1/cm
 #/Geometry/CRAB/ELYield 1.43 1/cm
 /Geometry/CRAB/chamber_diam  15. cm
 /Geometry/CRAB/chamber_length 43.18 cm
