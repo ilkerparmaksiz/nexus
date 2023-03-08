@@ -54,6 +54,8 @@ namespace nexus {
 
             G4double MgF2_window_thickness_;
             G4double MgF2_window_diam_;
+            G4double Anode_window_diam_;
+            G4double Cathode_window_diam_;
             G4double pmt_hole_length_ ;
             G4double wndw_ring_stand_out_;
             G4double pedot_coating_thickness_;
@@ -67,6 +69,7 @@ namespace nexus {
             G4double max_step_size_;
             G4double ELyield_;
             CylinderPointSampler2020 * NeedleEyePointSample;
+
 
 
             void ConstructLab();

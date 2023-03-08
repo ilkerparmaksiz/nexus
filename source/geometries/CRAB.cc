@@ -63,7 +63,9 @@ namespace nexus{
              e_lifetime_(1000. * ms),
              pmt_hole_length_ (18.434 * cm),
              MgF2_window_thickness_ (6. * mm),
-             MgF2_window_diam_ (10 * mm),
+             Anode_window_diam_(16.22*mm),
+             Cathode_window_diam_(16.58*mm),
+             //Cathode_window_diam_(1*mm),
              wndw_ring_stand_out_ (1.5 * mm), //how much the ring around sapph windows stands out of them
              pedot_coating_thickness_ (200. * nanometer), // copied from NEW
              optical_pad_thickness_ (1. * mm), // copied from NEW
@@ -73,7 +75,7 @@ namespace nexus{
              HideSourceHolder_(true),
              max_step_size_(1.*mm),
              ElGap_(7*mm),
-             ELyield_(970/cm),
+             ELyield_(925/cm),
              PMT1_Pos_(2.32*cm),
              PMT3_Pos_(3.52*cm),
              HideCollimator_(true)
@@ -184,8 +186,11 @@ namespace nexus{
         //Creating the Steel Cylinder that we need
 
         /// First Creating the Ends of the Cylinder with Proper Holes
-        G4Tubs* chamber_flange_solid = new G4Tubs("CHAMBER_FLANGE", MgF2_window_diam_/2, (chamber_diam/2. + chamber_thickn), chamber_thickn/2.0, 0., twopi);
-        G4LogicalVolume* chamber_flange_logic =new G4LogicalVolume(chamber_flange_solid,materials::Steel(), "CHAMBER_FLANGE");
+        G4Tubs* chamber_flange_solid_Anode = new G4Tubs("CHAMBER_FLANGE_ANODE", Anode_window_diam_/2, (chamber_diam/2. + chamber_thickn), chamber_thickn/2.0, 0., twopi);
+        G4LogicalVolume* chamber_flange_logic_Anode =new G4LogicalVolume(chamber_flange_solid_Anode,materials::Steel(), "CHAMBER_FLANGE_ANODE");
+
+        G4Tubs* chamber_flange_solid_Cathode = new G4Tubs("CHAMBER_FLANGE_CATHODE", Cathode_window_diam_/2, (chamber_diam/2. + chamber_thickn), chamber_thickn/2.0, 0., twopi);
+        G4LogicalVolume* chamber_flange_logic_Cathode =new G4LogicalVolume(chamber_flange_solid_Cathode,materials::Steel(), "CHAMBER_FLANGE_CATHODE");
 
         // Now Creating The Chamber with Without Ends
         G4Tubs* chamber_solid =new G4Tubs("CHAMBER", chamber_diam/2., (chamber_diam/2. + chamber_thickn),(chamber_length/2), 0.,twopi);
@@ -193,8 +198,7 @@ namespace nexus{
 
 
         /// MgF2 window ///
-        G4Tubs* MgF2_window_solid = new G4Tubs("MgF2_WINDOW", 0., MgF2_window_diam_/2.,
-                                                    (MgF2_window_thickness_ )/2., 0., twopi);
+        G4Tubs* MgF2_window_solid = new G4Tubs("MgF2_WINDOW", 0., Anode_window_diam_/2.,(MgF2_window_thickness_ )/2., 0., twopi);
         G4LogicalVolume* MgF2_window_logic= new G4LogicalVolume(MgF2_window_solid, MgF2, "MgF2_WINDOW");
 
         // lens
@@ -203,7 +207,7 @@ namespace nexus{
 
         // Create lens from the intersection of a sphere and a cylinder
         G4double maxLensLength = 4*mm;
-        G4Tubs* sLensTube = new G4Tubs("sLensSphereTube", 0, MgF2_window_diam_/2, maxLensLength, 0.,twopi); // 4 mm is the max lens length
+        G4Tubs* sLensTube = new G4Tubs("sLensSphereTube", 0, Cathode_window_diam_/2, maxLensLength, 0.,twopi); // 4 mm is the max lens length
         G4Orb* sLensOrb = new G4Orb("sLensSphere",lensRcurve);
         G4IntersectionSolid* sLens =  new G4IntersectionSolid("sLens",sLensTube,sLensOrb, 0, posLensTubeIntersect);
 
@@ -394,8 +398,8 @@ namespace nexus{
        auto labPhysical= new G4PVPlacement(0,G4ThreeVector(),lab_logic_volume,lab_logic_volume->GetName(),0,false,0, false);
 
         //Flanges on the Chamber
-        G4VPhysicalVolume *Left_Flange_phys  = new G4PVPlacement(0,G4ThreeVector(0, 0, chamber_length/2 + chamber_thickn/2.0),chamber_flange_logic,chamber_flange_solid->GetName(),gas_logic,true,0,false);
-        G4VPhysicalVolume *Right_Flange_phys = new G4PVPlacement(0,G4ThreeVector(0,0, -chamber_length/2 - chamber_thickn/2.0),chamber_flange_logic,chamber_flange_solid->GetName(),gas_logic,true,1,false);
+        G4VPhysicalVolume *Anode_Flange_phys  = new G4PVPlacement(0,G4ThreeVector(0, 0, -chamber_length/2 - chamber_thickn/2.0),chamber_flange_logic_Anode,chamber_flange_solid_Anode->GetName(),gas_logic,true,0,false);
+        G4VPhysicalVolume *Cathode_Flange_phys = new G4PVPlacement(0,G4ThreeVector(0,0, +chamber_length/2 + chamber_thickn/2.0),chamber_flange_logic_Cathode,chamber_flange_solid_Cathode->GetName(),gas_logic,true,0,false);
 
         //Chamber
         G4VPhysicalVolume * chamber_phys=  new G4PVPlacement(0,G4ThreeVector(0.,0.,0) ,chamber_logic, chamber_solid->GetName(), lab_logic_volume, false, 0,false);
@@ -560,10 +564,6 @@ namespace nexus{
       G4VPhysicalVolume* bracketPhysical3 = new G4PVPlacement(rotateZ_m120,  G4ThreeVector (x_rot_3, y_rot_3, EL_pos),bracket_logical,"bracketPhysical",gas_logic, false,0,false);
 
 
-      /// CRAB0 Lens
-      //lens = new ::UltraFresnelLens(MgF2_window_diam_,13,MgF2,labPhysical,G4ThreeVector(0., 0., window_posz));
-
-
 
       // Define this volume as an ionization sensitive detector
       //FieldCage_Logic->SetUserLimits(new G4UserLimits(1*mm));
@@ -653,8 +653,8 @@ namespace nexus{
         G4OpticalSurface * OpSteelSurf=new G4OpticalSurface("SteelSurface",unified,polished,dielectric_metal);
         OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
         new G4LogicalBorderSurface("SteelSurface_Chamber",gas_phys,chamber_phys,OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurface_LeftFlange",gas_phys,Left_Flange_phys,OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurface_RightFlange",gas_phys,Right_Flange_phys,OpSteelSurf);
+        new G4LogicalBorderSurface("SteelSurface_LeftFlange",gas_phys,Anode_Flange_phys,OpSteelSurf);
+        new G4LogicalBorderSurface("SteelSurface_RightFlange",gas_phys,Cathode_Flange_phys,OpSteelSurf);
         new G4LogicalBorderSurface("SteelSurface_PMT3_Enclosing",PMT_Tube_Vacuum_Phys0,PMT_Tube_Phys0,OpSteelSurf);
         new G4LogicalBorderSurface("SteelSurface_PMT1_Enclosing",PMT_Tube_Vacuum_Phys1,PMT_Tube_Phys1,OpSteelSurf);
 
@@ -753,11 +753,16 @@ namespace nexus{
         G4VisAttributes *SourceHolderVa=new G4VisAttributes(G4Colour(2,2,2));
         SourceHolderVa->SetForceSolid(true);
 
-        // Flange
-        G4LogicalVolume* flangeLog = lvStore->GetVolume("CHAMBER_FLANGE");
+        // Anode Flange
+        G4LogicalVolume* flangeLog_anode = lvStore->GetVolume("CHAMBER_FLANGE_ANODE");
         G4VisAttributes flangeVis=nexus::DarkGreyAlpha();
         flangeVis.SetForceSolid(true);
-        flangeLog->SetVisAttributes(ChamberVa);
+        flangeLog_anode->SetVisAttributes(ChamberVa);
+
+        G4LogicalVolume* flangeLog_cathode = lvStore->GetVolume("CHAMBER_FLANGE_CATHODE");
+        flangeVis.SetForceSolid(true);
+        flangeLog_cathode->SetVisAttributes(ChamberVa);
+
 
         // Field Rings
         G4LogicalVolume* FRLog = lvStore->GetVolume("FR");
