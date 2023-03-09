@@ -16,15 +16,15 @@ SEED=`echo "scale = 2;  $JOBNUMBER" | bc`
 
 ## Path to output files and G4Executable
 #outputDir="/media/argon/Ilker/CRAB/Sim/new/S2"
-source setup.sh
-SimDir="/mnt/Ilker/CRAB/Mar4_2023"
+#source setup.sh
+SimDir="/media/ilker/Ilker/SimResults/Mar10_2023"
 
 [ ! -d "${SimDir}" ] && mkdir $SimDir
 
-outputDir="${SimDir}/Closer"
+outputDir="${SimDir}/Updated"
 
 [ ! -d "${outputDir}" ] && mkdir $outputDir
-PathToG4Executable="/home/argon/Projects/Ilker/New_CRAB/build/nexus"
+PathToG4Executable="/home/ilker/Projects/CRAB0_NEW/build/nexus"
 
 
 #outputDir="/media/ilker/Ilker/SimResults/Sim/S2"
@@ -47,13 +47,13 @@ Run=S2
 ###Info
 ANumber=82
 Mass=210
-Syield=25510   ##25510   ## 1/MeV
+Syield=0   ##25510   ## 1/MeV
 ELYield=925    ##926    ## photons/cm*electron
 ELifeTime=1000
 ELGap=7
 
 ## Source Position
-pos="-1 0 -5"
+pos="-1.6 0 -5"
 ## Naming Macro and Root Files
 NAME="${Run}_${SEED}"
 OUT="${NAME}_${Pressure}_bar"

@@ -14,7 +14,7 @@
 ## Nexus Physics List
 /PhysicsList/Nexus/clustering           true
 /PhysicsList/Nexus/drift                true
-/PhysicsList/Nexus/electroluminescence  false
+/PhysicsList/Nexus/electroluminescence  true
 
 # GENERATION
 
