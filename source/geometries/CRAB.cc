@@ -63,6 +63,7 @@ namespace nexus{
              e_lifetime_(1000. * ms),
              pmt_hole_length_ (18.434 * cm),
              MgF2_window_thickness_ (6. * mm),
+
              Anode_window_diam_(16.22*mm),
              Cathode_window_diam_(16.58*mm),
              //Cathode_window_diam_(1*mm),

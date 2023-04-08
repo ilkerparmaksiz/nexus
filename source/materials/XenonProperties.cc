@@ -184,6 +184,11 @@ G4double GXeScintillation(G4double energy, G4double pressure)
   return intensity;
 }
 
+G4double GXeScintillationGaussian(G4double energy,G4double mean,G4double sigma)
+{
+    return (1/(sigma*sqrt(2*pi)))* exp(-(pow(energy-mean,2))/(2*pow(sigma,2)));
+}
+
 G4double LXeScintillation(G4double energy)
   {
     // K. Fuji et al., "High accuracy measurement of the emission spectrum of liquid xenon

@@ -18,14 +18,19 @@
 ## This is for emmiting particles from outter surface of needle
 /Geometry/CRAB/HideSource false
 /Geometry/CRAB/HideCollimator true
+
 #/Generator/SingleParticle/region FIELDCAGE
+
 /Generator/SingleParticle/region OUTER_SURFACE
+
 #/Generator/SingleParticle/particle opticalphoton
 #/Generator/SingleParticle/min_energy 7.295 eV
 #/Generator/SingleParticle/max_energy 7.295 eV
+
 /Generator/SingleParticle/particle alpha
-/Generator/SingleParticle/min_energy 0.5 keV
-/Generator/SingleParticle/max_energy 0.5 keV
+/Generator/SingleParticle/min_energy 1000 keV
+/Generator/SingleParticle/max_energy 1000 keV
+
 #/Generator/SingleParticle/min_costheta 1
 #/Generator/SingleParticle/max_costheta 1
 #/Generator/SingleParticle/min_phi 0
@@ -42,9 +47,9 @@
 
 #GEOMETRY
 /Geometry/CRAB/gas_pressure 9.7 bar
-/Geometry/CRAB/scinYield 10 1/MeV
-/Geometry/CRAB/ELYield 10 1/cm
-/Geometry/CRAB/chamber_diam  15. cm
+/Geometry/CRAB/scinYield 0 1/MeV
+/Geometry/CRAB/ELYield 925 1/cm
+/Geometry/CRAB/chamber_diam 15. cm
 /Geometry/CRAB/chamber_length 43.18 cm
 /Geometry/CRAB/chamber_thickn 2. mm
 /Geometry/CRAB/SourcePosition -1.6 0 -5 cm
@@ -68,5 +73,5 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/Betas
+/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/Alpha_Gaussian
 #/run/printProgress 100
