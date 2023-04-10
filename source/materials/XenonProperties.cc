@@ -177,16 +177,17 @@ G4double GXeScintillation(G4double energy, G4double pressure)
   G4double Energy_peak  = (h_Planck * c_light / Wavelength_peak);
   G4double Energy_sigma = (h_Planck * c_light * Wavelength_sigma / pow(Wavelength_peak,2));
 
-  G4double intensity = exp(-pow(Energy_peak/eV-energy/eV,2) /
-  (2*pow(Energy_sigma/eV, 2))) /
-  (Energy_sigma/eV*sqrt(pi*2.));
+  G4double intensity = exp(-pow(Energy_peak/eV-energy/eV,2) /(2*pow(Energy_sigma/eV, 2))) / (Energy_sigma/eV*sqrt(pi*2.));
 
   return intensity;
 }
 
+// Create Intensities/Probabilities profile for a given mean and sigma for Scintilation Photons.
 G4double GXeScintillationGaussian(G4double energy,G4double mean,G4double sigma)
 {
-    return (1/(sigma*sqrt(2*pi)))* exp(-(pow(energy-mean,2))/(2*pow(sigma,2)));
+    G4double Intensity;
+    Intensity=(1/(sigma/eV*sqrt(2*pi)))* exp(-(pow(energy/eV-mean/eV,2))/(2*pow(sigma/eV,2)));
+    return Intensity;
 }
 
 G4double LXeScintillation(G4double energy)

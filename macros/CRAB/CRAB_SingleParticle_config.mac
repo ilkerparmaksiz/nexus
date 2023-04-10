@@ -28,8 +28,8 @@
 #/Generator/SingleParticle/max_energy 7.295 eV
 
 /Generator/SingleParticle/particle alpha
-/Generator/SingleParticle/min_energy 1000 keV
-/Generator/SingleParticle/max_energy 1000 keV
+/Generator/SingleParticle/min_energy 100 keV
+/Generator/SingleParticle/max_energy 100 keV
 
 #/Generator/SingleParticle/min_costheta 1
 #/Generator/SingleParticle/max_costheta 1
@@ -73,5 +73,5 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/Alpha_Gaussian
+/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/Alpha_170nm
 #/run/printProgress 100

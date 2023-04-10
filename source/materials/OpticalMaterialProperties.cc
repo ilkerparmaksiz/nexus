@@ -632,7 +632,7 @@ namespace opticalprops {
 
       //Creates Probability profile of scintilation wavelentghts with mean of 172nm with 13nm FWHM
       //https://iopscience.iop.org/article/10.1070/QE1975v004n09ABEH011556/pdf
-      intensity.push_back(GXeScintillationGaussian(sc_energy[i],7.2*eV,7.2*eV*0.032));
+      intensity.push_back(GXeScintillationGaussian(sc_energy[i],7.20*eV,7.20*eV*0.032));
     }
     //for (int i=0; i<sc_entries; i++) {
     //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV

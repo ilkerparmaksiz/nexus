@@ -1,5 +1,5 @@
 # Set the path to the Geant4 Installation
-export G4INSTALL=/home/argon/Software/Geant4/geant4-v11.0.3/install;
+export G4INSTALL=/home/ilker/Programs/geant4-v11.0.3/install;
 export PATH=$G4INSTALL/bin:$PATH;
 export LD_LIBRARY_PATH=$G4INSTALL/lib:$LD_LIBRARY_PATH;
 

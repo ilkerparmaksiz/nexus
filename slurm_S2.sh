@@ -17,11 +17,11 @@ SEED=`echo "scale = 2;  $JOBNUMBER" | bc`
 ## Path to output files and G4Executable
 #outputDir="/media/argon/Ilker/CRAB/Sim/new/S2"
 #source setup.sh
-SimDir="/media/ilker/Ilker/SimResults/Mar17_2023"
+SimDir="/media/ilker/Ilker/SimResults/Apr9_2023"
 
 [ ! -d "${SimDir}" ] && mkdir $SimDir
 
-outputDir="${SimDir}/Updated_500_WithTransmission"
+outputDir="${SimDir}/170nm_Gaussian"
 
 [ ! -d "${outputDir}" ] && mkdir $outputDir
 PathToG4Executable="/home/ilker/Projects/CRAB0_NEW/build/nexus"
