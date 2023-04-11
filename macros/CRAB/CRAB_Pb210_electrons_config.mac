@@ -8,37 +8,56 @@
 /PhysicsList/Nexus/clustering           true
 /PhysicsList/Nexus/drift                true
 /PhysicsList/Nexus/electroluminescence  false
-
-
-/nexus/random_seed 10000000
-
+### Total E 6536920 eV /22 eV 297132.7 Electrons
+##Solid Angle Calculation
+## 291826.7857142857142857*970*0.7*0.105*((0.5)^2/(4(35)^2)
 #GEOMETRY
+
+
 /Geometry/CRAB/gas_pressure 9.7 bar
+#/Geometry/CRAB/scinYield 25510 1/MeV
 /Geometry/CRAB/scinYield 0 1/MeV
-/Geometry/CRAB/chamber_diam  15. cm
+/Geometry/CRAB/ELYield 925 1/cm
+#/Geometry/CRAB/ELYield 1.43 1/cm
+/Geometry/CRAB/chamber_diam 15. cm
 /Geometry/CRAB/chamber_length 43.18 cm
 /Geometry/CRAB/chamber_thickn 2. mm
 #/Geometry/CRAB/SourcePosition -4.5 -4.5 -4.5 cm
-#/Geometry/CRAB/SourcePosition -3 0 -5 cm
+### Source position relative to EL-GAP
 /Geometry/CRAB/SourcePosition -1.6 0 -5 cm
-/Actions/CRABAnalysisSteppingAction/FileSave true
-/Actions/CRABAnalysisSteppingAction/FileName test.txt
 
+### Impurities
+/Geometry/CRAB/ElecLifTime 1000 ms
+## EL Gap
+/Geometry/CRAB/ELGap 7 mm
+
+## PMT Positions
+/Geometry/CRAB/PMT1_Pos 3.32 cm
+/Geometry/CRAB/PMT3_Pos 3.52 cm
 
 #Active
 /Geometry/CRAB/Active_diam 8.5 cm
 /Geometry/CRAB/Active_length 42 cm
 
-## Source Enclosures
-/Geometry/CRAB/HideSource false
-/Geometry/CRAB/HideCollimator false
+#SourceEncloser
+/Geometry/CRAB/SourceEn_diam 10 mm
+/Geometry/CRAB/SourceEn_holedi 5 mm
+/Geometry/CRAB/SourceEn_offset 5.7 cm
 
 # GENERATOR
+## Source Enclosures
+/Geometry/CRAB/HideSource false
+/Geometry/CRAB/HideCollimator true
+
+#/Generator/CrabSourceGenerator/region FIELDCAGE
 /Generator/CrabSourceGenerator/region OUTER_SURFACE
+
 #Pb_210
 /Generator/CrabSourceGenerator/atomic_number 82
 /Generator/CrabSourceGenerator/mass_number 210
 
+
+/nexus/random_seed -2
 
 /Generator/CrabSourceGenerator/decay_rate 100000 nCi
 #/Generator/CrabSourceGenerator/event_window 13
@@ -50,7 +69,20 @@
 #/Actions/DefaultEventAction/max_energy 1.00 GeV
 #/Actions/DefaultEventAction/min_energy 100 eV
 
+/Actions/CRABAnalysisSteppingAction/FileSave false
+/Actions/CRABAnalysisSteppingAction/FileName lead210.txt
+/Actions/CRABAnalysisSteppingAction/isLead210 true
+
+#### Attention! ---> if CRABOpticalTrackingAction is selected , please pay attention to this line. it allows you to select what particles to save to file and visualize.
+## Particle Type
+## optical saves and tracks only photons
+## ie saves and tracks only ionization electrons
+## all saves and tracks both ionization and optical
+
+# Comment this out if you do not want to use this TrackingAction
+/TrackingAction/CRABOpticalTrackingAction/Particle_Type ie
+
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/Ilker/SimResults/Jan1_2023/pb210t
-#/nexus/persistency/outputFile kkv121
+/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/ie
+#/run/printProgress 100

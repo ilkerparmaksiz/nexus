@@ -63,7 +63,6 @@ namespace nexus{
              e_lifetime_(1000. * ms),
              pmt_hole_length_ (18.434 * cm),
              MgF2_window_thickness_ (6. * mm),
-
              Anode_window_diam_(16.22*mm),
              Cathode_window_diam_(16.58*mm),
              //Cathode_window_diam_(1*mm),
@@ -77,7 +76,7 @@ namespace nexus{
              max_step_size_(1.*mm),
              ElGap_(7*mm),
              ELyield_(925/cm),
-             PMT1_Pos_(2.32*cm),
+             PMT1_Pos_(3.32*cm),
              PMT3_Pos_(3.52*cm),
              HideCollimator_(true)
 
@@ -174,7 +173,7 @@ namespace nexus{
         // Optical Properties Assigned here
         MgF2->SetMaterialPropertiesTable(opticalprops::MgF2());
         vacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
-        gxe->SetMaterialPropertiesTable(opticalprops::GXe(gas_pressure_, 68,sc_yield_,e_lifetime_));
+        gxe->SetMaterialPropertiesTable(opticalprops::GXeAlternative(gas_pressure_, 68,sc_yield_,e_lifetime_,7.20*eV,7.20*eV*0.032));
         //Steel->SetMaterialPropertiesTable(opticalprops::STEEL());
         //Constructing Lab Space
         G4String lab_name="LAB";
@@ -862,7 +861,7 @@ namespace nexus{
     {
 
             G4ThreeVector pos;
-            G4cout<<"This is the region --> " <<region <<G4endl;
+            //G4cout<<"This is the region --> " <<region <<G4endl;
             if((region=="LAB" || region=="GAS" || region=="ACTIVE" || region=="FIELDCAGE")){
 
                 pos= vtx_;

@@ -76,7 +76,7 @@ namespace nexus {
 
     G4Material* quartz =
       G4NistManager::Instance()->FindOrBuildMaterial("G4_SILICON_DIOXIDE");
-    quartz->SetMaterialPropertiesTable(opticalprops::FusedSilica());
+    quartz->SetMaterialPropertiesTable(opticalprops::FusedSilicaNoAbsLength());
     G4String WindowName;
     G4String DetName;
       G4String SensDet;

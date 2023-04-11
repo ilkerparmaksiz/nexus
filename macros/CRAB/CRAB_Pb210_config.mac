@@ -33,7 +33,7 @@
 /Geometry/CRAB/ELGap 7 mm
 
 ## PMT Positions
-/Geometry/CRAB/PMT1_Pos 2.32 cm
+/Geometry/CRAB/PMT1_Pos 3.32 cm
 /Geometry/CRAB/PMT3_Pos 3.52 cm
 
 #Active
@@ -80,6 +80,6 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/Betas
+/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/Pb210
 #/nexus/persistency/outputFile test
 #/run/printProgress 100

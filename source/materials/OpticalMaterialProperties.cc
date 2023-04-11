@@ -91,7 +91,7 @@ namespace opticalprops {
       6.54000 * eV,  6.59490 * eV,  6.64000 * eV,  6.72714 * eV,
       6.73828 * eV,  6.75000 * eV,  6.82104 * eV,  6.86000 * eV,
       6.88000 * eV,  6.89000 * eV,  7.00000 * eV,  7.01000 * eV,
-      7.01797 * eV,  7.05000 * eV,  7.08000 * eV,  7.08482 * eV,
+      7.01797 * eV,  7.05000 * eV,  7.08000 * eV,  7.08482 * eV,7.2*eV,
       7.30000 * eV,  7.36000 * eV,  7.40000 * eV,  7.48000 * eV,
       7.52000 * eV,  7.58000 * eV,  7.67440 * eV,  7.76000 * eV,
       7.89000 * eV,  7.93000 * eV,  8.00000 * eV,
@@ -103,7 +103,7 @@ namespace opticalprops {
       200.0 * cm,   200.0 * cm,  90.0 * cm,  45.0 * cm,
       45.0 * cm,    30.0 * cm,  24.0 * cm,  21.0 * cm,
       20.0 * cm,    19.0 * cm,  16.0 * cm,  14.0 * cm,
-      13.0 * cm,     8.5 * cm,   8.0 * cm,   6.0 * cm,
+      13.0 * cm,     8.5 * cm,   8.0 * cm,   6.0 * cm,1.8*cm,
        1.5 * cm,     1.2 * cm,   1.0 * cm,   .65 * cm,
         .4 * cm,     .37 * cm,   .32 * cm,   .28 * cm,
         .22 * cm,    .215 * cm,  .00005*cm,
@@ -114,6 +114,84 @@ namespace opticalprops {
 
     return mpt;
   }
+
+  /// Removed Absorbtion Lenthts to take account of QE outside of GEANT4 in Analysis
+  G4MaterialPropertiesTable* FusedSilicaNoAbsLength()
+    {
+        // Optical properties of Suprasil 311/312(c) synthetic fused silica.
+        // Obtained from http://heraeus-quarzglas.com
+
+        G4MaterialPropertiesTable* mpt = new G4MaterialPropertiesTable();
+
+        // REFRACTIVE INDEX
+        // The range is chosen to be up to ~10.7 eV because Sellmeier's equation
+        // for fused silica is valid only in that range
+        const G4int ri_entries = 200;
+        G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
+
+        std::vector<G4double> ri_energy;
+        for (int i=0; i<ri_entries; i++) {
+            ri_energy.push_back(optPhotMinE_ + i * eWidth);
+        }
+
+        // The following values for the refractive index have been calculated
+        // using Sellmeier's equation:
+        //    n^2 - 1 = B_1 * \lambda^2 / (\lambda^2 - C_1) +
+        //            + B_2 * \lambda^2 / (\lambda^2 - C_2) +
+        //            + B_3 * \lambda^2 / (\lambda^2 - C_3),
+        // with wavelength \lambda in micrometers and
+        //    B_1 = 4.73E-1, B_2 = 6.31E-1, B_3 = 9.06E-1
+        //    C_1 = 1.30E-2, C_2 = 4.13E-3, C_3 = 9.88E+1.
+
+        G4double B_1 = 4.73e-1;
+        G4double B_2 = 6.31e-1;
+        G4double B_3 = 9.06e-1;
+        G4double C_1 = 1.30e-2;
+        G4double C_2 = 4.13e-3;
+        G4double C_3 = 9.88e+1;
+
+        std::vector<G4double> rIndex;
+        for (int i=0; i<ri_entries; i++) {
+            G4double lambda = h_Planck*c_light/ri_energy[i]*1000; // in micron
+            G4double n2 = 1 + B_1*pow(lambda,2)/(pow(lambda,2)-C_1)
+                          + B_2*pow(lambda,2)/(pow(lambda,2)-C_2)
+                          + B_3*pow(lambda,2)/(pow(lambda,2)-C_3);
+            rIndex.push_back(sqrt(n2));
+            // G4cout << "* FusedSilica rIndex:  " << std::setw(5) << ri_energy[i]/eV
+            //       << " eV -> " << rIndex[i] << G4endl;
+        }
+        mpt->AddProperty("RINDEX", ri_energy, rIndex);
+
+        // ABSORPTION LENGTH
+        std::vector<G4double> abs_energy = {
+                optPhotMinE_,  6.46499 * eV,
+                6.54000 * eV,  6.59490 * eV,  6.64000 * eV,  6.72714 * eV,
+                6.73828 * eV,  6.75000 * eV,  6.82104 * eV,  6.86000 * eV,
+                6.88000 * eV,  6.89000 * eV,  7.00000 * eV,  7.01000 * eV,
+                7.01797 * eV,  7.05000 * eV,  7.08000 * eV,  7.08482 * eV,7.2*eV,
+                7.30000 * eV,  7.36000 * eV,  7.40000 * eV,  7.48000 * eV,
+                7.52000 * eV,  7.58000 * eV,  7.67440 * eV,  7.76000 * eV,
+                7.89000 * eV,  7.93000 * eV,  8.00000 * eV,
+                optPhotMaxE_
+        };
+
+        std::vector<G4double> absLength = {
+                noAbsLength_, noAbsLength_,
+                200.0 * cm,   200.0 * cm,  90.0 * cm,  45.0 * cm,
+                45.0 * cm,    30.0 * cm,  24.0 * cm,  21.0 * cm,
+                20.0 * cm,    19.0 * cm,  16.0 * cm,  14.0 * cm,
+                13.0 * cm,     8.5 * cm,   8.0 * cm,   6.0 * cm,1.8*cm,
+                1.5 * cm,     1.2 * cm,   1.0 * cm,   .65 * cm,
+                .4 * cm,     .37 * cm,   .32 * cm,   .28 * cm,
+                .22 * cm,    .215 * cm,  .00005*cm,
+                .00005* cm
+        };
+
+        // Absorbtion lengs are removed to take account of QE outside of GEANT4.
+        //mpt->AddProperty("ABSLENGTH", abs_energy, absLength);
+
+        return mpt;
+    }
 
 
 
@@ -403,7 +481,7 @@ namespace opticalprops {
                 7.029844878*cm,6.959183911*cm
         };
 
-
+        // This is removed and we take account of this in the Analysis 0.87% Transmission at 172 nm and 0.86% Transmission at 170 nm
         //mpt->AddProperty("ABSLENGTH", AbsEnergy, AbsLength);
         
 
@@ -628,11 +706,7 @@ namespace opticalprops {
     }
     std::vector<G4double> intensity;
     for (G4int i=0; i<sc_entries; i++) {
-        //intensity.push_back(GXeScintillation(sc_energy[i], pressure));
-
-      //Creates Probability profile of scintilation wavelentghts with mean of 172nm with 13nm FWHM
-      //https://iopscience.iop.org/article/10.1070/QE1975v004n09ABEH011556/pdf
-      intensity.push_back(GXeScintillationGaussian(sc_energy[i],7.20*eV,7.20*eV*0.032));
+        intensity.push_back(GXeScintillation(sc_energy[i], pressure));
     }
     //for (int i=0; i<sc_entries; i++) {
     //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV
@@ -653,6 +727,73 @@ namespace opticalprops {
 
     return mpt;
   }
+    /// Gaseous Xenon ///
+    G4MaterialPropertiesTable* GXeAlternative(G4double pressure,
+                                   G4double temperature,
+                                   G4int    sc_yield,
+                                   G4double e_lifetime,
+                                   G4double Mean_ScintEnergy,
+                                   G4double Sigma_ScintEnergy)
+    {
+        G4MaterialPropertiesTable* mpt = new G4MaterialPropertiesTable();
+
+        // REFRACTIVE INDEX
+        const G4int ri_entries = 200;
+        G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
+
+        std::vector<G4double> ri_energy;
+        for (int i=0; i<ri_entries; i++) {
+            ri_energy.push_back(optPhotMinE_ + i * eWidth);
+        }
+
+        G4double density = GXeDensity(pressure);
+        std::vector<G4double> rIndex;
+        for (int i=0; i<ri_entries; i++) {
+            rIndex.push_back(XenonRefractiveIndex(ri_energy[i], density));
+            // G4cout << "* GXe rIndex:  " << std::setw(7)
+            //        << ri_energy[i]/eV << " eV -> " << rIndex[i] << G4endl;
+        }
+        mpt->AddProperty("RINDEX", ri_energy, rIndex, ri_entries);
+
+        // ABSORPTION LENGTH
+        std::vector<G4double> abs_energy = {optPhotMinE_, optPhotMaxE_};
+        std::vector<G4double> absLength  = {noAbsLength_, noAbsLength_};
+        mpt->AddProperty("ABSLENGTH", abs_energy, absLength);
+
+        // EMISSION SPECTRUM
+        // Sampling from ~150 nm to 200 nm <----> from 6.20625 eV to 8.20625 eV
+        const G4int sc_entries = 200;
+        std::vector<G4double> sc_energy;
+        for (int i=0; i<sc_entries; i++){
+            sc_energy.push_back(6.20625 * eV + 0.01 * i * eV);
+        }
+        std::vector<G4double> intensity;
+        for (G4int i=0; i<sc_entries; i++) {
+
+            //Creates Probability profile of scintilation wavelentghts with mean of 172nm with 13nm FWHM
+            //https://iopscience.iop.org/article/10.1070/QE1975v004n09ABEH011556/pdf
+            // Peak wavelength assumed to be 172 nm with 13nm FWHM
+            intensity.push_back(GXeScintillationGaussian(sc_energy[i],Mean_ScintEnergy,Sigma_ScintEnergy));
+        }
+        //for (int i=0; i<sc_entries; i++) {
+        //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV
+        //         << " eV -> " << intensity[i] << G4endl;
+        //}
+        mpt->AddProperty("SCINTILLATIONCOMPONENT1", sc_energy, intensity);
+        mpt->AddProperty("SCINTILLATIONCOMPONENT2", sc_energy, intensity);
+        mpt->AddProperty("ELSPECTRUM"             , sc_energy, intensity, 1);
+
+        // CONST PROPERTIES
+        mpt->AddConstProperty("SCINTILLATIONYIELD", sc_yield);
+        mpt->AddConstProperty("RESOLUTIONSCALE",    1.0);
+        mpt->AddConstProperty("SCINTILLATIONTIMECONSTANT1",   4.5  * ns);
+        mpt->AddConstProperty("SCINTILLATIONTIMECONSTANT2",   100. * ns);
+        mpt->AddConstProperty("SCINTILLATIONYIELD1", .1);
+        mpt->AddConstProperty("SCINTILLATIONYIELD2", .9);
+        mpt->AddConstProperty("ATTACHMENT",         e_lifetime, 1);
+
+        return mpt;
+    }
 
   G4MaterialPropertiesTable* LXe()
   {
@@ -808,10 +949,10 @@ namespace opticalprops {
 
       // REFLECTIVITY
       std::vector<G4double> ENERGIES = {
-              optPhotMinE_, 7.29 * eV,  optPhotMaxE_
+              optPhotMinE_,7.20 * eV, 7.29 * eV,  optPhotMaxE_
       };
       std::vector<G4double> REFLECTIVITY = {
-              0.20,0.20,0.20
+              0.20,0.20,0.20,0.20
       };
 
       // REFLEXION BEHAVIOR

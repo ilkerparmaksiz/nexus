@@ -22,7 +22,7 @@
 
 /nexus/RegisterPersistencyManager PersistencyManager
 
-/nexus/RegisterTrackingAction OpticalTrackingAction
+/nexus/RegisterTrackingAction CRABOpticalTrackingAction
 /nexus/RegisterEventAction DefaultEventAction
 /nexus/RegisterRunAction DefaultRunAction
 /nexus/RegisterSteppingAction CRABAnalysisSteppingAction
@@ -31,3 +31,14 @@
 /nexus/RegisterMacro macros/CRAB/CRAB_SingleParticle_config.mac
 
 
+## Visuals
+/nexus/RegisterCommand /vis/scene/add/text_10_10_10_cm_24_0_0_CRAB0-Detector
+/nexus/RegisterCommand /vis/scene/add/scale_8.5_cm_x_1_0_1_manual_0_1_22.5_cm  # Simple scale line
+/nexus/RegisterCommand /vis/scene/add/scale_15_cm_x_1_0_1_manual_0_-2_22.5_cm  # Simple scale line
+/nexus/RegisterCommand /vis/scene/add/scale_10.6_cm_z_1_0_1_manual_-5_+2_-16.1_cm  # Simple scale line ### EL to the Flange
+/nexus/RegisterCommand /vis/scene/add/scale_0.7_cm_z_1_0_1_manual_-5_0_-10.40_cm  # Simple scale line ### EL GAP
+/nexus/RegisterCommand /vis/scene/add/scale_19_cm_z_1_0_1_manual_-5_0_-0.6_cm ### Drift Region
+/nexus/RegisterCommand /vis/scene/add/scale_12.4_cm_z_1_0_1_manual_-5_0_+15.1_cm  ## Left Flange to Starting of the drift Region
+/nexus/RegisterCommand /vis/scene/add/scale_5_cm_z_1_0_1_manual_-3_0_-7.5_cm  ## Source Position
+/nexus/RegisterCommand /vis/scene/add/scale_3.2_cm_z_1_1_0_manual_0_-2_23.5_cm  # Position of the PMT3
+/nexus/RegisterCommand /vis/scene/add/scale_3_cm_z_1_0_0_manual_0_-2_-23.4_cm   # Position of the PMT1

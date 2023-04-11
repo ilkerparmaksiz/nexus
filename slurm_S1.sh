@@ -147,7 +147,7 @@ echo "/Geometry/CRAB/Active_length 42 cm"  >>${config_MACRO}
 
 
 #PMTs
-echo "/Geometry/CRAB/PMT1_Pos 2.32 cm"  >>${config_MACRO}
+echo "/Geometry/CRAB/PMT1_Pos 3.32 cm"  >>${config_MACRO}
 echo "/Geometry/CRAB/PMT3_Pos 3.52 cm"  >>${config_MACRO}
 ### SourceEncloser
 echo "/Geometry/CRAB/HideSource ${HideNeddle}"  >>${config_MACRO}

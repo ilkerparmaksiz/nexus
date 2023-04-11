@@ -27,6 +27,7 @@ namespace opticalprops {
   G4MaterialPropertiesTable* GlassEpoxy();
 
   G4MaterialPropertiesTable* FusedSilica();
+  G4MaterialPropertiesTable* FusedSilicaNoAbsLength();
 
   G4MaterialPropertiesTable* FakeFusedSilica(G4double transparency = .9,
                                             G4double thickness    = 1. * mm);
@@ -48,6 +49,14 @@ namespace opticalprops {
                                 G4double temperature=STP_Temperature,
                                 G4int sc_yield=25510/MeV,
                                 G4double e_lifetime=1000.*ms);
+
+  G4MaterialPropertiesTable* GXeAlternative(G4double pressure=10.*bar,
+                                   G4double temperature=STP_Temperature,
+                                   G4int sc_yield=25510/MeV,
+                                   G4double e_lifetime=1000.*ms,
+                                   G4double Mean_ScintEnergy=7.20*eV,
+                                   G4double Sigma_ScintEnergy=7.20*eV*0.032);
+
 
   G4MaterialPropertiesTable* LXe();
 

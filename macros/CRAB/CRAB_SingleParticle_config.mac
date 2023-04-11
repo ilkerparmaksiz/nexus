@@ -28,8 +28,8 @@
 #/Generator/SingleParticle/max_energy 7.295 eV
 
 /Generator/SingleParticle/particle alpha
-/Generator/SingleParticle/min_energy 100 keV
-/Generator/SingleParticle/max_energy 100 keV
+/Generator/SingleParticle/min_energy 0.5 keV
+/Generator/SingleParticle/max_energy 0.5 keV
 
 #/Generator/SingleParticle/min_costheta 1
 #/Generator/SingleParticle/max_costheta 1
@@ -57,7 +57,8 @@
 #/Geometry/CRAB/SourcePosition 0 0 0 cm
 /Geometry/CRAB/ElecLifTime 1000 ms
 /Geometry/CRAB/ELGap 7 mm
-/Geometry/CRAB/PMT1_Pos 2.32 cm
+
+/Geometry/CRAB/PMT1_Pos 3.32 cm
 /Geometry/CRAB/PMT3_Pos 3.52 cm
 
 #Active
@@ -69,9 +70,16 @@
 /Geometry/CRAB/SourceEn_holedi 5 mm
 /Geometry/CRAB/SourceEn_offset 5.7 cm
 
+#### Attention! ---> if CRABOpticalTrackingAction is selected , please pay attention to this line. it allows you to select what particles to save to file and visualize.
+## Particle Type
+## optical saves and tracks only photons
+## ie saves and tracks only ionization electrons
+## all saves and tracks both ionization and optical
 
+# Comment this out if you do not want to use this TrackingAction
+/TrackingAction/CRABOpticalTrackingAction/Particle_Type optical
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/Alpha_170nm
+/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/optical_172nm
 #/run/printProgress 100

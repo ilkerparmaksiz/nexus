@@ -42,8 +42,8 @@ Run=S1
 ###Info
 ANumber=82
 Mass=210
-Syield=25510   ## 1/MeV
-ELYield=970    ## photons/cm*electron		
+Syield=0   ## 1/MeV
+ELYield=925    ## photons/cm*electron
 ELifeTime=1000 
 ELGap=7
 ## Source Position
