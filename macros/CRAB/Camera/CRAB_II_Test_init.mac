@@ -1,0 +1,31 @@
+## ----------------------------------------------------------------------------
+## nexus | DEMOPP_fullKr.init.mac
+##
+## Initialization macro to simulate Kr-83 decays in the DEMO++ geometry
+## with generation and transportation of optical photons.
+##
+## The NEXT Collaboration
+## ----------------------------------------------------------------------------
+
+
+/PhysicsList/RegisterPhysics G4EmStandardPhysics_option4
+/PhysicsList/RegisterPhysics G4DecayPhysics
+/PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
+/PhysicsList/RegisterPhysics G4OpticalPhysics
+/PhysicsList/RegisterPhysics NexusPhysics
+/PhysicsList/RegisterPhysics G4StepLimiterPhysics
+
+
+/nexus/RegisterGeometry CRABImageIntensifier
+
+/nexus/RegisterGenerator SingleParticleGenerator
+
+/nexus/RegisterPersistencyManager PersistencyManager
+
+/nexus/RegisterTrackingAction OpticalTrackingAction
+/nexus/RegisterEventAction DefaultEventAction
+/nexus/RegisterRunAction DefaultRunAction
+/nexus/RegisterSteppingAction CRABAnalysisSteppingAction
+
+
+/nexus/RegisterMacro macros/CRAB/Camera/CRAB_II_Test_config.mac

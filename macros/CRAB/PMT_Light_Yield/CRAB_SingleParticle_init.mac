@@ -28,7 +28,7 @@
 /nexus/RegisterSteppingAction CRABAnalysisSteppingAction
 
 
-/nexus/RegisterMacro macros/CRAB/CRAB_SingleParticle_config.mac
+/nexus/RegisterMacro macros/CRAB/PMT_Light_Yield/CRAB_SingleParticle_config.mac
 
 
 ## Visuals

@@ -1,0 +1,83 @@
+
+
+# VERBOSITY
+/run/verbose 1
+/event/verbose 0
+/tracking/verbose 0
+/process/em/verbose 0
+## Making sure electroluminescence is turned on
+
+
+## Nexus Physics List
+/PhysicsList/Nexus/clustering           true
+/PhysicsList/Nexus/drift                true
+/PhysicsList/Nexus/electroluminescence  true
+
+# GENERATION
+
+## This is for emmiting particles from outter surface of needle
+/Geometry/CRAB_Detector/HideSource false
+/Geometry/CRAB_Detector/HideCollimator true
+
+#/Generator/SingleParticle/region FIELDCAGE
+
+/Generator/SingleParticle/region OUTER_SURFACE
+
+/Generator/SingleParticle/particle opticalphoton
+/Generator/SingleParticle/min_energy 7.20 eV
+/Generator/SingleParticle/max_energy 7.20 eV
+
+#/Generator/SingleParticle/particle alpha
+#/Generator/SingleParticle/min_energy 0.5 keV
+#/Generator/SingleParticle/max_energy 0.5 keV
+
+#/Generator/SingleParticle/min_costheta 1
+#/Generator/SingleParticle/max_costheta 1
+#/Generator/SingleParticle/min_phi 0
+#/Generator/SingleParticle/max_phi 0
+
+
+### Isotropic Photon  Emmission
+/Generator/SingleParticle/min_costheta -1
+/Generator/SingleParticle/max_costheta 1
+/Generator/SingleParticle/min_phi -3.14
+/Generator/SingleParticle/max_phi 3.14
+
+/Actions/CRABAnalysisSteppingAction/FileSave true
+
+#GEOMETRY
+/Geometry/CRAB_Detector/gas_pressure 9.7 bar
+/Geometry/CRAB_Detector/scinYield 0 1/MeV
+/Geometry/CRAB_Detector/ELYield 925 1/cm
+/Geometry/CRAB_Detector/chamber_diam 15. cm
+/Geometry/CRAB_Detector/chamber_length 43.18 cm
+/Geometry/CRAB_Detector/chamber_thickn 2. mm
+/Geometry/CRAB_Detector/SourcePosition -1.6 0 -5 cm
+
+#/Geometry/CRAB_Detector/SourcePosition 0 0 0 cm
+/Geometry/CRAB_Detector/ElecLifTime 1000 ms
+/Geometry/CRAB_Detector/ELGap 7 mm
+
+
+#Active
+/Geometry/CRAB_Detector/Active_diam 8.5 cm
+/Geometry/CRAB_Detector/Active_length 42 cm
+
+#SourceEncloser
+/Geometry/CRAB_Detector/SourceEn_diam 10 mm
+/Geometry/CRAB_Detector/SourceEn_holedi 5 mm
+/Geometry/CRAB_Detector/SourceEn_offset 5.7 cm
+
+#### Attention! ---> if CRABOpticalTrackingAction is selected , please pay attention to this line. it allows you to select what particles to save to file and visualize.
+## Particle Type
+## optical saves and tracks only photons
+## ie saves and tracks only ionization electrons
+## all saves and tracks both ionization and optical
+
+# Comment this out if you do not want to use this TrackingAction
+/TrackingAction/CRABOpticalTrackingAction/Particle_Type optical
+
+# PERSISTENCY
+/nexus/persistency/eventType background
+/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/optical_172nm
+#/run/printProgress 100

@@ -328,8 +328,6 @@ namespace nexus{
         G4LogicalVolume * Needle_Logic=new G4LogicalVolume(Needle,materials::Steel(),"Needle");
         G4LogicalVolume * Coll_Logic=new G4LogicalVolume(CollimatorWithBlock,materials::PEEK(),"CollimatorWithBlock");
 
-
-
         //G4LogicalVolume* SourceHolderGas_logic = new G4LogicalVolume(SourceHolChamber_solid, gxe, "SourceHolderGAS_logic");
 
 
@@ -346,7 +344,6 @@ namespace nexus{
         G4LogicalVolume * pmt2_logic=pmt2_->GetLogicalVolume();
 
 
-        // PMT1 and PMT3
 
         // PMTs
         G4double PMT_offset=0.2*cm;
@@ -578,9 +575,7 @@ namespace nexus{
         if(!HideSourceHolder_){
             // Particle Source Holder
             //Rotation Matrix
-
             // Needle Solid
-
             G4RotationMatrix* NeedleRotate = new G4RotationMatrix();
             NeedleRotate->rotateY(90.*deg);
             //NeedleRotate->rotateX(+10*deg);
@@ -622,8 +617,6 @@ namespace nexus{
 
             G4Region* drift_region = new G4Region("DRIFT");
 
-
-
             drift_region->SetUserInformation(field);
             drift_region->AddRootLogicalVolume(FieldCage_Logic);
             // For CRAB Assuming we have 10 bar gas and Efield is 19,298.20 V/cm
@@ -644,9 +637,6 @@ namespace nexus{
             el_region->AddRootLogicalVolume(EL_logic);
 
         }
-
-
-
 
 
         /// OpticalSurface
@@ -701,11 +691,7 @@ namespace nexus{
         // Visuals
 
         AssignVisuals();
-        if(lens){
-            auto LensVisAtt  = new G4VisAttributes(G4Colour(1.0,0.0,0.0)) ;   // Red
-            LensVisAtt ->SetVisibility(true);
-            lens->GetPhysicalVolume()->GetLogicalVolume()->SetVisAttributes(LensVisAtt);
-        }
+
         //G4Optic
         this->SetLogicalVolume(lab_logic_volume);
         //this->SetLogicalVolume(chamber_logic);
@@ -853,9 +839,6 @@ namespace nexus{
 
     }
 
-    void CRAB::PrintParam() {
-
-    }
 
     G4ThreeVector CRAB::GenerateVertex(const G4String& region) const
     {

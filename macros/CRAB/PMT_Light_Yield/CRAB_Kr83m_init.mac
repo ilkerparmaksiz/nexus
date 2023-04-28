@@ -1,27 +1,37 @@
+
 #Physicslist
 /PhysicsList/RegisterPhysics G4EmStandardPhysics_option4
 /PhysicsList/RegisterPhysics G4DecayPhysics
 /PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
 /PhysicsList/RegisterPhysics G4OpticalPhysics
+/PhysicsList/RegisterPhysics NexusPhysics
+/PhysicsList/RegisterPhysics G4StepLimiterPhysics
+
+
 
 #Geometry
 /nexus/RegisterGeometry CRAB
 
 #Generator
-#/nexus/RegisterGenerator Kr83mGenerator
+/nexus/RegisterGenerator Kr83mGenerator
 #/nexus/RegisterGenerator IonGenerator
-/nexus/RegisterGenerator SingleParticleGenerator
-
-
+#/nexus/RegisterGenerator CrabSourceGenerator
 
 #FileSave
 /nexus/RegisterPersistencyManager PersistencyManager
 
 #Actions
+#/nexus/RegisterTrackingAction OpticalTrackingAction
 /nexus/RegisterTrackingAction DefaultTrackingAction
 /nexus/RegisterEventAction DefaultEventAction
-#/nexus/RegisterEventAction SaveAllEventAction
 /nexus/RegisterRunAction DefaultRunAction
+/nexus/RegisterSteppingAction CRABAnalysisSteppingAction
+#/nexus/RegisterSteppingAction SaveAllSteppingAction
+
+
+
 
 #Config
-/nexus/RegisterMacro macros/CRAB/CRAB_gamma_config.mac
+/nexus/RegisterMacro macros/CRAB/PMT_Light_Yield/CRAB_Kr83m_config.mac
+
+

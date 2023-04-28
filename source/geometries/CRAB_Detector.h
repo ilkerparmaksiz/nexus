@@ -1,0 +1,100 @@
+//
+// Created by ilker on 4/18/23.
+//
+
+#ifndef NEXUS_CRAB_DETECTOR_H
+#define NEXUS_CRAB_DETECTOR_H
+
+#include "GeometryBase.h"
+#include "PmtR7378A.h"
+#include "CylinderPointSampler2020.h"
+class G4GenericMessenger;
+
+namespace nexus {
+    class CylinderPointSampler2020;
+
+    class UltraFresnelLens;
+
+    class CRAB_Detector : public GeometryBase{
+    public:
+        /// Constructor
+        CRAB_Detector();
+
+        /// Destructor
+        ~CRAB_Detector();
+
+        /// Return vertex within region <region> of the chamber
+
+        virtual void Construct();
+
+        virtual G4ThreeVector GenerateVertex(const G4String &region) const;
+
+        void SetLabLogical(G4LogicalVolume *);
+        G4LogicalVolume* GetLabLogical();
+        void SetLabPhysical(G4VPhysicalVolume *);
+        G4VPhysicalVolume* GetLabPhysical();
+
+    private:
+        /// Messenger for the definition of control commands
+        G4GenericMessenger *msg_;
+        G4double Lab_size;
+        G4double chamber_diam;
+        G4double chamber_length;
+        G4double chamber_thickn;
+        G4double SourceEn_offset;
+        G4double SourceEn_diam;
+        G4double SourceEn_length;
+        G4double SourceEn_thickn;
+        G4double SourceEn_holedia;
+        G4double gas_pressure_;
+        G4ThreeVector vtx_;
+        G4double Active_diam;
+        G4double Active_length;
+        G4double sc_yield_;
+        G4double e_lifetime_;
+        G4double ElGap_;
+        G4double PMT1_Pos_;
+        G4double PMT3_Pos_;
+        G4ThreeVector vertex;
+
+        G4double MgF2_window_thickness_;
+        G4double MgF2_window_diam_;
+        G4double Anode_window_diam_;
+        G4double Cathode_window_diam_;
+        G4double pmt_hole_length_;
+        G4double wndw_ring_stand_out_;
+        G4double pedot_coating_thickness_;
+        G4double optical_pad_thickness_;
+        G4double pmt_base_diam_;
+        G4double pmt_base_thickness_;
+        G4bool HideCollimator_;
+
+        G4bool efield_;
+        G4bool HideSourceHolder_;
+        G4double max_step_size_;
+        G4double ELyield_;
+        CylinderPointSampler2020 *NeedleEyePointSample;
+
+        G4VPhysicalVolume * Lab_Physical;
+        G4LogicalVolume * Lab_Logical;
+
+        void AssignVisuals();
+
+    };
+
+   inline void CRAB_Detector::SetLabLogical(G4LogicalVolume * lv) {
+       Lab_Logical=lv;
+   }
+    inline void CRAB_Detector::SetLabPhysical(G4VPhysicalVolume * phys) {
+
+       Lab_Physical=phys;
+   }
+    inline G4LogicalVolume* CRAB_Detector::GetLabLogical() {
+        return Lab_Logical;
+    }
+    inline G4VPhysicalVolume* CRAB_Detector::GetLabPhysical() {
+        return Lab_Physical;
+    }
+
+} // End of the Name Space
+#endif //NEXUS_CRAB_DETECTOR_H

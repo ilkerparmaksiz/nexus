@@ -16,16 +16,16 @@
 /PhysicsList/RegisterPhysics G4StepLimiterPhysics
 
 
-/nexus/RegisterGeometry CRABImageIntensifier
+/nexus/RegisterGeometry CRAB_Diffusion_Setup
 
 /nexus/RegisterGenerator SingleParticleGenerator
 
 /nexus/RegisterPersistencyManager PersistencyManager
 
-/nexus/RegisterTrackingAction OpticalTrackingAction
+/nexus/RegisterTrackingAction CRABOpticalTrackingAction
 /nexus/RegisterEventAction DefaultEventAction
 /nexus/RegisterRunAction DefaultRunAction
 /nexus/RegisterSteppingAction CRABAnalysisSteppingAction
 
 
-/nexus/RegisterMacro macros/CRAB/CRAB_II_Test_config.mac
+/nexus/RegisterMacro macros/CRAB/Camera/CRAB_Diffusion_Setup_config.mac

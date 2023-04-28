@@ -1,0 +1,26 @@
+## This is for emmiting particles from outter surface of needle
+/Geometry/CRAB_Detector/HideSource false
+/Geometry/CRAB_Detector/HideCollimator true
+
+#GEOMETRY
+/Geometry/CRAB_Detector/gas_pressure 9.7 bar
+/Geometry/CRAB_Detector/scinYield 0 1/MeV
+/Geometry/CRAB_Detector/ELYield 925 1/cm
+/Geometry/CRAB_Detector/chamber_diam 15. cm
+/Geometry/CRAB_Detector/chamber_length 43.18 cm
+/Geometry/CRAB_Detector/chamber_thickn 2. mm
+/Geometry/CRAB_Detector/SourcePosition -1.6 0 -5 cm
+
+#/Geometry/CRAB_Detector/SourcePosition 0 0 0 cm
+/Geometry/CRAB_Detector/ElecLifTime 1000 ms
+/Geometry/CRAB_Detector/ELGap 7 mm
+
+
+#Active
+/Geometry/CRAB_Detector/Active_diam 8.5 cm
+/Geometry/CRAB_Detector/Active_length 42 cm
+
+#SourceEncloser
+/Geometry/CRAB_Detector/SourceEn_diam 10 mm
+/Geometry/CRAB_Detector/SourceEn_holedi 5 mm
+/Geometry/CRAB_Detector/SourceEn_offset 5.7 cm

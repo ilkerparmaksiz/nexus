@@ -36,12 +36,10 @@ namespace nexus {
   }
 
 
-
   PmtR7378A::~PmtR7378A()
   {
+
   }
-
-
 
   void PmtR7378A::Construct()
   {
@@ -115,8 +113,7 @@ namespace nexus {
     G4Sphere* phcath_solid =
       new G4Sphere(DetName, rmin, rmax, 0, twopi, 0, theta);
 
-    G4LogicalVolume* phcath_logic =
-      new G4LogicalVolume(phcath_solid, aluminum, DetName);
+    G4LogicalVolume* phcath_logic = new G4LogicalVolume(phcath_solid, aluminum, DetName);
 
     G4VisAttributes vis_solid;
     vis_solid.SetForceSolid(true);

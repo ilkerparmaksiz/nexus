@@ -13,23 +13,21 @@
 /PhysicsList/Nexus/drift                true
 /PhysicsList/Nexus/electroluminescence  true
 
-# GENERATION
+## Get GeometryInfo
+/nexus/RegisterMacro macros/CRAB/Camera/Detector_config.mac
 
-## This is for emmiting particles from outter surface of needle
-/Geometry/CRAB/HideSource false
-/Geometry/CRAB/HideCollimator true
 
 #/Generator/SingleParticle/region FIELDCAGE
 
 /Generator/SingleParticle/region OUTER_SURFACE
 
-#/Generator/SingleParticle/particle opticalphoton
-#/Generator/SingleParticle/min_energy 7.295 eV
-#/Generator/SingleParticle/max_energy 7.295 eV
+/Generator/SingleParticle/particle opticalphoton
+/Generator/SingleParticle/min_energy 7.20 eV
+/Generator/SingleParticle/max_energy 7.20 eV
 
-/Generator/SingleParticle/particle alpha
-/Generator/SingleParticle/min_energy 0.5 keV
-/Generator/SingleParticle/max_energy 0.5 keV
+#/Generator/SingleParticle/particle alpha
+#/Generator/SingleParticle/min_energy 0.5 keV
+#/Generator/SingleParticle/max_energy 0.5 keV
 
 #/Generator/SingleParticle/min_costheta 1
 #/Generator/SingleParticle/max_costheta 1
@@ -45,31 +43,6 @@
 
 /Actions/CRABAnalysisSteppingAction/FileSave true
 
-#GEOMETRY
-/Geometry/CRAB/gas_pressure 9.7 bar
-/Geometry/CRAB/scinYield 0 1/MeV
-/Geometry/CRAB/ELYield 925 1/cm
-/Geometry/CRAB/chamber_diam 15. cm
-/Geometry/CRAB/chamber_length 43.18 cm
-/Geometry/CRAB/chamber_thickn 2. mm
-/Geometry/CRAB/SourcePosition -1.6 0 -5 cm
-
-#/Geometry/CRAB/SourcePosition 0 0 0 cm
-/Geometry/CRAB/ElecLifTime 1000 ms
-/Geometry/CRAB/ELGap 7 mm
-
-/Geometry/CRAB/PMT1_Pos 3.32 cm
-/Geometry/CRAB/PMT3_Pos 3.52 cm
-
-#Active
-/Geometry/CRAB/Active_diam 8.5 cm
-/Geometry/CRAB/Active_length 42 cm
-
-#SourceEncloser
-/Geometry/CRAB/SourceEn_diam 10 mm
-/Geometry/CRAB/SourceEn_holedi 5 mm
-/Geometry/CRAB/SourceEn_offset 5.7 cm
-
 #### Attention! ---> if CRABOpticalTrackingAction is selected , please pay attention to this line. it allows you to select what particles to save to file and visualize.
 ## Particle Type
 ## optical saves and tracks only photons
@@ -81,5 +54,5 @@
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/optical_172nm
+/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/test
 #/run/printProgress 100

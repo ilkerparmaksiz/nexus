@@ -26,15 +26,13 @@ namespace nexus {
 
     REGISTER_CLASS(CRABImageIntensifier, GeometryBase)
 
-    CRABImageIntensifier::CRABImageIntensifier() : GeometryBase(), msg_(nullptr), fvisual(true){
+    CRABImageIntensifier::CRABImageIntensifier() : GeometryBase(), msg_(nullptr), fvisual(true),PhotonGain(100),Lab_Logical(nullptr),Lab_Physical(nullptr),Offsetz_(0){
         msg_=new G4GenericMessenger(this,"/Geometry/CRABImageIntesifier/","Control command sof geometry of CRAB TPC");
         msg_->DeclareProperty("gain",PhotonGain,"This is the amount of the photons that are produced");
     }
 
     CRABImageIntensifier::~CRABImageIntensifier(){
-
     }
-
     void CRABImageIntensifier::Construct() {
         double II_z=(25.4/2)*mm;
         double II_r=(25.4/2)*mm;
@@ -47,11 +45,14 @@ namespace nexus {
         // Change this later on
         G4Material * sapphire_mat =materials::Sapphire();
         G4Material * aluminum=G4NistManager::Instance()->FindOrBuildMaterial("G4_Al");
-        G4String lab_name="LAB";
-        G4Box * lab_solid_volume = new G4Box(lab_name,0.4/2*m,0.4/2*m,0.4/2*m);
-        G4LogicalVolume * lab_logic_volume= new G4LogicalVolume(lab_solid_volume,G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR"),lab_name) ;
-        auto labPhysical= new G4PVPlacement(0,G4ThreeVector(),lab_logic_volume,lab_logic_volume->GetName(),0,false,0, false);
 
+        if(Lab_Logical== nullptr){
+            G4String lab_name="LAB";
+            G4Box * lab_solid_volume = new G4Box(lab_name,0.4/2*m,0.4/2*m,0.4/2*m);
+            Lab_Logical = new G4LogicalVolume(lab_solid_volume,G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR"),lab_name) ;
+        }
+
+        if(Lab_Physical== nullptr) Lab_Physical= new G4PVPlacement(0,G4ThreeVector(),Lab_Logical,Lab_Logical->GetName(),0,false,0, false);
         G4LogicalVolume * front_logical= new G4LogicalVolume (front_solid,sapphire_mat,"front_logical");
         G4LogicalVolume * back_logical= new G4LogicalVolume (back_solid,sapphire_mat,"front_logical");
         G4LogicalVolume * II_body_logical= new G4LogicalVolume (II_body_solid,aluminum,"II_body_logical");
@@ -62,10 +63,11 @@ namespace nexus {
         //this->SetLogicalVolume(II_body_logical);
 
         // Body Placement
-        new G4PVPlacement(0,G4ThreeVector(0,0,0),"IIbody",II_body_logical,labPhysical, false,0,true);
-        new G4PVPlacement(0,G4ThreeVector(0,0,-II_z-windowthickness/2),"IICathode",II_PhotoCathode,labPhysical, false,0,true);
-        new G4PVPlacement(0,G4ThreeVector(0,0,-II_z-windowthickness),"IIWindowFront",front_logical,labPhysical, false,0,true);
-        new G4PVPlacement(0,G4ThreeVector(0,0,+II_z+windowthickness/2),"IIWindowBack",back_logical,labPhysical, false,0,true);
+        new G4PVPlacement(0,G4ThreeVector(0,0,Offsetz_),"IIbody",II_body_logical,Lab_Physical, false,0,true);
+        new G4PVPlacement(0,G4ThreeVector(0,0,Offsetz_-II_z-windowthickness/2),"IICathode",II_PhotoCathode,Lab_Physical, false,0,true);
+        new G4PVPlacement(0,G4ThreeVector(0,0,Offsetz_-II_z-windowthickness),"IIWindowFront",front_logical,Lab_Physical, false,0,true);
+        new G4PVPlacement(0,G4ThreeVector(0,0,Offsetz_+II_z+windowthickness/2),"IIWindowBack",back_logical,Lab_Physical, false,0,true);
+
 
 
         // Sensitive Detector
@@ -76,7 +78,6 @@ namespace nexus {
         II_PhotoCathode->SetSensitiveDetector(IIdet);
 
         // Will look in to producing optical
-
 
         // Visuals
         if (fvisual){
@@ -90,14 +91,12 @@ namespace nexus {
             IIcath->SetForceSolid(true);
 
              front_logical->SetVisAttributes(front);
-
              back_logical->SetVisAttributes(back);
              II_body_logical->SetVisAttributes(body);
              II_PhotoCathode->SetVisAttributes(IIcath);
         }
 
-        this->SetLogicalVolume(lab_logic_volume);
-
+        this->SetLogicalVolume(Lab_Logical);
 
     }
 

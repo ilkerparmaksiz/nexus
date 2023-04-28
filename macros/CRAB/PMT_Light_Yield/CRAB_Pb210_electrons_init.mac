@@ -14,20 +14,21 @@
 
 #Generator
 #/nexus/RegisterGenerator Kr83mGenerator
-/nexus/RegisterGenerator IonGenerator
-#/nexus/RegisterGenerator CrabSourceGenerator
+#/nexus/RegisterGenerator IonGenerator
+/nexus/RegisterGenerator CrabSourceGenerator
 
 #FileSave
 /nexus/RegisterPersistencyManager PersistencyManager
 
 #Actions
-/nexus/RegisterTrackingAction OpticalTrackingAction
+/nexus/RegisterTrackingAction CRABOpticalTrackingAction
 #/nexus/RegisterTrackingAction DefaultTrackingAction
 /nexus/RegisterEventAction DefaultEventAction
 /nexus/RegisterRunAction DefaultRunAction
+/nexus/RegisterSteppingAction CRABAnalysisSteppingAction
 
 
 #Config
-/nexus/RegisterMacro macros/CRAB/CRAB_IonGenerator_config.mac
+/nexus/RegisterMacro macros/CRAB/PMT_Light_Yield/CRAB_Pb210_electrons_config.mac
 
 
