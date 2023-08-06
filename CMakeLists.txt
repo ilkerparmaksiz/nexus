@@ -22,6 +22,37 @@ find_package(Geant4 REQUIRED ui_all vis_all)
 find_package(GSL REQUIRED)
 find_package(HDF5 REQUIRED)
 
+### Garfield Implementation
+option(With_Garfield OFF)
+if(With_GarField)
+  ## ROOT
+  find_package(ROOT QUIET REQUIRED COMPONENTS RIO Net)
+  if(NOT ROOT_FOUND)
+    message(STATUS "ROOT package not found.")
+    return()
+  endif()
+
+  #include(${ROOT_USE_FILE})
+
+  ## Garfield
+  if(NOT TARGET Garfield::Garfield)
+    find_package(Garfield REQUIRED)
+  endif()
+
+  if(NOT Garfield_FOUND)
+    message(STATUS "Garfield package not found.")
+    return()
+  endif()
+
+  ## NEST
+  find_package(NEST REQUIRED)
+  if(NOT NEST_FOUND)
+    message(STATUS "NEST package not found.")
+    return()
+  endif()
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+endif()
+
 # Define list with names of source folders
 set(SOURCE_DIRS actions base generators geometries materials
                 persistency physics physics_lists sensdet utils)
@@ -46,11 +77,18 @@ foreach(DIR ${SOURCE_DIRS})
 
   target_sources(lib PRIVATE ${SRCS})
 endforeach()
+if(With_GarField)
+  target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} ${NEST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(lib PUBLIC
+          ${Geant4_LIBRARIES} PRIVATE
+          ${GSL_LIBRARIES} ${HDF5_LIBRARIES} Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore)
+else()
+  target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
+  target_link_libraries(lib PUBLIC
+          ${Geant4_LIBRARIES} PRIVATE
+          ${GSL_LIBRARIES} ${HDF5_LIBRARIES} )
+endif()
 
-target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
-target_link_libraries(lib PUBLIC 
-                      ${Geant4_LIBRARIES} PRIVATE
-                      ${GSL_LIBRARIES} ${HDF5_LIBRARIES})
 
 add_executable(exe)
 set_target_properties(exe PROPERTIES OUTPUT_NAME ${PROJECT_NAME})

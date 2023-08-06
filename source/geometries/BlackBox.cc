@@ -10,12 +10,10 @@
 #include "BlackBox.h"
 #include "BlackBoxSiPMBoard.h"
 #include "FactoryBase.h"
-
 #include "MaterialsList.h"
 #include "IonizationSD.h"
 #include "OpticalMaterialProperties.h"
 #include "Visibilities.h"
-
 #include <G4Box.hh>
 #include <G4Tubs.hh>
 #include <G4GenericMessenger.hh>
