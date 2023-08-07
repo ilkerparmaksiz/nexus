@@ -22,6 +22,23 @@ find_package(Geant4 REQUIRED ui_all vis_all)
 find_package(GSL REQUIRED)
 find_package(HDF5 REQUIRED)
 
+option (With_Opticks OFF)
+if(WITH_OPTICKS)
+  message(STATUS "WITH_OPTICKS is set ON")
+  list(APPEND CMAKE_MODULE_PATH "$ENV{OPTICKS_HOME}/cmake/Modules")
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules")
+  message(STATUS "---- OPTICKS ----")
+  message(STATUS "CMAKE_MODULE_PATH --> ${CMAKE_MODULE_PATH}")
+  message(STATUS "OPTICKS HOME --> $ENV{OPTICKS_HOME}")
+  message(STATUS "---- OPTICKS END ----")
+  include(OpticksBuildOptions)
+  find_package(G4CX REQUIRED CONFIG)
+  find_package(U4 REQUIRED CONFIG)
+  find_package(ExtG4 REQUIRED CONFIG)
+  find_package(CSG_GGeo REQUIRED CONFIG)
+endif ()
+
+
 ### Garfield Implementation
 option(With_Garfield OFF)
 if(With_GarField)
