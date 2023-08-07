@@ -63,26 +63,38 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
 
 add_library(lib SHARED)
 set_target_properties(lib PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-
 foreach(DIR ${SOURCE_DIRS})
   # Create lists of *.h and *.cc files
   file(GLOB HDRS ${CMAKE_SOURCE_DIR}/source/${DIR}/*.h)
   file(GLOB SRCS ${CMAKE_SOURCE_DIR}/source/${DIR}/*.cc)
+  ### Include Garfield Related Libraries
+  if(With_GarField)
+    file(GLOB GRHDRS ${CMAKE_SOURCE_DIR}/source/${DIR}/Garfield/*.h)
+    file(GLOB GRSRCS ${CMAKE_SOURCE_DIR}/source/${DIR}/Garfield/*.cc)
+    file(COPY ${GRHDRS} DESTINATION ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
+  endif()
   # Copy header files to the 'include' binary folder
   file(COPY ${HDRS} DESTINATION ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
 
   target_include_directories(lib PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}>
-    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+          $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}>
+          $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
-  target_sources(lib PRIVATE ${SRCS})
+  if(With_GarField)
+    target_sources(lib PRIVATE ${SRCS} ${GRSRCS})
+  else()
+    target_sources(lib PRIVATE ${SRCS})
+  endif()
 endforeach()
+
 if(With_GarField)
+
   target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} ${NEST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
   target_link_libraries(lib PUBLIC
           ${Geant4_LIBRARIES} PRIVATE
-          ${GSL_LIBRARIES} ${HDF5_LIBRARIES} Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore)
+          ${GSL_LIBRARIES} ${HDF5_LIBRARIES} Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore NEST::NESTG4)
 else()
+
   target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
   target_link_libraries(lib PUBLIC
           ${Geant4_LIBRARIES} PRIVATE
@@ -110,4 +122,3 @@ install(TARGETS lib exe test
 
 install(DIRECTORY ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME} DESTINATION include
         FILES_MATCHING PATTERN "*.h")
-
