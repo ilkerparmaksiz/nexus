@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 
 
-#include "S2Photon.hh"
+#include "S2Photon.h"
 
 #include <G4ParticleTable.hh>
 #include "CLHEP/Units/PhysicalConstants.h"
@@ -50,7 +50,7 @@
 //  New impelemenataion as an utility class  H.Kurashige, 14 July 2004
 // ----------------------------------------------------------------
 
-#include "S2Photon.hh"
+#include "S2Photon.h"
 #include "G4SystemOfUnits.hh"
 #include "G4ParticleTable.hh"
 

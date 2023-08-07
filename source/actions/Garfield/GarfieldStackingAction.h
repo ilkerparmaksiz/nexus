@@ -9,15 +9,15 @@
 
 #ifndef DEFAULT_STACKING_ACTION_H
 #define DEFAULT_STACKING_ACTION_H
-#include "NEST/G4/NESTStackingAction.hh"
-#include <G4UserStackingAction.hh>
+
+#include "NESTStackingAction.hh"
 
 
 namespace nexus {
 
   // General-purpose user stacking action
 
-  class GarfieldStackingAction: public G4UserStackingAction
+  class GarfieldStackingAction: public NESTStackingAction
   {
   public:
     /// Constructor

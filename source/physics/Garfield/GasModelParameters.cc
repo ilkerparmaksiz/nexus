@@ -1,9 +1,11 @@
-#include "GasModelParameters.hh"
-#include "DegradModel.hh"
-#include "GasModelParametersMessenger.hh"
-#include "DetectorConstruction.hh"
-namespace nexus {
-    GasModelParameters::GasModelParameters(){
+#include "GasModelParameters.h"
+#include "DegradModel.h"
+#include "GasModelParametersMessenger.h"
+#include "DetectorConstruction.h"
+
+using namespace nexus;
+
+GasModelParameters::GasModelParameters(){
         fMessenger = new GasModelParametersMessenger(this);
 }
-}
+GasModelParameters::~GasModelParameters{};

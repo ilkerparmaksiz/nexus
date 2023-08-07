@@ -1,17 +1,17 @@
-#include "GarfieldEventAction.hh"
+#include "GarfieldEventAction.h"
 
 #include "G4Event.hh"
 #include "G4EventManager.hh"
 #include "G4ios.hh"
-#include "GarfieldRunAction.hh"
+#include "GarfieldRunAction.h"
 
 #include "G4SDManager.hh"
 #include "G4Threading.hh"
-#include "GarfieldSteppingAction.hh"
+#include "GarfieldSteppingAction.h"
 #include "G4VPhysicalVolume.hh"
 #include "G4GlobalFastSimulationManager.hh"
-#include "DegradModel.hh"
-#include "GarfieldVUVPhotonModel.hh"
+#include "GasModelParametersMessenger.h"
+#include "GarfieldVUVPhotonModel.h"
 #include "FactoryBase.h"
 #include "Trajectory.h"
 #include <G4Trajectory.hh>
@@ -73,7 +73,7 @@ namespace nexus {
         // Get the trajectories stored for this event and loop through them
         // to calculate the total energy deposit
 
-        G4double edep = 0.;
+        G4double fEDepPrim = 0.;
 
         G4TrajectoryContainer* tc = evt->GetTrajectoryContainer();
         if (tc) {
@@ -81,28 +81,28 @@ namespace nexus {
             // but the trajectories will not cast to Trajectory
             Trajectory* trj = dynamic_cast<Trajectory*>((*tc)[0]);
             if (trj == nullptr){
-                G4Exception("[DefaultEventAction]", "EndOfEventAction()", FatalException,
-                            "DefaultTrackingAction is required when using DefaultEventAction");
+                G4Exception("[GarfieldEventAction]", "EndOfEventAction()", FatalException,
+                            "GarfieldEventAction is required when using GarfieldEventAction");
             }
             for (unsigned int i=0; i<tc->size(); ++i) {
                 Trajectory* tr = dynamic_cast<Trajectory*>((*tc)[i]);
-                edep += tr->GetEnergyDeposit();
+                fEDepPrim += tr->GetEnergyDeposit();
             }
         }
         else {
             G4Exception("[DefaultEventAction]", "EndOfEventAction()", FatalException,
-                        "DefaultTrackingAction is required when using DefaultEventAction");
+                        "GarfieldEventAction is required when using GarfieldEventAction");
         }
 
         PersistencyManager* pm = dynamic_cast<PersistencyManager*>
         (G4VPersistencyManager::GetPersistencyManager());
 
-        if (!evt->IsAborted() && edep>0) {
+        if (!evt->IsAborted() && fEDepPrim>0) {
             pm->InteractingEvent(true);
         } else {
             pm->InteractingEvent(false);
         }
-        if (!evt->IsAborted() && edep > energy_min_ && edep < energy_max_) {
+        if (!evt->IsAborted() && fEDepPrim > energy_min_ && fEDepPrim < energy_max_) {
             pm->StoreCurrentEvent(true);
         } else {
             pm->StoreCurrentEvent(false);
@@ -110,6 +110,10 @@ namespace nexus {
 
     }
 
+    }
+    void GarfieldEventAction::EDepPrim(const G4double &Ed)
+    {
+        fEDepPrim+=Ed;
     }
 
 }

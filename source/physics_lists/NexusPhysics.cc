@@ -22,8 +22,6 @@
 #include <G4StepLimiter.hh>
 #include <G4FastSimulationManagerProcess.hh>
 #include <G4PhysicsConstructorFactory.hh>
-
-
 namespace nexus {
 
   /// Macro that allows the use of this physics constructor

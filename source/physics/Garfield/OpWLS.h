@@ -5,7 +5,7 @@
 #ifndef CRAB_OPWLS_HH
 #define CRAB_OPWLS_HH
 #include "G4OpWLS.hh"
-#include "S2Photon.hh"
+#include "S2Photon.h"
 namespace nexus{
     class OpWLS:public G4OpWLS{
     public:

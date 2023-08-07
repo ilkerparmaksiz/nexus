@@ -1,7 +1,7 @@
 #ifndef gasNESTdet_hh
 #define gasNESTdet_hh
 
-#include "../Detectors/VDetector.hh"
+#include "Detectors/VDetector.hh"
 using namespace std;
 
 //NOTES: best g1 for DD 0.1193, but for tritium 0.1146; S2 noise 1.9, 7.5%; g1_gas 0.1019, 0.1012

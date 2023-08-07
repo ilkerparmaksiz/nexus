@@ -5,11 +5,11 @@
 #include "G4String.hh"
 #include <map>
 
-class DegradModel;
-class GasModelParametersMessenger;
-class DetectorConstruction;
 class G4String;
 namespace nexus{
+    class DetectorConstruction;
+    class GasModelParametersMessenger;
+    class DegradModel;
     class GasModelParameters{
         public:
 

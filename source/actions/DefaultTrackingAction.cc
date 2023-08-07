@@ -21,7 +21,6 @@
 #include <G4Trajectory.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4OpticalPhoton.hh>
-
 using namespace nexus;
 
 REGISTER_CLASS(DefaultTrackingAction, G4UserTrackingAction)

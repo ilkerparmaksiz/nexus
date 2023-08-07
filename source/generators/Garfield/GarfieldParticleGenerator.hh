@@ -31,63 +31,69 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#ifndef PrimaryGenerator_h
-#define PrimaryGenerator_h 1
+#ifndef GarfieldParticleGenerator_h
+#define GarfieldParticleGenerator_h 1
 
-#include "G4VPrimaryGenerator.hh"
+#include <G4VPrimaryGenerator.hh>
 #include "G4IonTable.hh"
 #include "G4GenericMessenger.hh"
 
 #include "G4BetaMinusDecay.hh"
+#include "FileHandling.h"
+#include "GeometryBase.h"
 
-#include "FileHandling.hh"
-
-
+class G4GenericMessenger;
 class G4Event;
-//class G4DecayProducts;
+class G4ParticleDefinition;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+namespace nexus{
+    class GeometryBase;
+    class GarfieldParticleGenerator : public G4VPrimaryGenerator
+    {
+      public:
+        GarfieldParticleGenerator();
+       ~GarfieldParticleGenerator();
 
-class PrimaryGenerator : public G4VPrimaryGenerator
-{
-  public:
-    PrimaryGenerator();    
-   ~PrimaryGenerator();
+      public:
+        void GeneratePrimaryVertex(G4Event*) ;
+        void GeneratePrimaryVertexIon(G4Event*);
 
-  public:
-  virtual void GeneratePrimaryVertex(G4Event*) {};
-  virtual void GeneratePrimaryVertexIon(G4Event*,std::vector<double> &);
-  virtual void GenerateSingleParticle(G4Event*);
-  virtual void Generate(G4Event* event, std::vector<double> &xyz); // Choose which generator to launch
-
-
-private:
-    bool fFSNeutrino;
-    G4IonTable* fIonTable;
-    G4ParticleDefinition *fParentNucleus;
-    G4BetaMinusDecay *fBetaMinusChannel; 
-
-     G4GenericMessenger* msg_;
-
-     G4ThreeVector momentum_;
-
-
-    // For reading in files
-    filehandler::FileHandling FileHandler;
-
-    std::vector<std::vector<G4double>> electron_data;
-    std::vector<std::vector<G4double>> alpha_data;
-    G4String ParticleType_;
-    G4ThreeVector Position_;
-    G4double energy_;
-    G4bool Iso_;
-    G4bool useNeedle;
-    G4String GeneratorMode_;
+        void GenerateSingleParticle(G4Event*);
 
 
 
-};
+    private:
+        void SetParticleDefinition(G4String);
+        const GeometryBase* geom_; ///< Pointer to the detector geometry
+        bool fFSNeutrino;
+        G4IonTable* fIonTable;
+        G4ParticleDefinition* particle_definition_;
 
+        G4ParticleDefinition *fParentNucleus;
+        G4BetaMinusDecay *fBetaMinusChannel;
+
+         G4GenericMessenger* msg_;
+
+         G4ThreeVector momentum_;
+
+
+        // For reading in files
+        filehandler::FileHandling FileHandler;
+
+        std::vector<std::vector<G4double>> electron_data;
+        std::vector<std::vector<G4double>> alpha_data;
+        G4String ParticleType_;
+        G4ThreeVector Position_;
+        G4double energy_;
+        G4bool Iso_;
+        G4bool useNeedle;
+        G4String GeneratorMode_;
+
+
+
+    };
+}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif

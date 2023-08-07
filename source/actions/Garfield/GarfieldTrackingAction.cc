@@ -1,83 +1,73 @@
-#include "GarfieldTrackingAction.hh"
+#include "GarfieldTrackingAction.h"
 #include "G4VPhysicalVolume.hh"
 #include "G4VTouchable.hh"
 
-#include "DetectorConstruction.hh"
 #include "G4Track.hh"
 #include "G4OpticalPhoton.hh"
 
 #include "G4SDManager.hh"
 #include "G4Run.hh"
 #include "G4EventManager.hh"
-#include "GasBoxSD.hh"
 #include "S2Photon.hh"
+#include <G4Trajectory.hh>
+#include "Trajectory.h"
+#include "TrajectoryMap.h"
+#include "FactoryBase.h"
 
-void TrackingAction::PreUserTrackingAction(const G4Track *aTrack) {
-  auto const* evt = G4EventManager::GetEventManager()->GetConstCurrentEvent();
-  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-  G4int  event = evt->GetEventID();
-  const G4ThreeVector pos(aTrack->GetPosition());
+using namespace nexus;
+REGISTER_CLASS(GarfieldTrackingAction,G4UserTrackingAction)
 
-
-  const G4ParticleDefinition* particle = aTrack->GetParticleDefinition();
-  G4int pID       = particle->GetPDGEncoding();
-  G4double time   = aTrack->GetGlobalTime();
-
-
-    // Do not Store Trajectories to help on memory
-    fpTrackingManager->SetStoreTrajectory(false);
-
-
-  G4int id(12);
-
-    if(aTrack->GetParticleDefinition()==S2Photon::OpticalPhoton())
-        id=2;
-    else if(aTrack->GetParticleDefinition()==G4OpticalPhoton::OpticalPhoton())
-        id=1;
-    else
-        return;
-  // The 120.075 is a hardcoded number for the position of the EL top in mm
-  //if (pos[2]/mm>-106.3) id = 1; // S1 optphotons
-  //if (pos[2]/mm<=-106.3) id = 2; // S2 optphotons
-
-  /*
-  G4ProcessManager* pmanager = particle->GetProcessManager();
-  std::cout << "TrackingAction:: optphoton type S1/S2: " << id << " . processes observed: " << std::endl;
-  for (short int ii = 0; ii<(short int)(pmanager->GetProcessList()->size());++ii)
-    {
-      std::cout << (*pmanager->GetProcessList())[ii]->GetProcessName() << std::endl;
-    }
-  */
-  
-  std::string startp("null");
-  const G4VProcess* sprocess   = aTrack->GetCreatorProcess();
-  G4String processName("null") ;
-  if (sprocess)
-    startp = sprocess->GetProcessName();
-
-  // Weirdly, S1 is filled in two places. Here for optphotons and in GarfieldVUVPhotons::S1Fill() for thermale's..
-  // S2 is only filled here.
-  G4int row(0);
-
-  // Turn off the S2 fill since its heavy!
-
-  // analysisManager->FillNtupleDColumn(id,row, event); row++;
-
-  // analysisManager->FillNtupleDColumn(id,row, (G4double)pID); row++;
-  // analysisManager->FillNtupleDColumn(id,row, time/ns); row++;
-  // analysisManager->FillNtupleDColumn(id,row, pos[0]/mm); row++;
-  // analysisManager->FillNtupleDColumn(id,row, pos[1]/mm); row++;
-  // analysisManager->FillNtupleDColumn(id,row, pos[2]/mm); row++;
-  // analysisManager->FillNtupleSColumn(id,row, startp); row++;
-
-  // analysisManager->AddNtupleRow(id);
-
-
-  
-}
-
-
-
-TrackingAction::TrackingAction():fPPID(0.0),fPKE(0.0), fFPKE(0.0)
+GarfieldTrackingAction::GarfieldTrackingAction():G4UserTrackingAction(),fPPID(0.0),fPKE(0.0), fFPKE(0.0)
 {
 }
+
+GarfieldTrackingAction::~GarfieldTrackingAction()
+{
+}
+void GarfieldTrackingAction::PreUserTrackingAction(const G4Track *Track) {
+
+
+    // have to include  NEST ThermalElectrons here
+    // Do not Store Trajectories to help on memory
+    if (Track->GetDefinition() == G4OpticalPhoton::Definition() ||
+        Track->GetDefinition() == S2Photon::Definition()) {
+        fpTrackingManager->SetStoreTrajectory(false);
+        return;
+    }
+    // Create a new trajectory associated to the track.
+    // N.B. If the processesing of a track is interrupted to be resumed
+    // later on (to process, for instance, its secondaries) more than
+    // one trajectory associated to the track will be created, but
+    // the event manager will merge them at some point.
+    G4VTrajectory *trj = new Trajectory(Track);
+
+    // Set the trajectory in the tracking manager
+    fpTrackingManager->SetStoreTrajectory(true);
+    fpTrackingManager->SetTrajectory(trj);
+}
+
+void GarfieldTrackingAction::PostUserTrackingAction(const G4Track *Track)
+{
+    // Do nothing if the track is an optical photon or an S2 Photon
+    if (Track->GetDefinition() == G4OpticalPhoton::Definition() ||
+            Track->GetDefinition() == S2Photon::Definition())
+        return;
+
+    Trajectory *trj = (Trajectory *)TrajectoryMap::Get(Track->GetTrackID());
+
+    // Do nothing if the track has no associated trajectory in the map
+    if (!trj) return;
+
+    // Record final time and position of the track
+    trj->SetFinalPosition(Track->GetPosition());
+    trj->SetFinalTime(Track->GetGlobalTime());
+    trj->SetTrackLength(Track->GetTrackLength());
+    trj->SetFinalVolume(Track->GetVolume()->GetName());
+    trj->SetFinalMomentum(Track->GetMomentum());
+
+    // Record last process of the track
+    G4String proc_name = Track->GetStep()->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
+    trj->SetFinalProcess(proc_name);
+}
+
+
