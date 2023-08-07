@@ -6,7 +6,7 @@
 #define CRAB_OPABSORPTION_HH
 
 #include "G4OpAbsorption.hh"
-#include "S2Photon.hh"
+#include "S2Photon.h"
 namespace nexus{
     class OpAbsorption : public G4OpAbsorption{
     public:

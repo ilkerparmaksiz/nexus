@@ -3,9 +3,10 @@
 //
 
 #include <G4SIunits.hh>
-#include "FileHandling.hh"
+#include "FileHandling.h"
 #include "G4Exception.hh"
-namespace filehandler{
+
+namespace FileHandling{
     using namespace CLHEP;
     // construct
     FileHandling::FileHandling() {

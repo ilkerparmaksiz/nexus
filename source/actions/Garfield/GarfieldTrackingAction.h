@@ -8,27 +8,27 @@
 #include "G4Event.hh"
 #include "G4PrimaryVertex.hh"
 #include "Analysis.hh"
-
 #include <vector>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
+namespace nexus {
 
-class TrackingAction : public G4UserTrackingAction {
- public:
-  TrackingAction();
-  ~TrackingAction(){};
+    class GarfieldTrackingAction : public G4UserTrackingAction {
+     public:
+      GarfieldTrackingAction();
+      ~GarfieldTrackingAction();
 
-  virtual void PreUserTrackingAction(const G4Track *);
-  //  virtual void PostUserTrackingAction(const G4Track *);
- 
- private:
-  G4int fPPID;
-  G4double fPKE;
-  G4double fFPKE;
- 	
-};
+      virtual void PreUserTrackingAction(const G4Track *);
+      virtual void PostUserTrackingAction(const G4Track *);
 
+     private:
+      G4int fPPID;
+      G4double fPKE;
+      G4double fFPKE;
+
+    };
+}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 #endif

@@ -6,7 +6,7 @@
 #define CRAB_OPBOUNDARYPROCESS_HH
 
 #include "G4OpBoundaryProcess.hh"
-#include "S2Photon.hh"
+#include "S2Photon.h"
 namespace nexus {
     class OpBoundaryProcess : public G4OpBoundaryProcess{
         using G4OpBoundaryProcess::G4OpBoundaryProcess;

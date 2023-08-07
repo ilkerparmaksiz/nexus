@@ -6,7 +6,7 @@
 // The NEXT Collaboration
 // ----------------------------------------------------------------------------
 
-#include "HexagonMeshTools.hh"
+#include "HexagonMeshTools.h"
 #include <G4SubtractionSolid.hh>
 #include <G4Polyhedra.hh>
 #include <G4PVPlacement.hh>

@@ -29,10 +29,10 @@
 /// \brief Implementation of the LXeTrajectory class
 //
 //
-#include "DriftLineTrajectory.hh"
+#include "DriftLineTrajectory.h"
 #include "G4ParticleTable.hh"
 #include "G4ParticleTypes.hh"
-#include "DriftLineTrajectoryPoint.hh"
+#include "DriftLineTrajectoryPoint.h"
 #include "G4VProcess.hh"
 namespace nexus {
 G4ThreadLocal G4Allocator<DriftLineTrajectory>* DriftLineTrajectoryAllocator = 0;

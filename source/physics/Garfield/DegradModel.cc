@@ -1,6 +1,6 @@
 #include "G4Electron.hh"
 #include "G4SystemOfUnits.hh"
-#include "DegradModel.hh"
+#include "DegradModel.h"
 #include "G4Region.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4UnitsTable.hh"
@@ -11,27 +11,19 @@
 #include "G4TransportationManager.hh"
 #include "G4DynamicParticle.hh"
 #include "G4RandomDirection.hh"
-#include "GasModelParameters.hh"
-#include "GasBoxSD.hh"
-#include "XenonHit.hh"
+#include "GasModelParameters.h"
+#include "DetectorConstruction.h"
+#include "GasBoxSD.h"
+#include "XenonHit.h"
 #include "G4VProcess.hh"
-#include "DetectorConstruction.hh"
-#include "NEST/G4/NESTProc.hh"
-
+#include "DetectorConstruction.h"
+#include "NESTProc.hh"
+using namespace nexus;
 DegradModel::DegradModel(GasModelParameters* gmp, G4String modelName, G4Region* envelope,DetectorConstruction* dc, GasBoxSD* sd)
     : G4VFastSimulationModel(modelName, envelope),detCon(dc), fGasBoxSD(sd){
     
     thermalE=gmp->GetThermalEnergy();
     processOccured = false;
-
-    // Get the path to crab
-    crab_path = std::getenv("CRABPATH");
-    if (crab_path == nullptr) {
-        G4Exception("[DegradModel]", "DegradModel()", FatalException,
-                    "Environment variable CRABPATH not defined!");
-    }
-
-    G4String path(crab_path);
 
 }
 
@@ -68,7 +60,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
         G4double degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
         G4int KE = int(fPrimPhotonKE/eV);
         const static G4double torr = 1. / 750.062 * bar;
-        G4int Press = int(detCon->GetGasPressure()/torr); 
+        G4int Press = int(detCon->GetGeometry()/torr);
         fastStep.SetPrimaryTrackPathLength(0.0);
         G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
 

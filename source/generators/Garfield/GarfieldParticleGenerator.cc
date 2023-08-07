@@ -31,8 +31,11 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-#include "PrimaryGenerator.hh"
-
+#include "GarfieldParticleGenerator.hh"
+#include "DetectorConstruction.h"
+#include "GeometryBase.h"
+#include "RandomUtils.h"
+#include "FactoryBase.h"
 #include "G4Event.hh"
 #include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
@@ -43,16 +46,18 @@
 #include "G4DecayProducts.hh"
 #include "G4ProcessTable.hh"
 #include "G4RadioactiveDecay.hh"
+#include <G4RunManager.hh>
+
 #include "Randomize.hh"
 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-PrimaryGenerator::PrimaryGenerator()
+using namespace nexus;
+GarfieldParticleGenerator::GarfieldParticleGenerator()
   : G4VPrimaryGenerator(), momentum_(1,1,1),energy_(0),ParticleType_("opticalphoton"),Position_(0),Iso_(true),useNeedle(true)
 {
 
-  msg_ = new G4GenericMessenger(this, "/Generator/SingleParticle/",
+  msg_ = new G4GenericMessenger(this, "/Generator/GarfieldParticleGenerator/",
     "Control commands of single-particle generator.");
 
   msg_->DeclareProperty("momentum",  momentum_, "Set particle 3-momentum.");
@@ -63,50 +68,31 @@ PrimaryGenerator::PrimaryGenerator()
   msg_->DeclareProperty("useNeedle",  useNeedle, "Isotropic Distribution");
   msg_->DeclareProperty("Mode",  GeneratorMode_, "The mode of the generator to run");
 
-    //msg_->DeclareProperty("pos", "cm",  Position_, "Set Position x,y,z");
-  //  --- Get Xenon file --- 
-	char* nexus_path = std::getenv("CRABPATH");
-	if (nexus_path == nullptr) {
-		G4Exception("[PrimaryGenerator]", "Constructor()", FatalException,
-					"Environment variable CRABPATH not defined!");
-	}
-
-	std::string crab_path(nexus_path);
-
-
-
-  //FileHandler.GetEvent(crab_path + "/data/pb210_electron.csv", electron_data);
-  //FileHandler.GetEvent(crab_path + "/data/pb210_alpha.csv",    alpha_data);
+    DetectorConstruction* detconst = (DetectorConstruction*) G4RunManager::GetRunManager()->GetUserDetectorConstruction();
+    geom_ = detconst->GetGeometry();
 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-PrimaryGenerator::~PrimaryGenerator()
+GarfieldParticleGenerator::~GarfieldParticleGenerator()
 { }
 
-// -------------------
-void PrimaryGenerator::Generate(G4Event* event, std::vector<double> &xyz){
+void GarfieldParticleGenerator::SetParticleDefinition(G4String particle_name) {
+    particle_definition_ =
+            G4ParticleTable::GetParticleTable()->FindParticle(particle_name);
 
-
-  if (GeneratorMode_ == "Single"){
-    std::cout <<"Generating with Single Particle Mode for event: " << event->GetEventID() << std::endl;
-    GenerateSingleParticle(event);
-  }
-  else {
-    std::cout <<"Generating with Ion Mode for event: " << event->GetEventID() << std::endl;
-    GeneratePrimaryVertexIon(event, xyz);
-  }
-
+    if (!particle_definition_)
+        G4Exception("[GarfieldParticleGenerator]", "SetParticleDefinition()",
+                    FatalException, "User gave an unknown particle name.");
 }
 
-
 // -------------------
 
-void PrimaryGenerator::GeneratePrimaryVertexIon(G4Event* event, std::vector<double> &xyzb){
+void GarfieldParticleGenerator::GeneratePrimaryVertexIon(G4Event* event){
 
 
-  G4ThreeVector positionA( xyzb.at(0), xyzb.at(1), xyzb.at(2));
+  G4ThreeVector positionA( Position_[0], Position_[1], Position_[2]);
   G4double timeA = 0*s;
 
   // Generate events off the surface of the needle
@@ -159,7 +145,7 @@ void PrimaryGenerator::GeneratePrimaryVertexIon(G4Event* event, std::vector<doub
   vertexA->Print();
 }
 
-void PrimaryGenerator::GenerateSingleParticle(G4Event * event) {
+void GarfieldParticleGenerator::GenerateSingleParticle(G4Event * event) {
 
 
     G4double NeedleOffset=1*mm;
@@ -203,7 +189,7 @@ void PrimaryGenerator::GenerateSingleParticle(G4Event * event) {
     }
 
     particle1->SetMomentum(p.x(), p.y(), p.z());
-    std::cout << "\nPrimaryGenerator: Adding particle with " << particle1->GetKineticEnergy()/keV << " keV w ux,uy,uz " << p.x() << ", " << p.y() << ", " << p.z()<< " to vertexA."  << std::endl;
+    std::cout << "\nGarfieldParticleGenerator: Adding particle with " << particle1->GetKineticEnergy()/keV << " keV w ux,uy,uz " << p.x() << ", " << p.y() << ", " << p.z()<< " to vertexA."  << std::endl;
 
 
 
@@ -246,6 +232,18 @@ void PrimaryGenerator::GenerateSingleParticle(G4Event * event) {
     vertexA->Print();
 }
 
+
+
+void GarfieldParticleGenerator::GeneratePrimaryVertex(G4Event * event) {
+    if (GeneratorMode_ == "Single"){
+        std::cout <<"Generating with Single Particle Mode for event: " << event->GetEventID() << std::endl;
+        GenerateSingleParticle(event);
+    }
+    else {
+        std::cout <<"Generating with Ion Mode for event: " << event->GetEventID() << std::endl;
+        GeneratePrimaryVertexIon(event);
+    }
+}
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 

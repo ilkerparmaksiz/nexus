@@ -1,8 +1,7 @@
-#include "GarfieldSteppingAction.hh"
+#include "GarfieldSteppingAction.h"
 #include "G4VPhysicalVolume.hh"
 #include "G4VTouchable.hh"
 #include "G4Step.hh"
-#include "DetectorConstruction.hh"
 #include "G4Track.hh"
 #include "G4OpticalPhoton.hh"
 #include "G4StepPoint.hh"
@@ -12,24 +11,25 @@
 #include "GasBoxSD.hh"
 #include "S2Photon.hh"
 
+using namespace nexus;
+using namespace CLHEP;
+GarfieldSteppingAction::GarfieldSteppingAction(GarfieldEventAction *eva) :G4UserSteppingAction(),  fEventAction(eva),  ev_shift(0) {
 
-SteppingAction::SteppingAction(EventAction *eva) : fEventAction(eva),  ev_shift(0) {
-
-  msg_ = new G4GenericMessenger(this, "/Action/SteppingAction/",
+  msg_ = new G4GenericMessenger(this, "/Action/GarfieldSteppingAction/",
     "Control commands of the stepping action.");
 
   msg_->DeclareProperty("event_shift", ev_shift, "Set the event ID Shift number");
-  
+
 }
 
 
 
-void SteppingAction::UserSteppingAction(const G4Step *aStep)
+void GarfieldSteppingAction::UserSteppingAction(const G4Step *aStep)
 
 {
 
   G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-  G4int  event = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
+  G4int event = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
   const G4ThreeVector pos(aStep->GetPreStepPoint()->GetPosition());
   const G4ThreeVector tpos(aStep->GetPostStepPoint()->GetPosition());
   const G4ThreeVector sdir(aStep->GetPreStepPoint()->GetMomentumDirection());

@@ -13,11 +13,11 @@
 
 using namespace nexus;
 
-REGISTER_CLASS(GarfieldStackingAction, G4UserStackingAction)
+REGISTER_CLASS(GarfieldStackingAction, NESTStackingAction)
 
-GarfieldStackingAction::GarfieldStackingAction(): G4UserStackingAction()
+GarfieldStackingAction::GarfieldStackingAction(): NESTStackingAction()
 {
-     new NESTStackingAction();
 }
+GarfieldStackingAction::~GarfieldStackingAction()  {}
 
 

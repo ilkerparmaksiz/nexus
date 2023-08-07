@@ -13,7 +13,6 @@
 #define DEFAULT_TRACKING_ACTION_H
 
 #include <G4UserTrackingAction.hh>
-
 class G4Track;
 
 

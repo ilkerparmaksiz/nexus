@@ -19,12 +19,15 @@ namespace nexus {
      public:
       void BeginOfEventAction(const G4Event *);
       void EndOfEventAction(const G4Event *);
+      void EDepPrim(const G4double&);
 
-     private:
+    private:
         G4GenericMessenger* msg_;
         G4int nevt_, nupdate_;
         G4double energy_min_;
         G4double energy_max_;
+        G4double fEDepPrim;
+
 
 
     };

@@ -12,7 +12,7 @@
 #include "G4UnitsTable.hh"
 using namespace std;
 
-namespace filehandler{
+namespace FileHandling{
     class FileHandling {
         public:
             //Construct
