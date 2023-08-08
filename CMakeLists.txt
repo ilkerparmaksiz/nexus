@@ -23,19 +23,23 @@ find_package(GSL REQUIRED)
 find_package(HDF5 REQUIRED)
 
 option (With_Opticks OFF)
-if(WITH_OPTICKS)
+if(With_Opticks)
+
   message(STATUS "WITH_OPTICKS is set ON")
   list(APPEND CMAKE_MODULE_PATH "$ENV{OPTICKS_HOME}/cmake/Modules")
-  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/Modules")
+  #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
+  include(OpticksBuildOptions)
   message(STATUS "---- OPTICKS ----")
   message(STATUS "CMAKE_MODULE_PATH --> ${CMAKE_MODULE_PATH}")
   message(STATUS "OPTICKS HOME --> $ENV{OPTICKS_HOME}")
   message(STATUS "---- OPTICKS END ----")
-  include(OpticksBuildOptions)
+  find_dependency(PLog) # For Some Reason it was not finding PLog , doing this compiles
+  ## These are needed for opticks
   find_package(G4CX REQUIRED CONFIG)
   find_package(U4 REQUIRED CONFIG)
   find_package(ExtG4 REQUIRED CONFIG)
   find_package(CSG_GGeo REQUIRED CONFIG)
+
 endif ()
 
 
@@ -84,14 +88,26 @@ foreach(DIR ${SOURCE_DIRS})
   # Create lists of *.h and *.cc files
   file(GLOB HDRS ${CMAKE_SOURCE_DIR}/source/${DIR}/*.h)
   file(GLOB SRCS ${CMAKE_SOURCE_DIR}/source/${DIR}/*.cc)
+  # Copy header files to the 'include' binary folder
+  file(COPY ${HDRS} DESTINATION ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
   ### Include Garfield Related Libraries
   if(With_GarField)
     file(GLOB GRHDRS ${CMAKE_SOURCE_DIR}/source/${DIR}/Garfield/*.h)
     file(GLOB GRSRCS ${CMAKE_SOURCE_DIR}/source/${DIR}/Garfield/*.cc)
     file(COPY ${GRHDRS} DESTINATION ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
+  elseif (With_Opticks)
+    file(GLOB OpRHDRS ${CMAKE_SOURCE_DIR}/source/${DIR}/Opticks/*.h)
+    file(GLOB OpSRCS ${CMAKE_SOURCE_DIR}/source/${DIR}/Opticks/*.cc)
+    file(COPY ${OpRHDRS} DESTINATION ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
+  elseif (With_Opticks AND With_GarField)
+    file(GLOB GRHDRS ${CMAKE_SOURCE_DIR}/source/${DIR}/Garfield/*.h)
+    file(GLOB GRSRCS ${CMAKE_SOURCE_DIR}/source/${DIR}/Garfield/*.cc)
+    file(COPY ${GRHDRS} DESTINATION ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
+    file(GLOB OpRHDRS ${CMAKE_SOURCE_DIR}/source/${DIR}/Opticks/*.h)
+    file(GLOB OpSRCS ${CMAKE_SOURCE_DIR}/source/${DIR}/Opticks/*.cc)
+    file(COPY ${OpRHDRS} DESTINATION ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
   endif()
-  # Copy header files to the 'include' binary folder
-  file(COPY ${HDRS} DESTINATION ${CMAKE_BINARY_DIR}/include/${PROJECT_NAME})
+
 
   target_include_directories(lib PUBLIC
           $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include/${PROJECT_NAME}>
@@ -99,19 +115,25 @@ foreach(DIR ${SOURCE_DIRS})
 
   if(With_GarField)
     target_sources(lib PRIVATE ${SRCS} ${GRSRCS})
-  else()
+  elseif (With_Opticks)
+    target_sources(lib PRIVATE ${SRCS} ${OpSRCS})
+  elseif (With_Opticks AND With_GarField)
+    target_sources(lib PRIVATE ${SRCS} ${OpSRCS} ${GRSRCS})
+  else ()
     target_sources(lib PRIVATE ${SRCS})
   endif()
 endforeach()
 
 if(With_GarField)
-
   target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} ${NEST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
-  target_link_libraries(lib PUBLIC
-          ${Geant4_LIBRARIES} PRIVATE
-          ${GSL_LIBRARIES} ${HDF5_LIBRARIES} Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore NEST::NESTG4)
+  target_link_libraries(lib PUBLIC ${Geant4_LIBRARIES} PRIVATE ${GSL_LIBRARIES} ${HDF5_LIBRARIES} Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore NEST::NESTG4)
+elseif (With_GarField AND With_Opticks)
+  target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} ${NEST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(lib PUBLIC ${Geant4_LIBRARIES} PRIVATE ${GSL_LIBRARIES} ${HDF5_LIBRARIES} Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore NEST::NESTG4 Opticks::G4CX Opticks::U4 Opticks::ExtG4 Opticks::CSG_GGeo)
+elseif (With_Opticks)
+  target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS} ${NEST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(lib PUBLIC ${Geant4_LIBRARIES} PRIVATE ${GSL_LIBRARIES} ${HDF5_LIBRARIES} Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore NEST::NESTG4 Opticks::G4CX Opticks::U4 Opticks::ExtG4 Opticks::CSG_GGeo)
 else()
-
   target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
   target_link_libraries(lib PUBLIC
           ${Geant4_LIBRARIES} PRIVATE
