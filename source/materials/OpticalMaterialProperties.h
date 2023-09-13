@@ -33,6 +33,8 @@ namespace opticalprops {
 
   G4MaterialPropertiesTable* Epoxy();
 
+  G4MaterialPropertiesTable* MgF2();
+
   G4MaterialPropertiesTable* ITO();
 
   G4MaterialPropertiesTable* PEDOT();
@@ -88,6 +90,8 @@ namespace opticalprops {
   G4MaterialPropertiesTable* Steel();
 
   G4MaterialPropertiesTable* XXX();
+
+  G4MaterialPropertiesTable* STEEL();
 
 
   constexpr G4double optPhotMinE_ =  0.2  * eV;

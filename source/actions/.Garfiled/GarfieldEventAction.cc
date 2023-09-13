@@ -10,11 +10,11 @@
 #include "GarfieldSteppingAction.h"
 #include "G4VPhysicalVolume.hh"
 #include "G4GlobalFastSimulationManager.hh"
-#include "GasModelParametersMessenger.h"
 #include "GarfieldVUVPhotonModel.h"
 #include "FactoryBase.h"
 #include "Trajectory.h"
 #include <G4Trajectory.hh>
+#include "DegradModel.h"
 
 #include "PersistencyManager.h"
 
@@ -42,6 +42,8 @@ namespace nexus {
         (G4VPersistencyManager::GetPersistencyManager());
 
         pm->SaveNumbOfInteractingEvents(true);
+
+    }
 
     GarfieldEventAction::~GarfieldEventAction() {
         G4cout << "Deleting EventAction" << G4endl;
@@ -110,7 +112,6 @@ namespace nexus {
 
     }
 
-    }
     void GarfieldEventAction::EDepPrim(const G4double &Ed)
     {
         fEDepPrim+=Ed;

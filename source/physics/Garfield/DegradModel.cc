@@ -11,19 +11,28 @@
 #include "G4TransportationManager.hh"
 #include "G4DynamicParticle.hh"
 #include "G4RandomDirection.hh"
-#include "GasModelParameters.h"
-#include "DetectorConstruction.h"
-#include "GasBoxSD.h"
-#include "XenonHit.h"
 #include "G4VProcess.hh"
-#include "DetectorConstruction.h"
 #include "NESTProc.hh"
+#include "G4GenericMessenger.hh"
+
 using namespace nexus;
-DegradModel::DegradModel(GasModelParameters* gmp, G4String modelName, G4Region* envelope,DetectorConstruction* dc, GasBoxSD* sd)
-    : G4VFastSimulationModel(modelName, envelope),detCon(dc), fGasBoxSD(sd){
+
+DegradModel::DegradModel(G4String modelName, G4Region* envelope, IonizationSD* sd)
+    : G4VFastSimulationModel(modelName, envelope), GasPressure_(10*bar), fIonizationSD(sd){
     
-    thermalE=gmp->GetThermalEnergy();
+    // Krishan: Hardcode this number for now
+    // thermalE=gmp->GetThermalEnergy();
+    thermalE=1.3*eV;
+
+
     processOccured = false;
+
+    msg_ = new G4GenericMessenger(this, "/Geometry/Garfield/","Control commands of geometry of Garfield.");
+
+    G4GenericMessenger::Command& GasPressure = msg_->DeclareProperty("GasPressure", GasPressure_, "Set the gas pressure");
+    GasPressure.SetUnitCategory("Pressure");
+    GasPressure.SetParameterName("GasPressure", false);
+    GasPressure.SetRange("GasPressure>0.");
 
 }
 
@@ -60,7 +69,8 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
         G4double degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
         G4int KE = int(fPrimPhotonKE/eV);
         const static G4double torr = 1. / 750.062 * bar;
-        G4int Press = int(detCon->GetGeometry()/torr);
+        // Krishan: need to make sure the gas pressure is in the right units here
+        G4int Press = GasPressure_/torr;
         fastStep.SetPrimaryTrackPathLength(0.0);
         G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
 
@@ -167,10 +177,6 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 if (G4StrUtil::contains(solidName,"FIELDCAGE") || G4StrUtil::contains(solidName,"GAS") ){
 
                     electronNumber++;
-                    XenonHit* xh = new XenonHit();
-                    xh->SetPos(myPoint);
-                    xh->SetTime(time);
-                    fGasBoxSD->InsertXenonHit(xh);
                     
                     // Create secondary electron
                     //if(electronNumber % 50 == 0){     // comment this condition, EC, 2-Dec-2021.

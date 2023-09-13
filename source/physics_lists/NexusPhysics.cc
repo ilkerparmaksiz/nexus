@@ -15,6 +15,14 @@
 #include "WavelengthShifting.h"
 #include "OpPhotoelectricEffect.h"
 
+// Krishan: this needs cleaning up
+#include "S2Photon.h"
+#include "OpAbsorption.h"
+#include "OpWLS.h"
+#include "OpBoundaryProcess.h"
+#include "gasNESTdet.h"
+#include "NEST/G4/NESTProc.hh"
+
 #include <G4GenericMessenger.hh>
 #include <G4OpticalPhoton.hh>
 #include <G4ProcessManager.hh>
@@ -32,7 +40,7 @@ namespace nexus {
 
   NexusPhysics::NexusPhysics():
     G4VPhysicsConstructor("NexusPhysics"),
-    clustering_(true), drift_(true), electroluminescence_(true), photoelectric_(false)
+    clustering_(true), drift_(true), electroluminescence_(true), photoelectric_(false), fastsim_(false)
   {
     msg_ = new G4GenericMessenger(this, "/PhysicsList/Nexus/",
       "Control commands of the nexus physics list.");
@@ -48,6 +56,9 @@ namespace nexus {
 
     msg_->DeclareProperty("photoelectric", photoelectric_,
       "Switch on/off the photoelectric effect.");
+
+    msg_->DeclareProperty("fastsim", fastsim_,
+      "Switch on/off NEST/Garfield/Degrad physics.");
 
   }
 
@@ -143,6 +154,52 @@ namespace nexus {
         }
       }
     }
+
+    // Use NEST/Garfield/Degrad physics
+
+    if (fastsim_) {
+      gasNESTdet* gndet = new gasNESTdet();
+      // std::shared_ptr<gasNESTdet> gndet(new gasNESTdet());
+      NEST::NESTcalc* calcNEST = new NEST::NESTcalc(gndet);  
+
+      NEST::NESTProc* theNEST2ScintillationProcess = new NEST::NESTProc("S1",fElectromagnetic, calcNEST, gndet); //gndet);
+      theNEST2ScintillationProcess->SetDetailedSecondaries(true);
+      theNEST2ScintillationProcess->SetStackElectrons(true);
+
+      G4OpBoundaryProcess* fBoundaryProcess = new OpBoundaryProcess();
+      G4OpAbsorption* fAbsorptionProcess = new OpAbsorption();
+      G4OpWLS* fTheWLSProcess = new OpWLS();
+
+      auto aParticleIterator = GetParticleIterator();
+      aParticleIterator->reset();
+      
+      while ((*aParticleIterator)()) {
+        G4ParticleDefinition* particle = aParticleIterator->value();
+        G4ProcessManager* pmanager = particle->GetProcessManager();
+        G4String particleName = particle->GetParticleName();
+
+        if (pmanager) {
+          if (theNEST2ScintillationProcess->IsApplicable(*particle) && pmanager) {
+            std::cout << "PhysicsList::InitialisePhysics(): particleName, pmanager  " << particleName << ", " << pmanager << "." << std::endl;
+            std::cout << "ordDefault, ordInActive " << ordDefault << ", " << ordInActive  << std::endl;
+            pmanager->AddProcess(theNEST2ScintillationProcess, ordDefault + 1, ordInActive, ordDefault + 1);
+          }
+
+          G4OpBoundaryProcess* fBoundaryProcess = new OpBoundaryProcess();
+          G4OpAbsorption* fAbsorptionProcess = new OpAbsorption();
+          G4OpWLS* fTheWLSProcess = new OpWLS();
+
+          if (particleName == "opticalphoton" && pmanager) {
+            G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
+            pmanager->AddDiscreteProcess(fAbsorptionProcess);
+            // pmanager->AddDiscreteProcess(fRayleighScatteringProcess);
+            pmanager->AddDiscreteProcess(fTheWLSProcess);
+            pmanager->AddDiscreteProcess(fBoundaryProcess);
+          }
+        }
+      }
+    }
+  
   }
 
 } // end namespace nexus

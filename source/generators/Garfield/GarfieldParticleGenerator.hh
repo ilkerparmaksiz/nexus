@@ -79,7 +79,7 @@ namespace nexus{
 
 
         // For reading in files
-        filehandler::FileHandling FileHandler;
+        FileHandling::FileHandling FileHandler;
 
         std::vector<std::vector<G4double>> electron_data;
         std::vector<std::vector<G4double>> alpha_data;

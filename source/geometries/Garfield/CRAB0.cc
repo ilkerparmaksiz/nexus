@@ -8,32 +8,30 @@
 #include "G4LogicalVolumeStore.hh"
 #include "G4OpticalSurface.hh"
 #include "G4Trd.hh"
-#include "G4Threading.hh"
 #include "G4RegionStore.hh"
 #include "G4UniformMagField.hh"
 #include "G4FieldManager.hh"
 #include "G4Cons.hh"
 #include "G4IntersectionSolid.hh"
 #include "G4Trd.hh"
-#include "DetectorMessenger.hh"
-#include "GasBoxSD.h"
-#include "DegradModel.hh"
-#include "GarfieldVUVPhotonModel.hh"
+#include "DegradModel.h"
+#include "GarfieldVUVPhotonModel.h"
 #include "G4SDManager.hh"
 #include "G4Polyhedra.hh"
 #include "G4SubtractionSolid.hh"
 #include "G4UnionSolid.hh"
 #include "G4ExtrudedSolid.hh"
 #include "G4MultiUnion.hh"
-#include "Visibilities.hh"
-#include "HexagonMeshTools.hh"
+#include "Visibilities.h"
+#include "HexagonMeshTools.h"
 #include "FactoryBase.h"
+#include "IonizationSD.h"
+#include "MaterialsList.h"
 
 
 namespace nexus {
     REGISTER_CLASS(CRAB0,GeometryBase)
-    CRAB0::CRAB0(GasModelParameters *gmp) :
-            fGasModelParameters(gmp),
+    CRAB0::CRAB0() :
             checkOverlaps(1),
             temperature(300 * kelvin), // temperature
             Lab_size(3. * m),
@@ -65,14 +63,12 @@ namespace nexus {
             PMT1_Pos_(2.32 * cm),
             PMT3_Pos_(3.52 * cm),
             HideCollimator_(true) {
-        detectorMessenger = new DetectorMessenger(this);
     }
 
     CRAB0::~CRAB0() {
-        delete detectorMessenger;
     }
 
-    G4VPhysicalVolume *CRAB0::Construct() {
+    void CRAB0::Construct() {
 
         //Materials
         G4Material *gxe = materials::GXe(gas_pressure_, 68);
@@ -93,6 +89,9 @@ namespace nexus {
         G4LogicalVolume *lab_logic_volume = new G4LogicalVolume(lab_solid_volume,
                                                                 G4NistManager::Instance()->FindOrBuildMaterial(
                                                                         "G4_AIR"), lab_name);
+
+
+        this->SetLogicalVolume(lab_logic_volume);
 
         // Creating the Steel Cylinder that we need
 
@@ -247,17 +246,18 @@ namespace nexus {
 
         ///
         //Adding the PMTs in here
-        pmt1_ = new pmt::PmtR7378A();
-        pmt2_ = new pmt::PmtR7378A();
-        pmt1_->SetPMTName("S2");
-        pmt2_->SetPMTName("S1");
+        // Krishan: Nexus complaining about PMTs being created twice, so commented out
+        pmt1_ = new PmtR7378A();
+        // pmt2_ = new PmtR7378A();
+        // pmt1_->SetPMTName("S2");
+        // pmt2_->SetPMTName("S1");
         pmt1_->Construct();
-        pmt2_->Construct();
+        // pmt2_->Construct();
 
 
         // Adding Logical Volumes for PMTs
         G4LogicalVolume *pmt1_logic = pmt1_->GetLogicalVolume();
-        G4LogicalVolume *pmt2_logic = pmt2_->GetLogicalVolume();
+        G4LogicalVolume *pmt2_logic = pmt1_->GetLogicalVolume();
 
 
         // PMT1 and PMT3
@@ -764,7 +764,7 @@ namespace nexus {
         // PMTs
         // new G4PVPlacement(pmt1rotate,G4ThreeVector (0,0,((PMT3_Pos_)-pmt1_->Length()/2-PMT_Tube_Length1/2-MgF2_window_thickness_/2)),pmt1_logic,pmt1_->GetPMTName(),InsideThePMT_Tube_Logic0,true,0,false);
         new G4PVPlacement(0, G4ThreeVector(0, 0., (PMT1_Pos_ - pmt1_->Length() / 2 - MgF2_window_thickness_ / 2)),
-                          pmt2_logic, pmt2_->GetPMTName(), InsideThePMT_Tube_Logic1, true, 0, false);
+                          pmt2_logic, "S1", InsideThePMT_Tube_Logic1, true, 0, false);
 
 
         // Place the camera Make camLogical mother and photocathode daughter
@@ -899,22 +899,20 @@ namespace nexus {
         regionGas->AddRootLogicalVolume(gas_logic);
 
 
-        return labPhysical;
-
-    }
-
-    void CRAB0::ConstructSDandField() {
         G4SDManager *SDManager = G4SDManager::GetSDMpointer();
-        G4String GasBoxSDname = "interface/GasBoxSD";
-        GasBoxSD *myGasBoxSD = new GasBoxSD(GasBoxSDname);
+        IonizationSD* ionisd = new IonizationSD("/CRAB0/ACTIVE");
         SDManager->SetVerboseLevel(1);
-        SDManager->AddNewDetector(myGasBoxSD);
-        SetSensitiveDetector(gas_logic, myGasBoxSD);
+        SDManager->AddNewDetector(ionisd);
+        gas_logic->SetSensitiveDetector(ionisd);
 
         //These commands generate the four gas models and connect it to the GasRegion
         G4Region *region = G4RegionStore::GetInstance()->GetRegion("GasRegion");
-        new DegradModel(fGasModelParameters, "DegradModel", region, this, myGasBoxSD);
-        new GarfieldVUVPhotonModel(fGasModelParameters, "GarfieldVUVPhotonModel", region, this, myGasBoxSD);
+        new DegradModel("DegradModel",region, ionisd);
+        new GarfieldVUVPhotonModel("GarfieldVUVPhotonModel",region, ionisd);
+
+
+        // return labPhysical;
+        return;
 
     }
 
@@ -936,7 +934,7 @@ namespace nexus {
 
         //GAS
         G4LogicalVolume *Gas = lvStore->GetVolume("GAS");
-        G4VisAttributes *GasVa = new G4VisAttributes(colours::WhiteAlpha());
+        G4VisAttributes *GasVa = new G4VisAttributes(nexus::WhiteAlpha());
         GasVa->SetForceCloud(true);
         Gas->SetVisAttributes(GasVa);
 
@@ -944,7 +942,7 @@ namespace nexus {
         G4LogicalVolume *SourceHolder = lvStore->GetVolume("SourceHolChamber_logic");
         G4LogicalVolume *Needle = lvStore->GetVolume("Needle");
         G4LogicalVolume *Collimator = lvStore->GetVolume("CollimatorWithBlock");
-        G4VisAttributes *CollimatorVa = new G4VisAttributes(colours::YellowAlpha());
+        G4VisAttributes *CollimatorVa = new G4VisAttributes(nexus::YellowAlpha());
         CollimatorVa->SetForceSolid(true);
 
         Collimator->SetVisAttributes(CollimatorVa);
@@ -958,33 +956,33 @@ namespace nexus {
 
         // Flange
         G4LogicalVolume *flangeLog = lvStore->GetVolume("CHAMBER_FLANGE");
-        G4VisAttributes flangeVis = colours::DarkGreyAlpha();
+        G4VisAttributes flangeVis = nexus::DarkGreyAlpha();
         flangeVis.SetForceSolid(true);
         flangeLog->SetVisAttributes(ChamberVa);
 
 
         // Field Rings
         G4LogicalVolume *FRLog = lvStore->GetVolume("FR");
-        G4VisAttributes FReVis = colours::CopperBrownAlpha();
+        G4VisAttributes FReVis = nexus::CopperBrownAlpha();
         FReVis.SetForceSolid(true);
         FRLog->SetVisAttributes(FReVis);
 
         // EL Rings
         G4LogicalVolume *EL_RingLog = lvStore->GetVolume("EL_Ring");
-        G4VisAttributes EL_RingVis = colours::DarkGreyAlpha();
+        G4VisAttributes EL_RingVis = nexus::DarkGreyAlpha();
         EL_RingVis.SetForceSolid(true);
         EL_RingLog->SetVisAttributes(EL_RingVis);
 
         // Brackets
         G4LogicalVolume *BracketLog = lvStore->GetVolume("bracketLogical");
-        G4VisAttributes BracketVis = colours::DirtyWhiteAlpha();
+        G4VisAttributes BracketVis = nexus::DirtyWhiteAlpha();
         BracketVis.SetForceSolid(true);
         BracketLog->SetVisAttributes(BracketVis);
 
 
         // PEEK
         G4LogicalVolume *PEEKLog = lvStore->GetVolume("PEEK_Rod");
-        G4VisAttributes PEEKVis = colours::YellowAlpha();
+        G4VisAttributes PEEKVis = nexus::YellowAlpha();
         PEEKVis.SetForceSolid(true);
         PEEKLog->SetVisAttributes(PEEKVis);
 
@@ -1009,7 +1007,7 @@ namespace nexus {
         PmttubeBlockLog1->SetVisAttributes(ChamberVa);
         G4LogicalVolume *PmttubeVacuumLog1 = lvStore->GetVolume("PMT_TUBE_VACUUM0");
         G4LogicalVolume *PmttubeVacuumLog2 = lvStore->GetVolume("PMT_TUBE_VACUUM1");
-        G4VisAttributes PmttubeVacuumVis = colours::DarkGreyAlpha();
+        G4VisAttributes PmttubeVacuumVis = nexus::DarkGreyAlpha();
         PmttubeVacuumVis.SetForceCloud(true);
         PmttubeVacuumLog1->SetVisAttributes(PmttubeVacuumVis);
         PmttubeVacuumLog2->SetVisAttributes(PmttubeVacuumVis);
@@ -1017,12 +1015,12 @@ namespace nexus {
 
         //MgF2Window
         G4LogicalVolume *lensLogical = lvStore->GetVolume("Lens");
-        G4VisAttributes MgF2LensVis = colours::DarkGreen();
+        G4VisAttributes MgF2LensVis = nexus::DarkGreen();
         MgF2LensVis.SetForceSolid(true);
         lensLogical->SetVisAttributes(MgF2LensVis);
 
         G4LogicalVolume *MgF2WindowLog = lvStore->GetVolume("MgF2_WINDOW");
-        G4VisAttributes MgF2WindowVis = colours::DarkGreen();
+        G4VisAttributes MgF2WindowVis = nexus::DarkGreen();
         MgF2WindowVis.SetForceSolid(true);
         MgF2WindowLog->SetVisAttributes(MgF2WindowVis);
 
@@ -1035,18 +1033,18 @@ namespace nexus {
 
         // Camera
         G4LogicalVolume *CAMLog = lvStore->GetVolume("camLogical");
-        G4VisAttributes CAMVis = colours::DarkRedAlpha();
+        G4VisAttributes CAMVis = nexus::DarkRedAlpha();
         CAMVis.SetForceSolid(true);
         CAMLog->SetVisAttributes(CAMLog);
 
         // EL-Region
         G4LogicalVolume *ELLogic = lvStore->GetVolume("EL_GAP");
-        G4VisAttributes ELVis = colours::BlueAlpha();
+        G4VisAttributes ELVis = nexus::BlueAlpha();
         ELVis.SetForceCloud(true);
         ELLogic->SetVisAttributes(G4VisAttributes::GetInvisible());
 
         // Cathode Grid
-        // G4VisAttributes mesh_col = colours::DarkGrey();
+        // G4VisAttributes mesh_col = nexus::DarkGrey();
         // mesh_col.SetForceSolid(true);
         // G4LogicalVolume* Meshlog = lvStore->GetVolume("ELP_Mesh_Logic");
         // Meshlog->SetVisAttributes(G4VisAttributes::GetInvisible());
@@ -1055,14 +1053,14 @@ namespace nexus {
         // Meshlog = lvStore->GetVolume("Cathode_Mesh_Logic");
         // Meshlog->SetVisAttributes(G4VisAttributes::GetInvisible());
 
-        // mesh_col = colours::Empty();
+        // mesh_col = nexus::Empty();
         // mesh_col.SetForceSolid(true);
         // Meshlog = lvStore->GetVolume("Mesh_Hex");
         // Meshlog->SetVisAttributes(G4VisAttributes::GetInvisible());
 
         // FieldCage
         G4LogicalVolume *FieldCage = lvStore->GetVolume("FIELDCAGE");
-        G4VisAttributes FielCageVis = colours::Red();
+        G4VisAttributes FielCageVis = nexus::Red();
         FielCageVis.SetForceCloud(true);
         FieldCage->SetVisAttributes(G4VisAttributes::GetInvisible());
 
@@ -1073,4 +1071,25 @@ namespace nexus {
 
     }
 
+
+
+    G4ThreeVector CRAB0::GenerateVertex(const G4String& region) const{
+    G4ThreeVector vertex(0., 0., 0.);
+
+    if (region == "CENTER") {
+        vertex = G4ThreeVector(0., 0., 0.);
+    }
+
+    else {
+        G4Exception("[CRAB0]", "GenerateVertex()", FatalException,
+        "Unknown vertex generation region!");
+    }
+
+    return vertex;
+    }
+
+
+
+
 }
+

@@ -34,6 +34,7 @@ namespace nexus {
     G4bool drift_;               ///< Switch on/of the ionization drift
     G4bool electroluminescence_; ///< Switch on/off the electroluminescence
     G4bool photoelectric_;       ///< Switch on/off the photoelectric effect
+    G4bool fastsim_;             ///< Switch on/off NEST/Garfield/Degrad Physics
 
     G4GenericMessenger* msg_;
   };

@@ -44,7 +44,7 @@ endif ()
 
 
 ### Garfield Implementation
-option(With_Garfield OFF)
+option(With_GarField ON)
 if(With_GarField)
   ## ROOT
   find_package(ROOT QUIET REQUIRED COMPONENTS RIO Net)
@@ -52,6 +52,8 @@ if(With_GarField)
     message(STATUS "ROOT package not found.")
     return()
   endif()
+
+  message(STATUS "Garfield Mode On.")
 
   #include(${ROOT_USE_FILE})
 
@@ -64,6 +66,8 @@ if(With_GarField)
     message(STATUS "Garfield package not found.")
     return()
   endif()
+
+  message(STATUS "Garfield package found.")
 
   ## NEST
   find_package(NEST REQUIRED)

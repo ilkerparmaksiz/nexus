@@ -9,7 +9,9 @@
 #include "G4GenericMessenger.hh"
 #include "GarfieldEventAction.h"
 #include "Analysis.hh"
+#include "G4AnalysisManager.hh"
 #include <vector>
+#include "G4Event.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
