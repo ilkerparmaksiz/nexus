@@ -18,6 +18,15 @@
 #/Geometry/Next100/elfield false
 #/Geometry/Next100/max_step_size 1. mm
 
+# Garfield
+/Geometry/CRAB0/DetChamberD 16.4 cm
+/Geometry/CRAB0/DetChamberL 43.18 cm
+/Geometry/CRAB0/DetActiveD 8.6 cm
+/Geometry/CRAB0/DetActiveL 21.26 cm
+/Geometry/CRAB0/GasPressure 10 bar
+/Geometry/CRAB0/fieldDrift 438.0
+/Geometry/CRAB0/fieldEL 11400.0
+
 ##### GENERATOR #####
 /Generator/SingleParticle/particle e-
 /Generator/SingleParticle/min_energy 40. keV

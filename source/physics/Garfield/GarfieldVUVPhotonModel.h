@@ -45,10 +45,10 @@
 #include "Garfield/AvalancheMicroscopic.hh"
 #include "Garfield/AvalancheMC.hh"
 #include "Garfield/ComponentUser.hh"
+#include "GarfieldHelper.h"
 
 
 class G4GenericMessenger;
-class IonizationSD;
 namespace nexus {
     class GarfieldVUVPhotonModel : public G4VFastSimulationModel
     {
@@ -56,7 +56,7 @@ namespace nexus {
       //-------------------------
       // Constructor, destructor
       //-------------------------
-        GarfieldVUVPhotonModel(G4String, G4Region*,IonizationSD*);
+        GarfieldVUVPhotonModel(G4String modelName, G4Region* envelope, GarfieldHelper GH);
         ~GarfieldVUVPhotonModel (){};
 
         //void SetPhysics(degradPhysics* fdegradPhysics);
@@ -88,24 +88,6 @@ namespace nexus {
         G4String gasFile;
         G4String ionMobFile;
 
-        G4ThreeVector myPoint;
-        G4double time;
-        G4double thermalE;
-        //degradPhysics* fdegradPhysics;
-
-        // Detector stuff
-        G4double DetChamberR_;
-        G4double DetChamberL_;
-        G4double DetActiveR_;
-        G4double DetActiveL_;
-        G4double GasPressure_;
-
-        G4double gap_EL_; //cm
-        G4double fieldDrift_; // V/cm
-        G4double fieldEL_; // V/cm higher than 3k (as used for 2 bar) for 10 bar!
-
-        G4double ELPos_;
-        G4double FCTop_;
 
         Garfield::MediumMagboltz* fMediumMagboltz;
         Garfield::AvalancheMicroscopic* fAvalanche;
@@ -113,7 +95,6 @@ namespace nexus {
 
         Garfield::Sensor* fSensor;
 
-        IonizationSD* fIonizationSD;
         std::vector<uint> counter {0,0,0,0};
 
         // Variable to store the EL timing profiles to sample from
@@ -127,8 +108,10 @@ namespace nexus {
         // For reading in files
         FileHandling::FileHandling FileHandler;
 
-        // Messenger for the definition of control commands
-        G4GenericMessenger* msg_;
+        GarfieldHelper GH_;
+
+        G4double ELPos_; // cm
+        G4double FCTop_; // cm
 
     };
     void userHandle(double x, double y, double z, double t, int type, int level,Garfield::Medium * m);
