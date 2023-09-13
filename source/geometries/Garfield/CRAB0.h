@@ -3,9 +3,7 @@
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4SystemOfUnits.hh"
-#include "DetectorMessenger.hh"
 #include "G4UserLimits.hh"
-#include "DetectorMessenger.hh"
 #include "G4Material.hh"
 #include "G4NistManager.hh"
 #include "G4PVPlacement.hh"
@@ -26,9 +24,9 @@
 #include "G4UnionSolid.hh"
 #include "G4Region.hh"
 #include "G4Orb.hh"
-#include "GasModelParameters.hh"
 #include "PmtR7378A.h"
 
+#include "OpticalMaterialProperties.h"
 #include "GeometryBase.h"
 
 class G4Material;
@@ -37,7 +35,7 @@ class G4GenericMessenger;
 
 using namespace std;
 namespace nexus{
-    class CRAB0 : public nexus::GeometryBase {
+    class CRAB0 : public GeometryBase {
      public:
         //Construct
         CRAB0();
@@ -46,8 +44,9 @@ namespace nexus{
         ~CRAB0();
 
         // Mandatory methods
-        void Construct();
-        virtual void ConstructSDandField();
+        void Construct() override;
+
+        G4ThreeVector GenerateVertex(const G4String& region) const override;
 
         virtual void AssignVisuals();
 
@@ -65,8 +64,6 @@ namespace nexus{
 
 
      private:
-        G4GenericMessenger* detectorMessenger;
-        GasModelParameters* fGasModelParameters;
         G4bool checkOverlaps; // Check overlaps in the detector geometry if true
         G4double gas_pressure_; // pressure in the gas
         G4double temperature; // temperature of the gas
@@ -109,6 +106,9 @@ namespace nexus{
         G4double FielCageGap;
 
         G4LogicalVolume* gas_logic;
+
+        // Messenger for the definition of control commands
+        G4GenericMessenger* msg_;
 
 
     };

@@ -1,12 +1,10 @@
 //Runaction
 #include "GarfieldRunAction.h"
 #include "G4Run.hh"
+#include <G4AnalysisManager.hh>
 #include "Randomize.hh"
-#include "PrimaryGeneratorAction.hh"
 #include "Analysis.hh"
 #include "GarfieldEventAction.h"
-
-#include "GasBoxSD.hh"
 #include "G4SDManager.hh"
 #include "G4RunManager.hh"
 #include "FactoryBase.h"

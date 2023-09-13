@@ -27,6 +27,8 @@
 #include <G4UserSteppingAction.hh>
 #include <G4UserStackingAction.hh>
 
+#include "GarfieldStackingAction.h"
+
 using namespace nexus;
 using std::make_unique;
 using std::unique_ptr;
@@ -125,8 +127,12 @@ NexusApp::NexusApp(G4String init_macro): G4RunManager(), gen_name_(""),
   }
 
   if (!stkact_name_.empty()) {
-    auto stkact = ObjFactory<G4UserStackingAction>::Instance().CreateObject(stkact_name_);
-    this->SetUserAction(stkact.release());
+    // Krishan. Looks like the factory doesnt work well with derived classes e.g. the one from
+    // NEST. Since we dont use this in nexus I have left this till we can fix properly
+    // auto stkact = ObjFactory<G4UserStackingAction>::Instance().CreateObject(stkact_name_);
+    // this->SetUserAction(stkact.release());
+    GarfieldStackingAction* stackingAction = new GarfieldStackingAction;
+    this->SetUserAction(stackingAction);
   }
 
   if (!trkact_name_.empty()) {

@@ -8,7 +8,7 @@
 #include "G4SDManager.hh"
 #include "G4Run.hh"
 #include "G4EventManager.hh"
-#include "S2Photon.hh"
+#include "S2Photon.h"
 #include <G4Trajectory.hh>
 #include "Trajectory.h"
 #include "TrajectoryMap.h"

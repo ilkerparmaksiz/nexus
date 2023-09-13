@@ -8,11 +8,13 @@
 #include "G4SDManager.hh"
 #include "G4Run.hh"
 #include "G4EventManager.hh"
-#include "GasBoxSD.hh"
-#include "S2Photon.hh"
+#include "S2Photon.h"
 
 using namespace nexus;
 using namespace CLHEP;
+
+REGISTER_CLASS(GarfieldSteppingAction, G4UserSteppingAction)
+
 GarfieldSteppingAction::GarfieldSteppingAction(GarfieldEventAction *eva) :G4UserSteppingAction(),  fEventAction(eva),  ev_shift(0) {
 
   msg_ = new G4GenericMessenger(this, "/Action/GarfieldSteppingAction/",

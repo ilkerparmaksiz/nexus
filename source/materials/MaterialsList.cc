@@ -962,4 +962,23 @@ namespace materials {
     return material;
   }
 
+  // Magnesium fluoride
+  G4Material * MgF2(){
+    
+    G4String name="MgF2";
+    G4Material *mat = G4Material::GetMaterial(name,false);
+    if(mat==0){
+        G4NistManager * nist = G4NistManager::Instance();
+        G4Element *Mg=nist->FindOrBuildElement("Mg");
+        G4Element *F=nist->FindOrBuildElement("F");
+        mat = new G4Material(name, 3.148*g/cm3, 2);
+        mat->AddElement(Mg,1);
+        mat->AddElement(F,2);
+    }
+      return mat;
+  } 
+
+
+
+
 }

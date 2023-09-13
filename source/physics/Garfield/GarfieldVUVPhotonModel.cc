@@ -23,45 +23,78 @@
 #include "Garfield/Medium.hh"
 #include "Garfield/SolidTube.hh"
 #include "G4OpticalPhoton.hh"
-#include "Garfield/GarfieldExcitationHit.hh"
-#include "GasModelParameters.h"
-#include "Garfield/DetectorConstruction.hh"
-#include "Garfield/GasBoxSD.hh"
 #include "G4ProcessManager.hh"
 #include "G4EventManager.hh"
-#include "Garfield/Analysis.hh"
+#include "Analysis.hh"
 #include "Garfield/ComponentComsol.hh"
 #include "S2Photon.h"
 
 #include "G4AutoLock.hh"
+#include "G4AnalysisManager.hh"
+#include "G4Event.hh"
 namespace nexus{
 namespace{G4Mutex aMutex = G4MUTEX_INITIALIZER;}
-
-const static G4double torr = 1. / 760. * bar;
-const static G4double gapLEM = 0.7; //cm
-const static G4double fieldDrift = 438.0; // V/cm
-const static G4double fieldLEM   = 11400.0; // V/cm higher than 3k (as used for 2 bar) for 10 bar!
-
-G4double DetChamberL;
-G4double DetChamberR;
-G4double DetActiveL; 
-G4double DetActiveR; 
-G4double ELPos;
-G4double FCTop;
-
 
 const G4double res(0.01); // Estimated fluctuations in EL yield - high? EC, 21-June-2022.
 
 
-GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(GasModelParameters* gmp, G4String modelName,G4Region* envelope,DetectorConstruction* dc,GasBoxSD* sd) :
-        G4VFastSimulationModel(modelName, envelope),detCon(dc),fGasBoxSD(sd) {
-    thermalE=gmp->GetThermalEnergy();
-    fGasModelParameters = gmp;
+GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* envelope,IonizationSD* sd) :
+        G4VFastSimulationModel(modelName, envelope),
+        DetChamberR_(1*m),
+        DetChamberL_(1*m),
+        DetActiveR_(1*m),
+        DetActiveL_(1*m),
+        GasPressure_(10*bar),
+        fieldDrift_(438.0),
+        fieldEL_(11400.0),
+        gap_EL_(0.7*cm),
+        fIonizationSD(sd) {
+    
+    // Krishan: Use Hard code for now
+    // thermalE=gmp->GetThermalEnergy();
+    thermalE =  1.3*eV;
+
     InitialisePhysics();
 
     G4OpBoundaryProcess* fBoundaryProcess = new G4OpBoundaryProcess();
     G4OpAbsorption* fAbsorptionProcess = new G4OpAbsorption();
     G4OpWLS* fTheWLSProcess = new G4OpWLS();
+
+    /// Messenger
+    msg_ = new G4GenericMessenger(this, "/Geometry/Garfield/","Control commands of geometry of Garfield.");
+
+    G4GenericMessenger::Command& DetChamberR = msg_->DeclareProperty("DetChamberR", DetChamberR_, "Set the detector chamber radius");
+    DetChamberR.SetUnitCategory("Length");
+    DetChamberR.SetParameterName("DetChamberR", false);
+    DetChamberR.SetRange("DetChamberR>0.");
+
+    G4GenericMessenger::Command& DetChamberL = msg_->DeclareProperty("DetChamberL", DetChamberL_, "Set the detector chamber length");
+    DetChamberL.SetUnitCategory("Length");
+    DetChamberL.SetParameterName("DetChamberL", false);
+    DetChamberL.SetRange("DetChamberL>0.");
+
+    G4GenericMessenger::Command& DetActiveR = msg_->DeclareProperty("DetActiveR", DetActiveR_, "Set the detector active radius");
+    DetActiveR.SetUnitCategory("Length");
+    DetActiveR.SetParameterName("DetActiveR", false);
+    DetActiveR.SetRange("DetActiveR>0.");
+
+    G4GenericMessenger::Command& DetActiveL = msg_->DeclareProperty("DetActiveL", DetActiveL_, "Set the detector active length");
+    DetActiveL.SetUnitCategory("Length");
+    DetActiveL.SetParameterName("DetActiveL", false);
+    DetActiveL.SetRange("DetActiveL>0.");
+
+    G4GenericMessenger::Command& GasPressure = msg_->DeclareProperty("GasPressure", GasPressure_, "Set the gas pressure");
+    GasPressure.SetUnitCategory("Pressure");
+    GasPressure.SetParameterName("GasPressure", false);
+    GasPressure.SetRange("GasPressure>0.");
+
+    G4GenericMessenger::Command& fieldDrift = msg_->DeclareProperty("fieldDrift", fieldDrift_, "Set the drift field [V/cm]");
+    fieldDrift.SetParameterName("fieldDrift", false);
+    fieldDrift.SetRange("fieldDrift>0.");
+
+    G4GenericMessenger::Command& fieldEL = msg_->DeclareProperty("fieldEL", fieldEL_, "Set the EL field [V/cm]");
+    fieldEL.SetParameterName("fieldEL", false);
+    fieldEL.SetRange("fieldEL>0.");
 
 
 }
@@ -71,8 +104,6 @@ G4bool GarfieldVUVPhotonModel::IsApplicable(const G4ParticleDefinition& particle
   if (particleType.GetParticleName()=="thermalelectron") // || particleType.GetParticleName()=="opticalphoton")
     return true;
   return false;
-        
-        
 }
 
 G4bool GarfieldVUVPhotonModel::ModelTrigger(const G4FastTrack& fastTrack){
@@ -131,7 +162,7 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
 
 }
 
-GarfieldExcitationHitsCollection *garfExcHitsCol;
+// GarfieldExcitationHitsCollection *garfExcHitsCol;
 
 void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime)
 {
@@ -151,7 +182,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     G4String particleName = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
     if (particleName.find("thermalelectron")!=std::string::npos) particleName = "e-";
 
-    garfExcHitsCol = new GarfieldExcitationHitsCollection();
+    // garfExcHitsCol = new GarfieldExcitationHitsCollection();
 
     
     // Debug the electric field
@@ -176,7 +207,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
         // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
 
       // Drift line point entered LEM
-      if (zi < ELPos && ( std::sqrt(xi*xi + yi*yi) < DetActiveR/2.0) )
+      if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < DetActiveR_/2.0) )
         break; 
       // No drift line point meets criteria, so return
       else if (i==n-1)
@@ -186,7 +217,8 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
     // Generate the El photons from a microphys model ran externally in Garfield
     // We sample the output file which contains the timing profile of emission and diffusion
-    if (fGasModelParameters->GetbEL_File())
+    G4bool use_ELFile = false;
+    if (use_ELFile)
         MakeELPhotonsFromFile(fastStep, xi, yi, zi, ti);
     // Use a simpler model
     else
@@ -199,45 +231,9 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     G4int pntid = pG4trk->GetParentID();
     G4int tid = pG4trk->GetTrackID();
     
-    delete garfExcHitsCol;
+    // delete garfExcHitsCol;
     
 }
-
-
-void ePiecewise (const double x, const double y, const double z,
-         double& ex, double& ey, double& ez) {
-
-    
-    // Only want Ey component to the field
-    ex = ey = 0.;
-
-    // Define a field region for the whole gas region
-
-    // Set ez for regions outside of the radius of the FC
-    if ( std::sqrt(x*x + y*y) > DetActiveR/2.0){
-        ez = -fieldDrift; // Negative field will send them away from the LEM region
-    }
-
-    // Field past the cathode drift them away from the LEM with negative field
-    if (z > FCTop)
-        ez = -fieldDrift;
-
-    // Drift region
-    if (z <= FCTop)
-        ez = fieldDrift;
-
-    // EL region
-    if (z <= ELPos && z > ELPos-gapLEM)
-        ez = fieldLEM;
-
-    // Drift towards the end cap
-    if (z <= ELPos - gapLEM)
-        ez = fieldDrift; 
-
-      // std::cout<<"ePiecewise: z, ez are [cm]: " << z << ", " << ez << std::endl;
- 
-}
-
 
 
 // Selection of Xenon exitations and ionizations
@@ -279,35 +275,28 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     // Print the gas properties
     // fMediumMagboltz->PrintGas();
 
-    
-    
-    
-    // Make a box
-    DetChamberR= detCon->GetChamberR(); // cm
-    DetChamberL= detCon->GetChamberL(); // cm 
-    
-    DetActiveR = detCon->GetActiveR(); // cm
-    DetActiveL = detCon->GetActiveL(); // cm
+    ELPos_ =  - DetActiveL_/2.0;
+    FCTop_ =  + DetActiveL_/2.0;
 
-    ELPos =  - DetActiveL/2.0;
-    FCTop =  + DetActiveL/2.0;
-
-    std::cout << "Detector Dimentions: "<< DetChamberR << " " << DetChamberL << "  " << DetActiveR << "  " << DetActiveL << std::endl; 
+    std::cout << "Detector Dimentions: "<< DetChamberR_ << " " << DetChamberL_ << "  " << DetActiveR_ << "  " << DetActiveL_ << std::endl; 
 
     fSensor = new Garfield::Sensor();
 
-    if (!fGasModelParameters->GetbComsol()){
+    G4bool use_COMSOL = false;
+
+    if (!use_COMSOL){
         Garfield::ComponentUser* componentDriftLEM = CreateSimpleGeometry();
         fSensor->AddComponent(componentDriftLEM);
         
         // Set the region where the sensor is active -- based on the gas volume
-        fSensor->SetArea(-DetChamberR, -DetChamberR, -DetChamberL/2.0, DetChamberR, DetChamberR, DetChamberL/2.0); // cm
+        fSensor->SetArea(-DetChamberR_, -DetChamberR_, -DetChamberL_/2.0, DetChamberR_, DetChamberR_, DetChamberL_/2.0); // cm
 
     }
     else {
         std::cout << "Initialising Garfiled with a COMSOL geometry" << std::endl;
 
-        G4String home = fGasModelParameters->GetCOMSOL_Path();
+        // G4String home = fGasModelParameters->GetCOMSOL_Path();
+        G4String home = "./";
         std::string gridfile   = "CRAB_Mesh.mphtxt";
         std::string datafile   = "CRAB_Data.txt";
         std::string fileconfig = "CRABMaterialProperties.txt";
@@ -343,35 +332,13 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     fAvalancheMC->EnableDebugging(false); // way too much information. 
     fAvalancheMC->DisableAttachment(); // Currently getting warning messages about the attachment. You can supress those by switching this on.
 
+    G4bool use_ELFile = false;
 
     // Load in the events
-    if (fGasModelParameters->GetbEL_File())
+    if (use_ELFile)
         FileHandler.GetTimeProfileData(gas_path+"data/CRAB_Profiles_Rotated.csv", EL_profiles, EL_events);
     
 }
-
-  
-// Selection of Xenon exitations and ionizations
-void userHandle(double x, double y, double z, double t, int type, int level,Garfield::Medium * m)
-{
-    G4ThreeVector Pos;
-
-    if (level > 2 && level < 53){//XENON LEVELS
-    
-    GarfieldExcitationHit* newExcHit=new GarfieldExcitationHit();
-    Pos.setX(x*10);//back to cm to GEANT4
-    Pos.setY(y*10);//back to cm to GEANT4
-    Pos.setZ(z*10);//back to cm to GEANT4
-    newExcHit->SetPos(Pos);
-    newExcHit->SetTime(t);
-    garfExcHitsCol->insert(newExcHit);
-    //If choose to draw change the visualizer from OGL to HepRep in vis.mac file
-    //newExcHit->Draw();	
-    }// if level
-    
-    
-}// end userhandle	
-
 
 void GarfieldVUVPhotonModel::S1Fill(const G4FastTrack& ftrk)
 {
@@ -423,7 +390,7 @@ Garfield::ComponentUser* GarfieldVUVPhotonModel::CreateSimpleGeometry(){
     Garfield::GeometrySimple* geo = new Garfield::GeometrySimple();
 
     // Tube oriented in Y'axis (0.,1.,0.,) The addition of the 1 cm is for making sure it doesnt fail on the boundary
-    Garfield::SolidTube* tube = new Garfield::SolidTube(0.0, 0.0 ,0.0, DetChamberR+1, DetChamberL*0.5, 0.,0.,1.);
+    Garfield::SolidTube* tube = new Garfield::SolidTube(0.0, 0.0 ,0.0, DetChamberR_+1, DetChamberL_*0.5, 0.,0.,1.);
 
     // Add the solid to the geometry, together with the medium inside
     geo->AddSolid(tube, fMediumMagboltz);
@@ -431,7 +398,35 @@ Garfield::ComponentUser* GarfieldVUVPhotonModel::CreateSimpleGeometry(){
     // Make a component with analytic electric field
     Garfield::ComponentUser* componentDriftLEM = new Garfield::ComponentUser();
     componentDriftLEM->SetGeometry(geo);
-    componentDriftLEM->SetElectricField(ePiecewise);
+
+    // Set the electric field calculation function within the custom bounds for the component
+    componentDriftLEM->SetElectricField([&](double x, double y, double z, double& ex, double& ey, double& ez) {
+      // Only want Ez component to the field
+      ex = ey = 0.;
+
+      // Define a field region for the whole gas region
+
+      // Set ez for regions outside of the radius of the FC
+      if ( std::sqrt(x*x + y*y) > DetActiveR_/2.0){
+          ez = -fieldDrift_; // Negative field will send them away from the LEM region
+      }
+
+      // Field past the cathode drift them away from the LEM with negative field
+      if (z > FCTop_)
+          ez = -fieldDrift_;
+
+      // Drift region
+      if (z <= FCTop_)
+          ez = fieldDrift_;
+
+      // EL region
+      if (z <= ELPos_ && z > ELPos_-gap_EL_)
+          ez = fieldEL_;
+
+      // Drift towards the end cap
+      if (z <= ELPos_ - gap_EL_)
+          ez = fieldDrift_; 
+    });
 
     // Printing pressure and temperature
     std::cout << "GarfieldVUVPhotonModel::buildBox(): Garfield mass density [g/cm3], pressure [Torr], temp [K]: " <<
@@ -459,13 +454,9 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
     G4double tig4(0.);
     
     for (G4int i=0;i<colHitsEntries;i++){
-      GarfieldExcitationHit* newExcHit=new GarfieldExcitationHit();
-
-
+      
         // std::cout << xi << ", " <<  EL_profile[i][0]  << std::endl;
       G4ThreeVector fakepos ( (xi+ EL_profile[i][0])*10., (yi+ EL_profile[i][1])*10., (zi+ EL_profile[i][2])*10. ); // 0 = x, 1 = y, 2 = z
-      newExcHit->SetPos(fakepos);
-     
       
       if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
       
@@ -476,8 +467,6 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
         tig4 = ti + EL_profile[i][3]; // in nsec, t = index 3 in vector. Units are ns, so just add it on
         // std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << tig4 << std::endl;
         
-        newExcHit->SetTime(tig4);
-        fGasBoxSD->InsertGarfieldExcitationHit(newExcHit);
         G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
         newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
         //	G4ProcessManager* pm= newTrack->GetDefinition()->GetProcessManager();
@@ -494,8 +483,8 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
     G4int colHitsEntries= 0.0; //garfExcHitsCol->entries();
     //	G4cout<<"GarfExcHits entries "<<colHitsEntries<<G4endl; // This one is not cumulative.
 
-    const G4double YoverP = 140.*fieldLEM/(detCon->GetGasPressure()/torr) - 116.; // yield/cm/bar, with P in Torr ... JINST 2 p05001 (2007).
-    colHitsEntries = YoverP * detCon->GetGasPressure()/bar * gapLEM; // with P in bar this time.
+    const G4double YoverP = 140.*fieldEL_/(GasPressure_) - 116.; // yield/cm/bar, with P in Torr ... JINST 2 p05001 (2007).
+    colHitsEntries = YoverP * GasPressure_/bar * gap_EL_; // with P in bar this time.
     // colHitsEntries*=2; // Max val before G4 cant handle the memory anymore
     // colHitsEntries=1; // This is to turn down S2 so the vis doesnt get overwelmed
 
@@ -504,10 +493,8 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
     G4double tig4(0.);
     const G4double vd(2.4); // mm/musec, https://arxiv.org/pdf/1902.05544.pdf. Pretty much flat at our E/p..
     for (G4int i=0;i<colHitsEntries;i++){
-      GarfieldExcitationHit* newExcHit=new GarfieldExcitationHit();
 
-      G4ThreeVector fakepos (xi*10,yi*10.,zi*10.-10*gapLEM*float(i)/float(colHitsEntries)); /// ignoring diffusion in small LEM gap, EC 17-June-2022.
-      newExcHit->SetPos(fakepos);
+      G4ThreeVector fakepos (xi*10,yi*10.,zi*10.-10*gap_EL_*float(i)/float(colHitsEntries)); /// ignoring diffusion in small LEM gap, EC 17-June-2022.
      
       
       if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
@@ -520,11 +507,9 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
         /// std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << ti << std::endl;
        
 
-        tig4 = ti + float(i)/float(colHitsEntries)*gapLEM*10./vd*1E3; // in nsec (gapLEM is in cm). Still ignoring diffusion in small LEM.
+        tig4 = ti + float(i)/float(colHitsEntries)*gap_EL_*10./vd*1E3; // in nsec (gap_EL_ is in cm). Still ignoring diffusion in small LEM.
         //	    std::cout << "VUV photon time [nsec]: " << tig4 << std::endl;
         
-        newExcHit->SetTime(tig4);
-        fGasBoxSD->InsertGarfieldExcitationHit(newExcHit);
         G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
         newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
         //	G4ProcessManager* pm= newTrack->GetDefinition()->GetProcessManager();

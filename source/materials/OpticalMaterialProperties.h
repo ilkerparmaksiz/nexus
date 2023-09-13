@@ -31,6 +31,8 @@ namespace opticalprops {
   G4MaterialPropertiesTable* FakeFusedSilica(G4double transparency = .9,
                                             G4double thickness    = 1. * mm);
 
+  G4MaterialPropertiesTable* MgF2();
+
   G4MaterialPropertiesTable* ITO();
 
   G4MaterialPropertiesTable* PEDOT();
@@ -82,6 +84,8 @@ namespace opticalprops {
   G4MaterialPropertiesTable* PMMA();
 
   G4MaterialPropertiesTable* XXX();
+
+  G4MaterialPropertiesTable* STEEL();
 
 
   constexpr G4double optPhotMinE_ =  0.2  * eV;

@@ -115,6 +115,36 @@ namespace opticalprops {
     return mpt;
   }
 
+  // Absorbtion Length https://docs.google.com/spreadsheets/d/1MtjtvoWGBKZvObom2R21wITAbv8SQGjoolY9mlpAGcs/edit?usp=sharing
+  G4MaterialPropertiesTable * MgF2(){
+
+    G4MaterialPropertiesTable *mpt =new G4MaterialPropertiesTable();
+        std::vector<G4double> RIndex; 
+        // REFRACTIVE INDEX
+        //https://refractiveindex.info/?shelf=main&book=MgF2&page=Dodge-o
+        G4double um2 = micrometer*micrometer;
+        G4double B[3] = {0.48755108, 0.39875031 , 2.3120353};
+        G4double C[3] = {0.001882178 * um2, 0.008951888 * um2, 566.13559 * um2};
+        SellmeierEquation seq(B, C);
+  
+        const G4int ri_entries = 100;
+        G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
+    
+        std::vector<G4double> ri_energy;
+        for (int i=0; i<ri_entries; i++) 
+        {
+              ri_energy.push_back(optPhotMinE_ + i * eWidth);
+              RIndex.push_back(seq.RefractiveIndex(h_Planck*c_light/ri_energy[i]));
+            //G4cout << "* MgF2 rIndex:  " << std::setw(5)
+                 // << (h_Planck*c_light/ri_energy[i])/nm << " nm -> " << RIndex[i] << G4endl;
+        }
+          mpt->AddProperty("RINDEX", ri_energy, RIndex);
+        // AbsLength
+        std::vector<G4double> AbsEnergy;
+        std::vector<G4double> AbsLength; 
+    
+    return mpt;
+  }
 
 
   /// Fake Fused Silica ///
@@ -1694,4 +1724,37 @@ namespace opticalprops {
 
     return mpt;
   }
+
+  // Stainles Steel Optical Properties Table
+  G4MaterialPropertiesTable * STEEL()
+  {
+      G4MaterialPropertiesTable* mpt = new G4MaterialPropertiesTable();
+
+      // REFLECTIVITY
+      std::vector<G4double> ENERGIES = {
+              optPhotMinE_, 7.29 * eV,  optPhotMaxE_
+      };
+      std::vector<G4double> REFLECTIVITY = { 0.20,0.20,0.20};
+      // std::vector<G4double> REFLECTIVITY = { 0.00,0.00,0.00};
+
+      // REFLEXION BEHAVIOR
+      std::vector<G4double> ENERGIES_2    = {optPhotMinE_, optPhotMaxE_};
+      // Specular reflection about the normal to a microfacet.
+      // Such a vector is chosen according to a gaussian distribution with
+      // sigma = SigmaAlhpa (in rad) and centered in the average normal.
+      std::vector<G4double> specularlobe  = {0., 0.};
+      // specular reflection about the average normal
+      std::vector<G4double> specularspike = {0., 0.};
+      // 180 degrees reflection.
+      std::vector<G4double> backscatter   = {0., 0.};
+      // 1 - the sum of these three last parameters is the percentage of Lambertian reflection
+
+      mpt->AddProperty("SPECULARLOBECONSTANT", ENERGIES_2, specularlobe);
+      mpt->AddProperty("SPECULARSPIKECONSTANT",ENERGIES_2, specularspike);
+      mpt->AddProperty("BACKSCATTERCONSTANT",  ENERGIES_2, backscatter);
+      mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
+      return mpt;
+  }
+
+
 }

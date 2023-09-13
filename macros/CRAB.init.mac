@@ -1,0 +1,27 @@
+## ----------------------------------------------------------------------------
+## nexus | NEXT100.init.mac
+##
+## Initialization macro to simulate Bi-214 radioactive decays from the
+## copper plate of the tracking plane in the NEXT-100 detector.
+##
+## The NEXT Collaboration
+## ----------------------------------------------------------------------------
+
+/PhysicsList/RegisterPhysics G4EmStandardPhysics_option4
+/PhysicsList/RegisterPhysics G4DecayPhysics
+/PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
+/PhysicsList/RegisterPhysics NexusPhysics
+/PhysicsList/RegisterPhysics G4StepLimiterPhysics
+
+/nexus/RegisterGeometry CRAB0
+
+/nexus/RegisterGenerator SingleParticleGenerator
+
+/nexus/RegisterPersistencyManager PersistencyManager
+
+/nexus/RegisterRunAction DefaultRunAction
+/nexus/RegisterEventAction DefaultEventAction
+/nexus/RegisterTrackingAction DefaultTrackingAction
+/nexus/RegisterStackingAction GarfieldStackingAction
+
+/nexus/RegisterMacro macros/CRAB.config.mac
