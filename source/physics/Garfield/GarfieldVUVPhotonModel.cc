@@ -41,9 +41,9 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     GH_.DumpParams();
     InitialisePhysics();
 
-    G4OpBoundaryProcess* fBoundaryProcess = new G4OpBoundaryProcess();
-    G4OpAbsorption* fAbsorptionProcess = new G4OpAbsorption();
-    G4OpWLS* fTheWLSProcess = new G4OpWLS();
+    G4OpBoundaryProcess* fBoundaryProcess   = new G4OpBoundaryProcess();
+    G4OpAbsorption*      fAbsorptionProcess = new G4OpAbsorption();
+    G4OpWLS*             fTheWLSProcess     = new G4OpWLS();
 
    
 }
@@ -58,14 +58,14 @@ G4bool GarfieldVUVPhotonModel::IsApplicable(const G4ParticleDefinition& particle
 G4bool GarfieldVUVPhotonModel::ModelTrigger(const G4FastTrack& fastTrack){
  
   G4double ekin = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
-  //  std::cout << "GarfieldVUVPhotonModel::ModelTrigger() thermalE, ekin is " << thermalE << ",  "<< ekin / MeV << std::endl;
+  //  std::cout << "GarfieldVUVPhotonModel::ModelTrigger() thermalE, ekin is " << GH_.thermalE_ << ",  "<< ekin / MeV << std::endl;
   
   // Fill the S1 track information
   //S1Fill(fastTrack);
   
   G4String particleName = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
 
-   if (ekin<GH_.thermalE_ && particleName=="thermalelectron")
+   if (ekin < GH_.thermalE_ && particleName=="thermalelectron")
     {
       return true;
     }
@@ -92,14 +92,14 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
   
     // G4cout<<"HELLO Garfield"<<G4endl;
     ////The details of the Garfield model are implemented here
-     //fastStep.KillPrimaryTrack();//KILL NEST/DEGRAD/G4 TRACKS
-     fastStep.ProposeTrackStatus(fSuspend);
+     fastStep.KillPrimaryTrack();//KILL NEST/DEGRAD/G4 TRACKS
+    //  fastStep.ProposeTrackStatus(fSuspend);
 
      garfPos = fastTrack.GetPrimaryTrack()->GetVertexPosition();
      garfTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
      //G4cout<<"GLOBAL TIME "<<G4BestUnit(garfTime,"Time")<<" POSITION "<<G4BestUnit(garfPos,"Length")<<G4endl;
      counter[1]++; // maybe not threadsafe
-     if (!(counter[1]%10000))
+     if (!(counter[1]%1000))
        G4cout << "GarfieldVUV: actual NEST thermales: " << counter[1] << G4endl;
 
     //  if (!(counter[3]%10000))
@@ -117,47 +117,46 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 {
 
      // Drift in main region, then as LEM region is approached and traversed, avalanche multiplication and excitations  will occur.
-
-  
   
     G4double x0=garfPos.getX()*0.1;//Garfield length units are in cm
     G4double y0=garfPos.getY()*0.1;
     G4double z0=garfPos.getZ()*0.1;
     G4double t0=garfTime;
-    G4double e0=7.;// starting energy [eV]->I have chose 7 eV because is the energy cut in Degrad
+    
 
     G4double ekin = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
     G4ThreeVector dir = fastTrack.GetPrimaryTrack()->GetMomentumDirection();
     G4String particleName = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
-    if (particleName.find("thermalelectron")!=std::string::npos) particleName = "e-";
 
-    // garfExcHitsCol = new GarfieldExcitationHitsCollection();
+    // std::cout << "GVUVPM: start positions are " << particleName << " " << x0<<"," <<y0<<","<<z0 <<"," <<t0<< std::endl;
 
-    
+    int status(0);
+
     // Debug the electric field
     // std::array<double, 3> ef{0,0,0};
     // std::array<double, 3> bf{0,0,0};
     // std::vector<double> vf{0,0,0};
     // Garfield::Medium* medium = nullptr;
-    // int status(0);
-    // fSensor->ElectricField(x0,y0,z0, ef[0], ef[1], ef[2], medium, status);                                        
+    // fSensor->ElectricField(x0,y0,-12, ef[0], ef[1], ef[2], medium, status);                                        
     // std::cout << "GVUVPM: E field in medium " << medium << " at " << x0<<","<<y0<<","<<z0 << " is: " << ef[0]<<","<<ef[1]<<","<<ef[2] << std::endl;
 
     // Need to get the AvalancheMC drift at the High-Field point in z, and then call fAvalanche-AvalancheElectron() to create excitations/VUVphotons.
     fAvalancheMC->DriftElectron(x0,y0,z0,t0);
     size_t n =fAvalancheMC->GetNumberOfElectronEndpoints();
     double xi,yi,zi,ti,xf,yf,zf,tf;
-    int status;
-    //	std::cout << "Drift(): avalanchetracking, n DLTs is " << n << std::endl;
+
+    // std::cout << "Avalanche end points: " << n<< std::endl;
 
     // Get zi when in the beginning of the EL region
     for(unsigned int i=0;i<n;i++){
       fAvalancheMC->GetElectronEndpoint(i,xi,yi,zi,ti,xf,yf,zf,tf,status);
-        // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
-
+      
+      // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
+      
       // Drift line point entered LEM
-      if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_/2.0) )
+      if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_) )
         break; 
+      
       // No drift line point meets criteria, so return
       else if (i==n-1)
         return;
@@ -175,13 +174,8 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
 
     // std::cout << "GVUVPM: Avalanching in high field starting at: "  << xi<<"," <<yi<<","<<zi <<"," <<ti << std::endl;
-    
-    const G4Track* pG4trk = fastTrack.GetPrimaryTrack();
-    G4int pntid = pG4trk->GetParentID();
-    G4int tid = pG4trk->GetTrackID();
-    
-    // delete garfExcHitsCol;
-    
+
+        
 }
 
 
@@ -427,6 +421,8 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
 
 
 void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti){
+
+  std::cout << "Generating Photons"<< std::endl;
     
     G4int colHitsEntries= 0.0; //garfExcHitsCol->entries();
     //	G4cout<<"GarfExcHits entries "<<colHitsEntries<<G4endl; // This one is not cumulative.
@@ -442,8 +438,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
     const G4double vd(2.4); // mm/musec, https://arxiv.org/pdf/1902.05544.pdf. Pretty much flat at our E/p..
     for (G4int i=0;i<colHitsEntries;i++){
 
-      G4ThreeVector fakepos (xi*10,yi*10.,zi*10.-10*GH_.gap_EL_*float(i)/float(colHitsEntries)); /// ignoring diffusion in small LEM gap, EC 17-June-2022.
-     
+      G4ThreeVector fakepos (xi*10,yi*10.,zi*10.-10*GH_.gap_EL_*float(i)/float(colHitsEntries)); /// ignoring diffusion in small LEM gap, EC 17-June-2022.     
       
       if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
       
