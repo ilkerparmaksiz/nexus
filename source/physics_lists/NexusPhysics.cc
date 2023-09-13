@@ -181,7 +181,7 @@ namespace nexus {
 
       auto aParticleIterator = GetParticleIterator();
       aParticleIterator->reset();
-      
+
       while ((*aParticleIterator)()) {
         G4ParticleDefinition* particle = aParticleIterator->value();
         G4ProcessManager* pmanager = particle->GetProcessManager();
@@ -208,6 +208,19 @@ namespace nexus {
           }
         }
       }
+
+      // Manually add the fastsim phyiscs for thermal electrons
+      G4ParticleTable* pTable = G4ParticleTable::GetParticleTable();
+      G4ParticleDefinition* anInstance = pTable->FindParticle("thermalelectron");
+      G4ProcessManager* pmanager = anInstance->GetProcessManager();
+      pmanager->AddDiscreteProcess(fastSimProcess_garfield);
+
+      anInstance = pTable->FindParticle("S2Photon");
+      pmanager = anInstance->GetProcessManager();
+      pmanager->AddDiscreteProcess(fastSimProcess_garfield);
+
+
+
     }
   
   }
