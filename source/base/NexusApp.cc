@@ -131,8 +131,8 @@ NexusApp::NexusApp(G4String init_macro): G4RunManager(), gen_name_(""),
     // NEST. Since we dont use this in nexus I have left this till we can fix properly
     // auto stkact = ObjFactory<G4UserStackingAction>::Instance().CreateObject(stkact_name_);
     // this->SetUserAction(stkact.release());
-    GarfieldStackingAction* stackingAction = new GarfieldStackingAction;
-    this->SetUserAction(stackingAction);
+    auto stackingAction = make_unique<GarfieldStackingAction>();
+    this->SetUserAction(stackingAction.release());
   }
 
   if (!trkact_name_.empty()) {

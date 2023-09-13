@@ -30,6 +30,8 @@
 #include <G4StepLimiter.hh>
 #include <G4FastSimulationManagerProcess.hh>
 #include <G4PhysicsConstructorFactory.hh>
+
+#include "G4FastSimulationPhysics.hh"
 namespace nexus {
 
   /// Macro that allows the use of this physics constructor
@@ -76,6 +78,8 @@ namespace nexus {
     IonizationElectron::Definition();
     G4OpticalPhoton::Definition();
     //G4OpticalPhoton::OpticalPhotonDefinition();
+    NEST::NESTThermalElectron::Definition();
+    S2Photon::Definition();
   }
 
 
@@ -158,6 +162,11 @@ namespace nexus {
     // Use NEST/Garfield/Degrad physics
 
     if (fastsim_) {
+      
+      // This is needed to notify Geant4 that the G4FastSimulationModel is to be used as a possible physics process
+      auto fastSimProcess_garfield = new G4FastSimulationManagerProcess("fastSimPhys");
+
+
       gasNESTdet* gndet = new gasNESTdet();
       // std::shared_ptr<gasNESTdet> gndet(new gasNESTdet());
       NEST::NESTcalc* calcNEST = new NEST::NESTcalc(gndet);  
@@ -180,9 +189,10 @@ namespace nexus {
 
         if (pmanager) {
           if (theNEST2ScintillationProcess->IsApplicable(*particle) && pmanager) {
-            std::cout << "PhysicsList::InitialisePhysics(): particleName, pmanager  " << particleName << ", " << pmanager << "." << std::endl;
-            std::cout << "ordDefault, ordInActive " << ordDefault << ", " << ordInActive  << std::endl;
+            // std::cout << "PhysicsList::InitialisePhysics(): particleName, pmanager  " << particleName << ", " << pmanager << "." << std::endl;
+            // std::cout << "ordDefault, ordInActive " << ordDefault << ", " << ordInActive  << std::endl;
             pmanager->AddProcess(theNEST2ScintillationProcess, ordDefault + 1, ordInActive, ordDefault + 1);
+            pmanager->AddDiscreteProcess(fastSimProcess_garfield);
           }
 
           G4OpBoundaryProcess* fBoundaryProcess = new OpBoundaryProcess();
