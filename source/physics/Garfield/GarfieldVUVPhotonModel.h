@@ -46,8 +46,8 @@
 #include "Garfield/AvalancheMC.hh"
 #include "Garfield/ComponentUser.hh"
 #include "GarfieldHelper.h"
-
-
+#include "GeometryBase.h"
+#include "CRAB0.h"
 class G4GenericMessenger;
 namespace nexus {
     class GarfieldVUVPhotonModel : public G4VFastSimulationModel
@@ -109,6 +109,7 @@ namespace nexus {
         FileHandling::FileHandling FileHandler;
 
         GarfieldHelper GH_;
+
 
         G4double ELPos_; // cm
         G4double FCTop_; // cm

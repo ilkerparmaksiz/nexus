@@ -84,7 +84,7 @@ namespace nexus {
             DetActiveL.SetParameterName("DetActiveL", false);
             DetActiveL.SetRange("DetActiveL>0.");
 
-            G4GenericMessenger::Command& GasPressure = msg_->DeclareProperty("GasPressure", gas_pressure_, "Set the gas pressure");
+            G4GenericMessenger::Command& GasPressure = msg_->DeclarePropertyWithUnit("GasPressure","bar",gas_pressure_, "Set the gas pressure");
             GasPressure.SetUnitCategory("Pressure");
             GasPressure.SetParameterName("GasPressure", false);
             GasPressure.SetRange("GasPressure>0.");

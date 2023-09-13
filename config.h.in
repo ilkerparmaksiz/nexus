@@ -1,0 +1,4 @@
+//Any Needed Macros defined here
+#cmakedefine With_Opticks
+#cmakedefine With_GarField
+#cmakedefine GarfieldNewerVersion

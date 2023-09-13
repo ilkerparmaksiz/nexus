@@ -28,9 +28,9 @@
 /Geometry/CRAB0/fieldEL 11400.0
 
 ##### GENERATOR #####
-/Generator/SingleParticle/particle e-
-/Generator/SingleParticle/min_energy 40. keV
-/Generator/SingleParticle/min_energy 40. keV
+/Generator/SingleParticle/particle alpha
+/Generator/SingleParticle/min_energy 1. MeV
+/Generator/SingleParticle/min_energy 1. MeV
 /Generator/SingleParticle/region CENTER
 
 ##### ACTIONS #####
