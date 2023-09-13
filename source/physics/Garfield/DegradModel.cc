@@ -17,22 +17,13 @@
 
 using namespace nexus;
 
-DegradModel::DegradModel(G4String modelName, G4Region* envelope, IonizationSD* sd)
-    : G4VFastSimulationModel(modelName, envelope), GasPressure_(10*bar), fIonizationSD(sd){
+DegradModel::DegradModel(G4String modelName, G4Region* envelope, GarfieldHelper GH)
+    : G4VFastSimulationModel(modelName, envelope){
     
-    // Krishan: Hardcode this number for now
-    // thermalE=gmp->GetThermalEnergy();
-    thermalE=1.3*eV;
-
+    GH_ = GH;
 
     processOccured = false;
 
-    msg_ = new G4GenericMessenger(this, "/Geometry/Garfield/","Control commands of geometry of Garfield.");
-
-    G4GenericMessenger::Command& GasPressure = msg_->DeclareProperty("GasPressure", GasPressure_, "Set the gas pressure");
-    GasPressure.SetUnitCategory("Pressure");
-    GasPressure.SetParameterName("GasPressure", false);
-    GasPressure.SetRange("GasPressure>0.");
 
 }
 
@@ -70,7 +61,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
         G4int KE = int(fPrimPhotonKE/eV);
         const static G4double torr = 1. / 750.062 * bar;
         // Krishan: need to make sure the gas pressure is in the right units here
-        G4int Press = GasPressure_/torr;
+        G4int Press = GH_.GasPressure_/torr;
         fastStep.SetPrimaryTrackPathLength(0.0);
         G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
 

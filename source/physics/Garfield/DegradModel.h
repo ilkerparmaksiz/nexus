@@ -11,6 +11,7 @@
 #include "G4ThreeVector.hh"
 #include "G4VFastSimulationModel.hh"
 #include "IonizationSD.h"
+#include "GarfieldHelper.h"
 
 
 class G4VPhysicalVolume;
@@ -24,7 +25,7 @@ namespace nexus{
         //-------------------------
         // Constructor, destructor
         //-------------------------
-        DegradModel(G4String, G4Region*,IonizationSD*);
+        DegradModel(G4String, G4Region*, GarfieldHelper GH);
         ~DegradModel();
 
 
@@ -38,18 +39,13 @@ namespace nexus{
         private:
         void GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime);
 
-
-        G4double thermalE;
         G4double fPrimPhotonKE;
-        IonizationSD* fIonizationSD;
         G4bool processOccured;
 
-        G4double GasPressure_;
 
         char* crab_path; // Path to the root directory
 
-        // Messenger for the definition of control commands
-        G4GenericMessenger* msg_;
+        GarfieldHelper GH_;
 
     };
 }

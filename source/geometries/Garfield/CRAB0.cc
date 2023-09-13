@@ -27,10 +27,13 @@
 #include "FactoryBase.h"
 #include "IonizationSD.h"
 #include "MaterialsList.h"
+#include "GarfieldHelper.h"
 
 
 namespace nexus {
+    
     REGISTER_CLASS(CRAB0,GeometryBase)
+    
     CRAB0::CRAB0() :
             checkOverlaps(1),
             temperature(300 * kelvin), // temperature
@@ -48,14 +51,8 @@ namespace nexus {
             Active_diam(8.6 * cm),
             sc_yield_(25510. / MeV),
             e_lifetime_(1000. * ms),
-            pmt_hole_length_(18.434 * cm),
             MgF2_window_thickness_(6. * mm),
             MgF2_window_diam_(16.5 * mm),
-            wndw_ring_stand_out_(1.5 * mm), //how much the ring around sapph windows stands out of them
-            pedot_coating_thickness_(200. * nanometer), // copied from NEW
-            optical_pad_thickness_(1. * mm), // copied from NEW
-            pmt_base_diam_(47. * mm),
-            pmt_base_thickness_(5. * mm),
             HideSourceHolder_(false),
             max_step_size_(1. * mm),
             ElGap_(7 * mm),
@@ -63,7 +60,45 @@ namespace nexus {
             PMT1_Pos_(2.32 * cm),
             PMT3_Pos_(3.52 * cm),
             HideCollimator_(true) {
-    }
+
+            // Messenger
+            msg_ = new G4GenericMessenger(this, "/Geometry/CRAB0/","Control commands of geometry of CRAB0.");
+
+            G4GenericMessenger::Command& DetChamberR = msg_->DeclareProperty("DetChamberD", chamber_diam, "Set the detector chamber diameter");
+            DetChamberR.SetUnitCategory("Length");
+            DetChamberR.SetParameterName("DetChamberD", false);
+            DetChamberR.SetRange("DetChamberD>0.");
+
+            G4GenericMessenger::Command& DetChamberL = msg_->DeclareProperty("DetChamberL", chamber_length, "Set the detector chamber length");
+            DetChamberL.SetUnitCategory("Length");
+            DetChamberL.SetParameterName("DetChamberL", false);
+            DetChamberL.SetRange("DetChamberL>0.");
+
+            G4GenericMessenger::Command& DetActiveD = msg_->DeclareProperty("DetActiveD", Active_diam, "Set the detector active diameter");
+            DetActiveD.SetUnitCategory("Length");
+            DetActiveD.SetParameterName("DetActiveD", false);
+            DetActiveD.SetRange("DetActiveD>0.");
+
+            G4GenericMessenger::Command& DetActiveL = msg_->DeclareProperty("DetActiveL", FielCageGap, "Set the detector active length");
+            DetActiveL.SetUnitCategory("Length");
+            DetActiveL.SetParameterName("DetActiveL", false);
+            DetActiveL.SetRange("DetActiveL>0.");
+
+            G4GenericMessenger::Command& GasPressure = msg_->DeclareProperty("GasPressure", gas_pressure_, "Set the gas pressure");
+            GasPressure.SetUnitCategory("Pressure");
+            GasPressure.SetParameterName("GasPressure", false);
+            GasPressure.SetRange("GasPressure>0.");
+
+            G4GenericMessenger::Command& fieldDrift = msg_->DeclareProperty("fieldDrift", fieldDrift_, "Set the drift field [V/cm]");
+            fieldDrift.SetParameterName("fieldDrift", false);
+            fieldDrift.SetRange("fieldDrift>0.");
+
+            G4GenericMessenger::Command& fieldEL = msg_->DeclareProperty("fieldEL", fieldEL_, "Set the EL field [V/cm]");
+            fieldEL.SetParameterName("fieldEL", false);
+            fieldEL.SetRange("fieldEL>0.");
+
+
+        }
 
     CRAB0::~CRAB0() {
     }
@@ -905,10 +940,12 @@ namespace nexus {
         SDManager->AddNewDetector(ionisd);
         gas_logic->SetSensitiveDetector(ionisd);
 
+        GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_, ElGap_, fieldDrift_, fieldEL_);
+
         //These commands generate the four gas models and connect it to the GasRegion
         G4Region *region = G4RegionStore::GetInstance()->GetRegion("GasRegion");
-        new DegradModel("DegradModel",region, ionisd);
-        new GarfieldVUVPhotonModel("GarfieldVUVPhotonModel",region, ionisd);
+        new DegradModel("DegradModel",region, GH);
+        new GarfieldVUVPhotonModel("GarfieldVUVPhotonModel",region, GH);
 
 
         // return labPhysical;
