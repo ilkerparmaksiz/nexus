@@ -25,12 +25,13 @@
 #include "G4OpticalPhoton.hh"
 #include "G4ProcessManager.hh"
 #include "G4EventManager.hh"
-#include "Analysis.hh"
+#include "Analysis.h"
 #include "Garfield/ComponentComsol.hh"
 #include "S2Photon.h"
-
+#include "config.h"
 #include "G4AnalysisManager.hh"
 #include "G4Event.hh"
+
 namespace nexus{
 
 const G4double res(0.01); // Estimated fluctuations in EL yield - high? EC, 21-June-2022.
@@ -102,8 +103,8 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
      if (!(counter[1]%1000))
        G4cout << "GarfieldVUV: actual NEST thermales: " << counter[1] << G4endl;
 
-    //  if (!(counter[3]%10000))
-    //     G4cout << "GarfieldVUV: S2 OpticalPhotons: " << counter[3] << G4endl;
+      if (!(counter[3]%1000) and (counter[3]>0))
+         G4cout << "GarfieldVUV: S2 OpticalPhotons: " << counter[3] << G4endl;
 
 
     //     if (!(counter[1]%1000)) // uncomment!
@@ -139,19 +140,33 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     // Garfield::Medium* medium = nullptr;
     // fSensor->ElectricField(x0,y0,-12, ef[0], ef[1], ef[2], medium, status);                                        
     // std::cout << "GVUVPM: E field in medium " << medium << " at " << x0<<","<<y0<<","<<z0 << " is: " << ef[0]<<","<<ef[1]<<","<<ef[2] << std::endl;
-
+    double xi,yi,zi,ti;
     // Need to get the AvalancheMC drift at the High-Field point in z, and then call fAvalanche-AvalancheElectron() to create excitations/VUVphotons.
     fAvalancheMC->DriftElectron(x0,y0,z0,t0);
-    size_t n =fAvalancheMC->GetNumberOfElectronEndpoints();
-    double xi,yi,zi,ti,xf,yf,zf,tf;
+
+    // This for the newer version of the garfiled
+#ifdef GarfieldNewerVersion
+    size_t n =fAvalancheMC->GetElectrons().at(0).path.size();
+    auto GetDriftLines=fAvalancheMC->GetElectrons().at(0).path;
+#else
+    size_t n =fAvalancheMC->GetDriftLines();
+#endif
 
     // std::cout << "Avalanche end points: " << n<< std::endl;
-
     // Get zi when in the beginning of the EL region
     for(unsigned int i=0;i<n;i++){
-      fAvalancheMC->GetElectronEndpoint(i,xi,yi,zi,ti,xf,yf,zf,tf,status);
-      
-      // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
+      // Newer Version of the Garfield
+#ifdef GarfieldNewerVersion
+      xi=GetDriftLines.at(i).x;
+      yi=GetDriftLines.at(i).y;
+      zi=GetDriftLines.at(i).z;
+      ti=GetDriftLines.at(i).t;
+#else
+        fAvalancheMC->GetDriftLinePoint(i,xi,yi,zi,ti);
+#endif
+
+
+        // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
       
       // Drift line point entered LEM
       if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_) )
@@ -273,7 +288,9 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     fAvalancheMC->SetDistanceSteps(2.e-2); // cm, 10x example
     fAvalancheMC->EnableDebugging(false); // way too much information. 
     fAvalancheMC->DisableAttachment(); // Currently getting warning messages about the attachment. You can supress those by switching this on.
-
+#ifdef GarfieldNewerVersion
+    fAvalancheMC->EnableDriftLines();
+#endif
     G4bool use_ELFile = false;
 
     // Load in the events
@@ -416,21 +433,21 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
       }
       counter[3]++;
     }
-    fastStep.KillPrimaryTrack();
 }
 
 
 void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti){
 
-  std::cout << "Generating Photons"<< std::endl;
+  //std::cout << "Generating Photons"<< std::endl;
     
     G4int colHitsEntries= 0.0; //garfExcHitsCol->entries();
     //	G4cout<<"GarfExcHits entries "<<colHitsEntries<<G4endl; // This one is not cumulative.
 
-    const G4double YoverP = 140.*GH_.fieldEL_/(GH_.GasPressure_) - 116.; // yield/cm/bar, with P in Torr ... JINST 2 p05001 (2007).
-    colHitsEntries = YoverP * GH_.GasPressure_/bar * GH_.gap_EL_; // with P in bar this time.
+    const G4double YoverP = 140.*GH_.fieldEL_/((GH_.GasPressure_/bar)*1000) - 116.; // yield/cm/bar, with P in Torr ... JINST 2 p05001 (2007).
+    colHitsEntries = YoverP * (GH_.GasPressure_/bar) * (GH_.gap_EL_/10); // with P in bar this time.
     // colHitsEntries*=2; // Max val before G4 cant handle the memory anymore
-    // colHitsEntries=1; // This is to turn down S2 so the vis doesnt get overwelmed
+    //std::cout<<" Yield is "<<colHitsEntries <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_/10<<std::endl;
+     //colHitsEntries=1; // This is to turn down S2 so the vis doesnt get overwelmed
 
     colHitsEntries *= (G4RandGauss::shoot(1.0,res));
     
@@ -460,7 +477,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
       }
       counter[3]++;
     }
-    fastStep.KillPrimaryTrack();
+
 
 }
 }
