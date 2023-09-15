@@ -28,7 +28,7 @@ namespace nexus {
   void GarfieldHelper::DumpParams(){
 
     std::cout << 
-    "Printing Garfield Geometry params\n"
+    "\n\nPrinting Garfield geometry params\n"
     "Chamber Radius: " << DetChamberR_ << "\n" <<
     "Chamber Length: " << DetChamberL_ << "\n" <<
     "Active Radius: " << DetActiveR_ << "\n" <<
@@ -36,7 +36,7 @@ namespace nexus {
     "Gas Pressure: " << GasPressure_ << "\n" <<
     "EL Gap: " << gap_EL_ << "\n" <<
     "Drift Field: " << fieldDrift_ << "\n" <<
-    "EL Field: " << fieldEL_ <<
+    "EL Field: " << fieldEL_ << "\n" <<
     std::endl;
 
   }

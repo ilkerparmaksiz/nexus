@@ -28,10 +28,14 @@
 /Geometry/CRAB0/fieldEL 11400.0
 
 ##### GENERATOR #####
-/Generator/SingleParticle/particle alpha
-/Generator/SingleParticle/min_energy 1. MeV
-/Generator/SingleParticle/min_energy 1. MeV
-/Generator/SingleParticle/region CENTER
+/Generator/SingleParticle/particle e-
+/Generator/SingleParticle/min_energy 0.1 MeV
+/Generator/SingleParticle/min_energy 0.1 MeV
+#/Generator/SingleParticle/region CENTER
+
+
+/Generator/SingleParticle/region AD_HOC
+/Geometry/CRAB0/specific_vertex 0 0 -5 mm
 
 ##### ACTIONS #####
 /Actions/DefaultEventAction/min_energy 0.6 keV
