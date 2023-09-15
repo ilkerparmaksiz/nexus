@@ -108,6 +108,9 @@ namespace nexus{
         // Messenger for the definition of control commands
         G4GenericMessenger* msg_;
 
+        // Specific vertex for AD_HOC region
+        G4ThreeVector specific_vertex_;
+
 
     };
 }
