@@ -39,7 +39,6 @@
 #include "G4GenericMessenger.hh"
 
 #include "G4BetaMinusDecay.hh"
-#include "FileHandling.h"
 #include "GeometryBase.h"
 
 class G4GenericMessenger;
@@ -76,10 +75,6 @@ namespace nexus{
          G4GenericMessenger* msg_;
 
          G4ThreeVector momentum_;
-
-
-        // For reading in files
-        FileHandling::FileHandling FileHandler;
 
         std::vector<std::vector<G4double>> electron_data;
         std::vector<std::vector<G4double>> alpha_data;

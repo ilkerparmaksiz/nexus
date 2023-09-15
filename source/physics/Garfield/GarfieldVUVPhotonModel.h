@@ -35,7 +35,7 @@
 #include "G4OpRayleigh.hh"
 #include "G4OpWLS.hh"
 #include "G4OpBoundaryProcess.hh"
-#include "FileHandling.h"
+#include "IOUtils.h"
 #include "G4GenericMessenger.hh"
 
 #include "G4VFastSimulationModel.hh"
@@ -83,16 +83,12 @@ namespace nexus {
     private:
 
         void InitialisePhysics();
-        void S1Fill(const G4FastTrack& );
 
         G4String gasFile;
         G4String ionMobFile;
 
-
         Garfield::MediumMagboltz* fMediumMagboltz;
-        Garfield::AvalancheMicroscopic* fAvalanche;
         Garfield::AvalancheMC* fAvalancheMC;
-
         Garfield::Sensor* fSensor;
 
         std::vector<uint> counter {0,0,0,0};
@@ -104,9 +100,6 @@ namespace nexus {
         // Vector consisting of the event numbers from the simulated Garfield using
         // COMSOL geometry
         std::vector<G4double> EL_events;
-
-        // For reading in files
-        FileHandling::FileHandling FileHandler;
 
         GarfieldHelper GH_;
 

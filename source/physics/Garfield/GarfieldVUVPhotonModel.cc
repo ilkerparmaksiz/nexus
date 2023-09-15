@@ -61,9 +61,6 @@ G4bool GarfieldVUVPhotonModel::ModelTrigger(const G4FastTrack& fastTrack){
   G4double ekin = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
   //  std::cout << "GarfieldVUVPhotonModel::ModelTrigger() thermalE, ekin is " << GH_.thermalE_ << ",  "<< ekin / MeV << std::endl;
   
-  // Fill the S1 track information
-  //S1Fill(fastTrack);
-  
   G4String particleName = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
 
    if (ekin < GH_.thermalE_ && particleName=="thermalelectron")
@@ -144,29 +141,18 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     // Need to get the AvalancheMC drift at the High-Field point in z, and then call fAvalanche-AvalancheElectron() to create excitations/VUVphotons.
     fAvalancheMC->DriftElectron(x0,y0,z0,t0);
 
-    // This for the newer version of the garfiled
-#ifdef GarfieldNewerVersion
     size_t n =fAvalancheMC->GetElectrons().at(0).path.size();
     auto GetDriftLines=fAvalancheMC->GetElectrons().at(0).path;
-#else
-    size_t n =fAvalancheMC->GetDriftLines();
-#endif
 
     // std::cout << "Avalanche end points: " << n<< std::endl;
     // Get zi when in the beginning of the EL region
     for(unsigned int i=0;i<n;i++){
-      // Newer Version of the Garfield
-#ifdef GarfieldNewerVersion
+
       xi=GetDriftLines.at(i).x;
       yi=GetDriftLines.at(i).y;
       zi=GetDriftLines.at(i).z;
       ti=GetDriftLines.at(i).t;
-#else
-        fAvalancheMC->GetDriftLinePoint(i,xi,yi,zi,ti);
-#endif
-
-
-        // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
+      // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
       
       // Drift line point entered LEM
       if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_) )
@@ -213,15 +199,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
       std::cout << "Loaded gasfile." << std::endl;
     }
 
-    //  --- Get Xenon file --- 
-    char* nexus_path = std::getenv("CRABPATH");
-    if (nexus_path == nullptr) {
-        G4Exception("[GarfieldVUVPhotonModel]", "InitialisePhysics()", FatalException,
-                    "Environment variable CRABPATH not defined!");
-    }
-
-    G4String gas_path(nexus_path);
-    gasFile = gas_path + "/data/Xenon_10Bar.gas";
+    gasFile = "data/Xenon_10Bar.gas";
     G4cout << gasFile << G4endl;
     fMediumMagboltz->LoadGasFile(gasFile.c_str());
     std::cout << "Finished Loading in the gas file" << std::endl;
@@ -252,15 +230,14 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     else {
         std::cout << "Initialising Garfiled with a COMSOL geometry" << std::endl;
 
-        // G4String home = fGasModelParameters->GetCOMSOL_Path();
-        G4String home = "./";
-        std::string gridfile   = "CRAB_Mesh.mphtxt";
-        std::string datafile   = "CRAB_Data.txt";
+        G4String home = "./data/Garfield/";
+        std::string meshfile   = "CRAB_Mesh.mphtxt";
+        std::string fieldfile  = "CRAB_Data.txt";
         std::string fileconfig = "CRABMaterialProperties.txt";
 
         // Setup the electric potential map
         Garfield::ComponentComsol* fm = new Garfield::ComponentComsol(); // Field Map
-        fm->Initialise(home + gridfile ,home + fileconfig, home + datafile, "cm");
+        fm->Initialise(home + meshfile ,home + fileconfig, home + fieldfile, "cm");
         
         // Print some information about the cell dimensions.
         fm->PrintRange();
@@ -275,64 +252,21 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
 
     }
 
-    
         
-    // fAvalanche = new Garfield::AvalancheMicroscopic();
-    // fAvalanche->SetUserHandleInelastic(userHandle);
-    // fAvalanche->SetSensor(fSensor);
-
-    
     fAvalancheMC = new Garfield::AvalancheMC(); // drift, not avalanche, to be fair.
     fAvalancheMC->SetSensor(fSensor);
-    fAvalancheMC->SetTimeSteps(0.05); // nsec, per example
+    fAvalancheMC->SetTimeSteps(0.05);      // nsec, per example
     fAvalancheMC->SetDistanceSteps(2.e-2); // cm, 10x example
-    fAvalancheMC->EnableDebugging(false); // way too much information. 
-    fAvalancheMC->DisableAttachment(); // Currently getting warning messages about the attachment. You can supress those by switching this on.
-#ifdef GarfieldNewerVersion
+    fAvalancheMC->EnableDebugging(false);  // way too much information. 
+    fAvalancheMC->DisableAttachment();     // Currently getting warning messages about the attachment. You can supress those by switching this on.
     fAvalancheMC->EnableDriftLines();
-#endif
+
     G4bool use_ELFile = false;
 
     // Load in the events
     if (use_ELFile)
-        FileHandler.GetTimeProfileData(gas_path+"data/CRAB_Profiles_Rotated.csv", EL_profiles, EL_events);
+        GetTimeProfileData("data/Garfield/CRAB_Profiles_Rotated.csv", EL_profiles, EL_events);
     
-}
-
-void GarfieldVUVPhotonModel::S1Fill(const G4FastTrack& ftrk)
-{
-
-  
-  const G4Track* track = ftrk.GetPrimaryTrack();
-  G4int pntID = track->GetParentID();
-  G4int pID = track->GetParticleDefinition()->GetPDGEncoding();
-  G4ThreeVector tpos = track->GetVertexPosition();
-  G4double time = track->GetGlobalTime();
-  G4int id(1);
-  std::string startp("null");
-  const G4VProcess* sprocess   = track->GetCreatorProcess();
-  if (sprocess)
-    startp = sprocess->GetProcessName();
-
-  
-  G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
-  G4int  event = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
-
-  if (time/ns<10) // // S1 thermale's
-    {
-      // Weirdly, S1 is filled in two places. Here for the thermal e's and in TrackingAction::PreSteppingAction() for optphotons. 
-      analysisManager->FillNtupleDColumn(id,0, event);
-      analysisManager->FillNtupleDColumn(id,1, pID);
-      analysisManager->FillNtupleDColumn(id,2, time/ns);
-      analysisManager->FillNtupleDColumn(id,3, tpos[0]/mm);
-      analysisManager->FillNtupleDColumn(id,4, tpos[1]/mm);
-      analysisManager->FillNtupleDColumn(id,5, tpos[2]/mm);
-      analysisManager->FillNtupleSColumn(id,6, startp);
-      analysisManager->AddNtupleRow(id);
-      if (pID!=11)
-        std::cout << "GVUV::FillS1S2: non-electron pID,name is: " << pID << ", " << track->GetParticleDefinition()->GetParticleName() <<  std::endl;
-    }
-
 }
 
 void GarfieldVUVPhotonModel::Reset()

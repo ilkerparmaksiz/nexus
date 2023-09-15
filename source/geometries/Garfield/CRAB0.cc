@@ -28,6 +28,8 @@
 #include "IonizationSD.h"
 #include "MaterialsList.h"
 #include "GarfieldHelper.h"
+#include "SensorSD.h"
+
 
 
 namespace nexus {
@@ -228,9 +230,9 @@ namespace nexus {
 
         // --- Optical ---
         G4OpticalSurface *opXenon_Glass2 = new G4OpticalSurface("XenonLensSurface");
-        opXenon_Glass2->SetModel(glisur);                  // SetModel
+        opXenon_Glass2->SetModel(glisur);                 // SetModel
         opXenon_Glass2->SetType(dielectric_dielectric);   // SetType
-        opXenon_Glass2->SetFinish(polished);                 // SetFinish
+        opXenon_Glass2->SetFinish(polished);              // SetFinish
         opXenon_Glass2->SetPolish(0.0);
         new G4LogicalBorderSurface("XenonLensSurface", gas_phys, lensPhysical, opXenon_Glass2);
 
@@ -373,12 +375,12 @@ namespace nexus {
         G4double EL_PEEK_ROD_SHIFT = - 4 * (FR_thick + PEEK_Rod_thick) - 2.5 * cm - EL_thick - ElGap_ - EL_thick - 2 * cm - FR_thick;
 
         // Loop rotations
-        for (int j = 0; j <=2; j++) {
+        for (G4int j = 0; j <=2; j++) {
             // The PEEK rods at the end
             new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1 * cm / 2.0 + 5 * (FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 0, 0, false);
 
             // The other FC PEEK rods
-            for (int i = 4; i >= -4; i--) {
+            for (G4int i = 4; i >= -4; i--) {
                 new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + i * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, false);
             }
 
@@ -664,6 +666,13 @@ namespace nexus {
                                                                                   LongPMTTubeOffset), camLogical,
                                                            "camPhysical", InsideThePMT_Tube_Logic0, false, 0, false);
 
+        // Add the camera as a sensitive detector
+        SensorSD* camerasd = new SensorSD("/CRAB0/Camera");
+        camerasd->SetDetectorVolumeDepth(2);
+        camerasd->SetTimeBinning(100.*nanosecond);
+        G4SDManager::GetSDMpointer()->AddNewDetector(camerasd);
+        camLogical->SetSensitiveDetector(camerasd);
+
         // Camera
         G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("XenonCamSurface");
         opXenon_Glass->SetModel(glisur);                  // SetModel
@@ -708,16 +717,15 @@ namespace nexus {
         // ____________________________________________________________________
         // ================= Detector Properties  =============================
 
-        //Construct a G4Region, connected to the logical volume in which you want to use the G4FastSimulationModel
-        G4Region *regionGas = new G4Region("GasRegion");
-        regionGas->AddRootLogicalVolume(gas_logic);
-
-
         G4SDManager *SDManager = G4SDManager::GetSDMpointer();
         IonizationSD* ionisd = new IonizationSD("/CRAB0/ACTIVE");
         SDManager->SetVerboseLevel(1);
         SDManager->AddNewDetector(ionisd);
         gas_logic->SetSensitiveDetector(ionisd);
+
+        // Construct a G4Region, connected to the logical volume in which you want to use the G4FastSimulationModel
+        G4Region *regionGas = new G4Region("GasRegion");
+        regionGas->AddRootLogicalVolume(gas_logic);
 
         GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_, ElGap_, fieldDrift_, fieldEL_);
 
