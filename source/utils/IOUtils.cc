@@ -218,5 +218,68 @@ namespace nexus {
 
   // -------
 
+  void GetTimeProfileData(std::string filename, std::vector<std::vector<std::vector<G4double>>> &data, std::vector<G4double> &events) {
+
+        std::cout << "[RandomUtils] Loading EL timing profiles..." << std::endl;
+        
+
+        // Open the file
+        std::ifstream FileIn_(filename);
+
+        // Check if file has opened properly
+        if (!FileIn_.is_open()){
+        G4Exception("[RandomUtils]", "GetTimeProfileData()",
+                    FatalException, " could not read in the CSV file ");
+        }
+
+        // Read the Data from the file as strings
+        std::string s_event, s_x, s_y, s_z, s_t;
+
+        G4double event, x, y, z, t;
+
+        std::vector<G4double> temp_data;
+        std::vector<std::vector<G4double>> temp_profile;
+
+        G4double temp_event = -1;
+
+        // Loop over the lines in the file and add the values to a vector
+        while (FileIn_.peek()!=EOF) {
+
+            std::getline(FileIn_, s_event, ',');
+            std::getline(FileIn_, s_x, ',');
+            std::getline(FileIn_, s_y, ',');
+            std::getline(FileIn_, s_z, ',');
+            std::getline(FileIn_, s_t, '\n');
+
+            // Set it to the first event
+            if (temp_event == -1)
+                temp_event = stod(s_event);
+
+            if (temp_event != stod(s_event)){
+                events.push_back(stod(s_event));
+                temp_event = stod(s_event);
+                data.push_back(temp_profile);
+                temp_profile.clear();
+            }
+
+            temp_data.push_back(stod(s_x));
+            temp_data.push_back(stod(s_y));
+            temp_data.push_back(stod(s_z));
+            temp_data.push_back(stod(s_t));
+
+            temp_profile.push_back(temp_data);
+            temp_data.clear();
+
+        } // END While
+
+        FileIn_.close();
+
+        std::cout << "Finished loading EL timing profiles..." << std::endl;
+
+
+    }
+
+    // -------
+
 
 }

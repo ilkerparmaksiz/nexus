@@ -38,6 +38,9 @@ namespace nexus {
     void CheckVarBounds(std::string filename, G4double var_min, G4double var_max, std::string HeaderName);
 
 
+    /// Read in EL timing profiles generated through Garfield
+    void GetTimeProfileData(std::string filename, std::vector<std::vector<std::vector<G4double>>> &data, std::vector<G4double> &events);
+
 }
 
 #endif
