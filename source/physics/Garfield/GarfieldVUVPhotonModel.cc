@@ -25,7 +25,6 @@
 #include "G4OpticalPhoton.hh"
 #include "G4ProcessManager.hh"
 #include "G4EventManager.hh"
-#include "Analysis.h"
 #include "Garfield/ComponentComsol.hh"
 #include "S2Photon.h"
 #include "config.h"

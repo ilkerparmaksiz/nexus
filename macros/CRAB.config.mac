@@ -17,6 +17,7 @@
 ##### GEOMETRY #####
 #/Geometry/Next100/elfield false
 #/Geometry/Next100/max_step_size 1. mm
+/Geometry/CRAB0/useCAD false
 
 # Garfield
 /Geometry/CRAB0/DetChamberD 16.4 cm

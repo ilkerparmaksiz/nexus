@@ -5,14 +5,13 @@
 //
 // The NEXT Collaboration
 // ----------------------------------------------------------------------------
+#ifndef IOUTILS_H
+#define IOUTILS_H
 
 #include <G4ThreeVector.hh>
 
 #include <Randomize.hh>
-
-
-#ifndef IOUTILS_H
-#define IOUTILS_H
+#include <sys/stat.h>
 
 namespace nexus {
 
@@ -40,6 +39,14 @@ namespace nexus {
 
     /// Read in EL timing profiles generated through Garfield
     void GetTimeProfileData(std::string filename, std::vector<std::vector<std::vector<G4double>>> &data, std::vector<G4double> &events);
+
+
+    // This is for wrting detector counts to a text file
+    void SaveToTextFile(std::string file,std::string labels, char del, std::vector<std::vector<G4double>>data);
+    void SaveToTextFile(std::string file,std::string labels, G4String data);
+    void SaveToTextFile(std::string file,std::string labels,char del, std::vector<G4ThreeVector>data);
+    
+    bool FileCheck(std::string file);
 
 }
 
