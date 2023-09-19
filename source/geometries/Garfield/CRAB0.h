@@ -25,6 +25,7 @@
 #include "G4Region.hh"
 #include "G4Orb.hh"
 #include "PmtR7378A.h"
+#include "SampleFromSurface.h"
 
 #include "OpticalMaterialProperties.h"
 #include "GeometryBase.h"
@@ -49,6 +50,7 @@ namespace nexus{
         G4ThreeVector GenerateVertex(const G4String& region) const override;
 
         virtual void AssignVisuals();
+        void AssignVisualsCAD();
 
         //Setters for the dimensions and environment variables of the setup
         inline void CheckOverlaps(G4bool co){checkOverlaps=co;};
@@ -62,11 +64,15 @@ namespace nexus{
         inline G4double GetGasPressure(){return gas_pressure_;};
         inline G4double GetTemperature(){return temperature;};
 
+        void GenerateGeometryFromFile(G4LogicalVolume *lab_logic_volume, G4OpticalSurface *OpSteelSurf);
+        void GenerateGeometryFromSolid(G4LogicalVolume *lab_logic_volume, G4VPhysicalVolume *gas_phys, G4OpticalSurface *OpSteelSurf, G4RotationMatrix *rotateMesh);
+
 
      private:
         G4bool checkOverlaps; // Check overlaps in the detector geometry if true
         G4double gas_pressure_; // pressure in the gas
         G4double temperature; // temperature of the gas
+        G4bool useCAD_;        // Use CAD geometry
 
         G4double Lab_size;
         G4double chamber_diam   ;
@@ -88,6 +94,7 @@ namespace nexus{
         G4ThreeVector vertex;
         PmtR7378A *pmt1_;
         PmtR7378A *pmt2_;
+        G4double fOffset;
 
         G4double MgF2_window_thickness_;
         G4double MgF2_window_diam_;
@@ -110,6 +117,16 @@ namespace nexus{
 
         // Specific vertex for AD_HOC region
         G4ThreeVector specific_vertex_;
+
+        std::shared_ptr<SampleFromSurface>Sampler;
+
+
+        G4Material *gxe   ;
+        G4Material *MgF2  ;
+        G4Material *Steel ;
+        G4Material *PEEK  ;
+        G4Material *vacuum;
+        G4Material *teflon;
 
 
     };
