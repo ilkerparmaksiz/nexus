@@ -166,7 +166,8 @@ namespace nexus{
         MgF2->SetMaterialPropertiesTable(opticalprops::MgF2());
         vacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
         gxe->SetMaterialPropertiesTable(opticalprops::GXeAlternative(gas_pressure_, 68,sc_yield_,e_lifetime_,7.20*eV,7.20*eV*0.032));
-        //Steel->SetMaterialPropertiesTable(opticalprops::STEEL());
+        //gxe->SetMaterialPropertiesTable(opticalprops::GXe(gas_pressure_,68,sc_yield_,e_lifetime_));
+	//Steel->SetMaterialPropertiesTable(opticalprops::STEEL());
         //Constructing Lab Space
         if(Lab_Logical== nullptr){
             G4String lab_name="LAB";
@@ -550,10 +551,11 @@ namespace nexus{
             // ELRegion->SetLightYield(xgp.ELLightYield(24.8571*kilovolt/cm));//value for E that gives Y=1160 photons per ie- in normal conditions
             //EfieldForEL->SetLightYield(XenonELLightYield(20*kilovolt/cm, gas_pressure_));
             EfieldForEL->SetLightYield(ELyield_);
-            G4Region* el_region = new G4Region("EL_REGION");
+            EfieldForEL->SetELGap(ElGap_*cm);
+	    G4Region* el_region = new G4Region("EL_REGION");
             el_region->SetUserInformation(EfieldForEL);
             el_region->AddRootLogicalVolume(EL_logic);
-
+	    	
         }
 
         /// OpticalSurface

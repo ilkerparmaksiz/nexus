@@ -41,7 +41,7 @@ namespace nexus {
 
     virtual double LightYield() const;
     virtual double GetStepLimit() const;
-
+    virtual double GetELGap() const;
 
 
   private:
@@ -61,7 +61,7 @@ namespace nexus {
 
   // This funcitons are added to so that we will have fine steps in 5mm gap this way if electrons get git a volume they are discarded
   inline double BaseDriftField::GetStepLimit() const {return 0; }
-
+  inline double BaseDriftField::GetELGap() const {return 0;}	
 
 } // end namespace nexus
 

@@ -23,13 +23,13 @@
 
 /Generator/SingleParticle/region OUTER_SURFACE
 
-/Generator/SingleParticle/particle opticalphoton
-/Generator/SingleParticle/min_energy 7.20 eV
-/Generator/SingleParticle/max_energy 7.20 eV
+#/Generator/SingleParticle/particle opticalphoton
+#/Generator/SingleParticle/min_energy 7.20 eV
+#/Generator/SingleParticle/max_energy 7.20 eV
 
-#/Generator/SingleParticle/particle alpha
-#/Generator/SingleParticle/min_energy 0.5 keV
-#/Generator/SingleParticle/max_energy 0.5 keV
+/Generator/SingleParticle/particle alpha
+/Generator/SingleParticle/min_energy 0.5 keV
+/Generator/SingleParticle/max_energy 0.5 keV
 
 #/Generator/SingleParticle/min_costheta 1
 #/Generator/SingleParticle/max_costheta 1
@@ -47,8 +47,8 @@
 
 #GEOMETRY
 /Geometry/CRAB/gas_pressure 9.7 bar
-/Geometry/CRAB/scinYield 0 1/MeV
-/Geometry/CRAB/ELYield 925 1/cm
+/Geometry/CRAB/scinYield 1000 1/MeV
+/Geometry/CRAB/ELYield 100 1/cm
 /Geometry/CRAB/chamber_diam 15. cm
 /Geometry/CRAB/chamber_length 43.18 cm
 /Geometry/CRAB/chamber_thickn 2. mm
@@ -77,9 +77,9 @@
 ## all saves and tracks both ionization and optical
 
 # Comment this out if you do not want to use this TrackingAction
-/TrackingAction/CRABOpticalTrackingAction/Particle_Type optical
+/TrackingAction/CRABOpticalTrackingAction/Particle_Type all
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/optical_172nm
+/nexus/persistency/outputFile optical_172nm
 #/run/printProgress 100

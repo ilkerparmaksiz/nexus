@@ -65,8 +65,8 @@ namespace nexus {
     double GetNumberOfPhotons() const;
     virtual double GetStepLimit() const;
     void SetStepLimit(double,double ) ;
-
-
+    void SetELGap(double);
+    virtual double GetELGap() const;	
   private:
     /// Returns true if coordinate is between anode and cathode
     G4bool CheckCoordinate(double);
@@ -86,6 +86,7 @@ namespace nexus {
     double attachment_;
     double light_yield_;
     double num_ph_;
+    double el_gap;
 
     SegmentPointSampler* rnd_;
     double steplimit_;
@@ -151,8 +152,8 @@ namespace nexus {
   }
 
   inline double UniformElectricDriftField::GetStepLimit() const { return steplimit_; }
-
-
+ inline double UniformElectricDriftField::GetELGap() const {return el_gap;}
+ inline void  UniformElectricDriftField::SetELGap(double t) {el_gap=t;}
 
 
 } // end namespace nexus

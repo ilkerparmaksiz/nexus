@@ -23,13 +23,13 @@
 
 /Generator/SingleParticle/region OUTER_SURFACE
 
-/Generator/SingleParticle/particle opticalphoton
-/Generator/SingleParticle/min_energy 7.20 eV
-/Generator/SingleParticle/max_energy 7.20 eV
+#/Generator/SingleParticle/particle opticalphoton
+#/Generator/SingleParticle/min_energy 7.20 eV
+#/Generator/SingleParticle/max_energy 7.20 eV
 
-#/Generator/SingleParticle/particle alpha
-#/Generator/SingleParticle/min_energy 0.5 keV
-#/Generator/SingleParticle/max_energy 0.5 keV
+/Generator/SingleParticle/particle alpha
+/Generator/SingleParticle/min_energy 0.5 keV
+/Generator/SingleParticle/max_energy 0.5 keV
 
 #/Generator/SingleParticle/min_costheta 1
 #/Generator/SingleParticle/max_costheta 1
@@ -75,9 +75,9 @@
 ## all saves and tracks both ionization and optical
 
 # Comment this out if you do not want to use this TrackingAction
-/TrackingAction/CRABOpticalTrackingAction/Particle_Type optical
+/TrackingAction/CRABOpticalTrackingAction/Particle_Type all
 
 # PERSISTENCY
 /nexus/persistency/eventType background
-/nexus/persistency/outputFile /media/ilker/Ilker/CRAB/Simulation/optical_172nm
+/nexus/persistency/outputFile test
 #/run/printProgress 100

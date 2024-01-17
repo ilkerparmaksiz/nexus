@@ -616,7 +616,7 @@ namespace nexus{
             }
 
             G4Region* drift_region = new G4Region("DRIFT");
-
+	    	
             drift_region->SetUserInformation(field);
             drift_region->AddRootLogicalVolume(FieldCage_Logic);
             // For CRAB Assuming we have 10 bar gas and Efield is 19,298.20 V/cm
@@ -631,7 +631,8 @@ namespace nexus{
             EfieldForEL->SetLongitudinalDiffusion(0.17*mm/sqrt(cm));
             // ELRegion->SetLightYield(xgp.ELLightYield(24.8571*kilovolt/cm));//value for E that gives Y=1160 photons per ie- in normal conditions
             //EfieldForEL->SetLightYield(XenonELLightYield(20*kilovolt/cm, gas_pressure_));
-            EfieldForEL->SetLightYield(ELyield_);
+            EfieldForEL->SetELGap(ElGap_*cm);
+	    EfieldForEL->SetLightYield(ELyield_);
             G4Region* el_region = new G4Region("EL_REGION");
             el_region->SetUserInformation(EfieldForEL);
             el_region->AddRootLogicalVolume(EL_logic);
@@ -787,10 +788,10 @@ namespace nexus{
 
         //PMT TUBE AND PMT BLOCK
         G4LogicalVolume * PmttubeLog0=lvStore->GetVolume("PMT_TUBE0");
-        PmttubeLog0->SetVisAttributes(G4VisAttributes::GetInvisible());
+        PmttubeLog0->SetVisAttributes(ChamberVa);
         G4LogicalVolume * PmttubeBlockLog0=lvStore->GetVolume("PMT_TUBE_BLOCK0");
         G4LogicalVolume * PmttubeLog1=lvStore->GetVolume("PMT_TUBE1");
-        PmttubeLog1->SetVisAttributes(G4VisAttributes::GetInvisible());
+        PmttubeLog1->SetVisAttributes(ChamberVa);
         G4LogicalVolume * PmttubeBlockLog1=lvStore->GetVolume("PMT_TUBE_BLOCK1");
         PmttubeBlockLog0->SetVisAttributes(ChamberVa);
         PmttubeBlockLog1->SetVisAttributes(ChamberVa);

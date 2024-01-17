@@ -79,8 +79,11 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
 
   // Get the light yield from the field
   const G4double yield = field->LightYield();
-  G4double step_length = step.GetStepLength();
 
+  //G4double step_length = step.GetStepLength();
+  // This is included because new geant4 does not return steplengths
+  const G4double step_length =field->GetELGap();
+  //std::cout << "Yield is " << yield << " Step "<<step_length<<std::endl;	
   if (yield <= 0.)
     return G4VDiscreteProcess::PostStepDoIt(track, step);
 
@@ -88,7 +91,8 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
   G4double mean = yield * step_length;
 
   G4int num_photons;
-
+ 
+    
   if (yield < 10.) { // Poissonian regime
     num_photons = G4int(G4Poisson(mean));
   }
@@ -101,25 +105,25 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
     num_photons = photons_per_point_;
 
   ParticleChange_->SetNumberOfSecondaries(num_photons);
+  //std::cout << "Num "<<num_photons <<" Stat "<< track.GetTrackStatus()<<std::endl;
+// Track secondaries first to avoid a memory bloat
+if ((num_photons > 0) && (track.GetTrackStatus() == fAlive))
+ParticleChange_->ProposeTrackStatus(fSuspend);
 
-  // Track secondaries first to avoid a memory bloat
-  if ((num_photons > 0) && (track.GetTrackStatus() == fAlive))
-    ParticleChange_->ProposeTrackStatus(fSuspend);
 
+//////////////////////////////////////////////////////////////////
 
-  //////////////////////////////////////////////////////////////////
+G4ThreeVector position = step.GetPreStepPoint()->GetPosition();
+G4double time = step.GetPreStepPoint()->GetGlobalTime();
+G4LorentzVector initial_position(position, time);
 
-  G4ThreeVector position = step.GetPreStepPoint()->GetPosition();
-  G4double time = step.GetPreStepPoint()->GetGlobalTime();
-  G4LorentzVector initial_position(position, time);
+G4ThreeVector position_end = step.GetPostStepPoint()->GetPosition();
+G4double time_end = step.GetPostStepPoint()->GetGlobalTime();
+G4LorentzVector final_position(position_end, time_end);
 
-  G4ThreeVector position_end = step.GetPostStepPoint()->GetPosition();
-  G4double time_end = step.GetPostStepPoint()->GetGlobalTime();
-  G4LorentzVector final_position(position_end, time_end);
-
-  // Energy is sampled from integral (like it is
-  // done in G4Scintillation)
-    G4Material* mat = step.GetPostStepPoint()->GetTouchable()->GetVolume()->GetLogicalVolume()->GetMaterial();
+// Energy is sampled from integral (like it is
+// done in G4Scintillation)
+G4Material* mat = step.GetPostStepPoint()->GetTouchable()->GetVolume()->GetLogicalVolume()->GetMaterial();
     //G4cout<<mat->GetName()<<G4endl;
     //G4cout<<"Pos "<<position[0]<<" "<<position[1]<<" "<<position[2]<<G4endl;
 
@@ -131,7 +135,7 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
     G4PhysicsOrderedFreeVector* spectrum_integral =
     (G4PhysicsOrderedFreeVector*)(*theFastIntegralTable_)(mat->GetIndex());
 
-
+    //std::cout <<"There is EL " <<std::endl;	
     G4double sc_max = spectrum_integral->GetMaxValue();
 
     for (G4int i=0; i<num_photons; i++) {
