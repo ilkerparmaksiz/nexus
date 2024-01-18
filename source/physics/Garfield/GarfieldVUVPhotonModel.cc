@@ -139,6 +139,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     double xi,yi,zi,ti;
     // Need to get the AvalancheMC drift at the High-Field point in z, and then call fAvalanche-AvalancheElectron() to create excitations/VUVphotons.
     fAvalancheMC->DriftElectron(x0,y0,z0,t0);
+    // std::cout << "GVUVPM: positions are " << x0<<"," <<y0<<","<<z0 <<"," <<ti<< std::endl;
 
     size_t n =fAvalancheMC->GetElectrons().at(0).path.size();
     auto GetDriftLines=fAvalancheMC->GetElectrons().at(0).path;
@@ -380,7 +381,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
     colHitsEntries = YoverP * (GH_.GasPressure_/bar) * (GH_.gap_EL_/10); // with P in bar this time.
     // colHitsEntries*=2; // Max val before G4 cant handle the memory anymore
     //std::cout<<" Yield is "<<colHitsEntries <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_/10<<std::endl;
-     //colHitsEntries=1; // This is to turn down S2 so the vis doesnt get overwelmed
+    //  colHitsEntries=1; // This is to turn down S2 so the vis doesnt get overwelmed
 
     colHitsEntries *= (G4RandGauss::shoot(1.0,res));
     
@@ -388,7 +389,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
     const G4double vd(2.4); // mm/musec, https://arxiv.org/pdf/1902.05544.pdf. Pretty much flat at our E/p..
     for (G4int i=0;i<colHitsEntries;i++){
 
-      G4ThreeVector fakepos (xi*10,yi*10.,zi*10.-10*GH_.gap_EL_*float(i)/float(colHitsEntries)); /// ignoring diffusion in small LEM gap, EC 17-June-2022.     
+      G4ThreeVector fakepos (xi*10,yi*10.,zi*10.); /// ignoring diffusion in small LEM gap, EC 17-June-2022.     
       
       if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
       

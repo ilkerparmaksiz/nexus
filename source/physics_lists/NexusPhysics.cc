@@ -195,10 +195,6 @@ namespace nexus {
             pmanager->AddDiscreteProcess(fastSimProcess_garfield);
           }
 
-          G4OpBoundaryProcess* fBoundaryProcess = new OpBoundaryProcess();
-          G4OpAbsorption* fAbsorptionProcess = new OpAbsorption();
-          G4OpWLS* fTheWLSProcess = new OpWLS();
-
           if (particleName == "opticalphoton" && pmanager) {
             G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
             pmanager->AddDiscreteProcess(fAbsorptionProcess);
