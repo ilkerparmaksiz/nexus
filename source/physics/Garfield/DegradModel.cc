@@ -54,27 +54,45 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
 
     // Here we start by killing G4's naive little one photo-electron.
     // Then we run degrad with a photon of desired energy. Then we read up all the electrons it produces.
+
+    // To run degrad, we have to write the input parameters to a string
+    // The string documentation is in the start of the degrad fortran file
+    // The output file from degrad is then read back in
+
     fastStep.KillPrimaryTrack();
     if(!processOccured){
+        
+        // Initialization
         G4ThreeVector degradPos =fastTrack.GetPrimaryTrack()->GetVertexPosition();
         G4double degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
-        G4int KE = int(fPrimPhotonKE/eV);
-        const static G4double torr = 1. / 750.062 * bar;
-        // Krishan: need to make sure the gas pressure is in the right units here
-        G4int Press = GH_.GasPressure_/torr;
         fastStep.SetPrimaryTrackPathLength(0.0);
         G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
-
-        G4int stdout;
+        
+        
+        // Input parameters
         G4int SEED=54217137*G4UniformRand();
         G4String seed = G4UIcommand::ConvertToString(SEED);
-        // Note the exact precision in below arguments. The integers gammaKE,xenonP in particular need a ".0" tacked on.
-        // G4String degradString="printf \"1,1,3,-1,"+seed+",30000.0,7.0,0.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0,900.0\n500.0,0.0,0.0,1,0\n100.0,0.5,1,1,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
+
+        // Gamma KE
+        G4int KE = int(fPrimPhotonKE/eV); // in eV
         G4String gammaKE(","+std::to_string(KE));
+        
+        // Xenon Pressure
+        const static G4double torr = 1. / 750.062 * bar;
+        G4int Press = GH_.GasPressure_/torr;  // Krishan: need to make sure the gas pressure is in the right units here -- Degrad takes torr units
         G4String xenonP(","+std::to_string(Press));
-        G4String degradString="printf \"1,1,3,-1,"+seed+gammaKE+".0,7.0,0.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0"+xenonP+".0\n500.0,0.0,0.0,1,0\n100.0,0.5,1,1,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
+        
+        // Electric field
+         G4int Efield = 500; // V/cm  
+         G4String Efield_str(","+std::to_string(Efield));
+
+        // Create the input card
+        // Note the exact precision in below arguments. The integers gammaKE,xenonP in particular need a ".0" tacked on.        
+        G4String degradString="printf \"1,1,3,-1,"+seed+gammaKE+".0,7.0,0.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0"+xenonP+".0\n"+Efield_str+".0,0.0,0.0,2,0\n100.0,0.5,1,1,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
         G4cout << degradString << G4endl;
-        stdout=system(degradString.data());
+        
+        // Execute
+        G4int stdout=system(degradString.data());
         G4cout << degradString << G4endl;
         const std::string degradpath = std::getenv("DEGRAD_HOME");
         G4cout << degradpath << G4endl;
@@ -95,7 +113,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
 
 void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime)
 {
-    G4int eventNumber,Nep, nline, i, electronNumber; //Nep é o numero de e primarios que corresponde ao que o biagi chama de "ELECTRON CLUSTER SIZE (NCLUS)"
+    G4int eventNumber,Nep, nline, i, electronNumber; //Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
     G4double posX,posY,posZ,time,n;
     G4double  posXDegrad,posYDegrad,posZDegrad,timeDegrad;
     G4double  posXInitial=degradPos.getX();
