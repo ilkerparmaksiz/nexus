@@ -359,11 +359,11 @@ namespace nexus {
         // Meshlog = lvStore->GetVolume("Mesh_Hex");
         // Meshlog->SetVisAttributes(G4VisAttributes::GetInvisible());
 
-        // FieldCage
-        G4LogicalVolume *FieldCage = lvStore->GetVolume("FIELDCAGE");
-        G4VisAttributes FielCageVis = nexus::Red();
-        FielCageVis.SetForceCloud(true);
-        FieldCage->SetVisAttributes(G4VisAttributes::GetInvisible());
+        // ACTIVE
+        G4LogicalVolume *ACTIVE = lvStore->GetVolume("ACTIVE");
+        G4VisAttributes ACTIVEVis = nexus::Red();
+        ACTIVEVis.SetForceCloud(true);
+        ACTIVE->SetVisAttributes(G4VisAttributes::GetInvisible());
 
 
         SourceHolder->SetVisAttributes(SourceHolderVa);
@@ -519,8 +519,8 @@ namespace nexus {
         //  ----------------------- Field Cage --------------------------------
         
         // FieldCage -- needs to be updated to rings and PEEK rods
-        G4Tubs *FieldCage_Solid = new G4Tubs("FIELDCAGE", 0., Active_diam / 2., FielCageGap / 2, 0., twopi);
-        G4LogicalVolume *FieldCage_Logic = new G4LogicalVolume(FieldCage_Solid, gxe, "FIELDCAGE");
+        G4Tubs *FieldCage_Solid = new G4Tubs("ACTIVE", 0., Active_diam / 2., FielCageGap / 2, 0., twopi);
+        G4LogicalVolume *FieldCage_Logic = new G4LogicalVolume(FieldCage_Solid, gxe, "ACTIVE");
         G4VPhysicalVolume * FieldCage_Phys=new G4PVPlacement(0,G4ThreeVector(0,0,0),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,false);
 
         // Field Rings
@@ -915,12 +915,12 @@ namespace nexus {
         camLogical->SetSensitiveDetector(camerasd);
 
         // Camera
-        G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("XenonCamSurface");
-        opXenon_Glass->SetModel(glisur);                  // SetModel
-        opXenon_Glass->SetType(dielectric_dielectric);   // SetType
-        opXenon_Glass->SetFinish(ground);                 // SetFinish
-        opXenon_Glass->SetPolish(0.0);
-        new G4LogicalBorderSurface("XenonCamSurface", PMT_Tube_Vacuum_Phys0, camPhysical, opXenon_Glass);
+        // G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("XenonCamSurface");
+        // opXenon_Glass->SetModel(glisur);                  // SetModel
+        // opXenon_Glass->SetType(dielectric_dielectric);   // SetType
+        // opXenon_Glass->SetFinish(ground);                 // SetFinish
+        // opXenon_Glass->SetPolish(0.0);
+        // new G4LogicalBorderSurface("XenonCamSurface", PMT_Tube_Vacuum_Phys0, camPhysical, opXenon_Glass);
 
         //  ------------------------ EL Brackets ------------------------------
         
