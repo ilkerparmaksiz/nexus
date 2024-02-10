@@ -15,6 +15,7 @@
 // #include "NESTProc.hh"
 #include "IonizationElectron.h"
 #include "G4GenericMessenger.hh"
+#include <G4OpticalPhoton.hh>
 
 using namespace nexus;
 
@@ -110,7 +111,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
 
         // Create the input card
         // Note the exact precision in below arguments. The integers gammaKE,xenonP in particular need a ".0" tacked on. 
-        G4String degradString="printf \"1,1,"+degrad_mode+",2,"+seed+particleKE+".0,7.0,10000.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0"+xenonP+".0\n"+Efield_str+".0,0.0,0.0,1,0\n100.0,0.5,0,0,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
+        G4String degradString="printf \"1,1,"+degrad_mode+",2,"+seed+particleKE+".0,7.0,10000.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0"+xenonP+".0\n"+Efield_str+".0,0.0,0.0,2,0\n100.0,0.5,0,0,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
         // G4String degradString="printf \"1,1,3,-1,"+seed+gammaKE+".0,7.0,0.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0"+xenonP+".0\n"+Efield_str+".0,0.0,0.0,2,0\n100.0,0.5,1,1,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
         // Execute
         G4int stdout=system(degradString.data());
@@ -136,7 +137,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
 
 void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime)
 {
-    G4int eventNumber,Nep, nline, i, electronNumber; //Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
+    G4int eventNumber,Nep, nline, i, electronNumber, S1Number; //Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
     G4double posX,posY,posZ,time,n;
     G4double  posXDegrad,posYDegrad,posZDegrad,timeDegrad;
     G4double  posXInitial=degradPos.getX();
@@ -154,6 +155,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
     
     nline=1;
     electronNumber=0;
+    S1Number=0;
     while (getline(inFile, line,'\n')) {
         
         std::istringstream iss(line);//stream de strings
@@ -187,7 +189,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 posX=posXDegrad*0.001+posXInitial;
                 posY=posZDegrad*0.001+posYInitial;
                 posZ=posYDegrad*0.001+posZInitial;
-                //std::cout << "DegradModel::DoIt(): v[i-4]" << v[i] << "," << v[i+1] << "," << v[i+2] << "," << v[i+3] << "," << v[i+4]   << std::endl;
+                // std::cout << "DegradModel::DoIt(): v[i-4]" << v[i] << "," << v[i+1] << "," << v[i+2] << "," << v[i+3] << "," << v[i+4]   << std::endl;
                 //std::cout << "DegradModel::DoIt(): xinitial, poxXDegrad [mm]" << posXInitial << ", " << posXDegrad*0.001 << std::endl;
     
                 //convert ps to ns
@@ -211,11 +213,63 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                     electronNumber++;
                     
                     // Create secondary electron
-                    //if(electronNumber % 50 == 0){     // comment this condition, EC, 2-Dec-2021.
-                    // G4DynamicParticle electron(G4Electron::ElectronDefinition(),G4RandomDirection(), 7.0*eV);
-
                     G4DynamicParticle electron(IonizationElectron::Definition(),G4RandomDirection(), 1.13*eV);
                     G4Track *newTrack=fastStep.CreateSecondaryTrack(electron, myPoint, time,false);
+
+                    // }
+                }
+            }
+            v.clear(); //Faz reset ao vector senão vai continuar a adicionar os dadosadicionar os dados
+            // nline=0;
+            
+        }
+        // Excitations
+        if (nline == 3)  {
+            
+            while (iss >> n) {
+                v.push_back(n); //o n é adicionado ao vector
+            }
+
+            std::cout << v.size() << std::endl;
+            
+            for (i=0;i<v.size();i=i+4){
+                posXDegrad=v[i];
+                posYDegrad=v[i+1];
+                posZDegrad=v[i+2];
+                timeDegrad=v[i+3];
+                //convert from um to mm in GEANT4
+                //also Y and Z axes are swapped in GEANT4 and Garfield++ relatively to Degrad
+                posX=posXDegrad*0.001+posXInitial;
+                posY=posZDegrad*0.001+posYInitial;
+                posZ=posYDegrad*0.001+posZInitial;
+                // std::cout << "DegradModel::DoIt(): v[i-4]" << v[i] << "," << v[i+1] << "," << v[i+2] << "," << v[i+3] << "," << v[i+4]   << std::endl;
+                //std::cout << "DegradModel::DoIt(): xinitial, poxXDegrad [mm]" << posXInitial << ", " << posXDegrad*0.001 << std::endl;
+    
+                //convert ps to ns
+                time=timeDegrad*0.001+timeInitial;
+                
+                
+                G4ThreeVector myPoint;
+                myPoint.setX(posX);
+                myPoint.setY(posY);
+                myPoint.setZ(posZ);
+                
+                //Check in which Physical volume the point bellongs
+                G4Navigator* theNavigator= G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
+                
+                G4VPhysicalVolume* myVolume = theNavigator->LocateGlobalPointAndSetup(myPoint);
+              
+                G4String solidName=myVolume->GetName();
+                
+                if (G4StrUtil::contains(solidName,"FIELDCAGE") || G4StrUtil::contains(solidName,"GAS") ){
+
+                    S1Number++;
+                    
+                    // Create secondary electron
+                    auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
+                    G4DynamicParticle VUVphoton(optphot,G4RandomDirection(), 7.2*eV);
+                    G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, myPoint, time ,false);
+                    newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
 
                     // }
                 }
@@ -224,12 +278,15 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
             nline=0;
             
         }
+
+
         nline++;
         
         
     }
     inFile.close();
     G4cout << "Number of initial electrons: " << electronNumber << G4endl;
+    G4cout << "Number of initial S1: " << S1Number << G4endl;
     
     
 }
