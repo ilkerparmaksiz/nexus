@@ -34,12 +34,12 @@ namespace nexus{
         virtual void DoIt(const G4FastTrack&, G4FastStep&);
         inline G4bool FindParticleName(G4String s){if(s=="e-") return true; return false;};
         inline void Reset(){processOccured=false;};
-        void SetPrimaryKE(G4double KE) {fPrimPhotonKE = KE;};
+        void SetPrimaryKE(G4double KE) {fPrimKE = KE;};
 
         private:
         void GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime);
 
-        G4double fPrimPhotonKE;
+        G4double fPrimKE; // Primary kinetic energy of the particle
         G4bool processOccured;
 
 
