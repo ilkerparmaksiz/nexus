@@ -208,7 +208,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
               
                 G4String solidName=myVolume->GetName();
                 
-                if (G4StrUtil::contains(solidName,"FIELDCAGE") || G4StrUtil::contains(solidName,"GAS") ){
+                if (G4StrUtil::contains(solidName,"ACTIVE") ){
 
                     electronNumber++;
                     
@@ -261,7 +261,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
               
                 G4String solidName=myVolume->GetName();
                 
-                if (G4StrUtil::contains(solidName,"FIELDCAGE") || G4StrUtil::contains(solidName,"GAS") ){
+                if (G4StrUtil::contains(solidName,"ACTIVE")){
 
                     S1Number++;
                     
