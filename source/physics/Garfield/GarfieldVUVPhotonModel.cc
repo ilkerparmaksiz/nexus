@@ -26,7 +26,6 @@
 #include "G4ProcessManager.hh"
 #include "G4EventManager.hh"
 #include "Garfield/ComponentComsol.hh"
-#include "S2Photon.h"
 #include "config.h"
 #include "G4AnalysisManager.hh"
 #include "G4Event.hh"
@@ -41,16 +40,16 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     GH_.DumpParams();
     InitialisePhysics();
 
-    G4OpBoundaryProcess* fBoundaryProcess   = new G4OpBoundaryProcess();
-    G4OpAbsorption*      fAbsorptionProcess = new G4OpAbsorption();
-    G4OpWLS*             fTheWLSProcess     = new G4OpWLS();
-
    
 }
 
 G4bool GarfieldVUVPhotonModel::IsApplicable(const G4ParticleDefinition& particleType) {
   //  std::cout << "GarfieldVUVPhotonModel::IsApplicable() particleType is " << particleType.GetParticleName() << std::endl;
-  if (particleType.GetParticleName()=="thermalelectron") // || particleType.GetParticleName()=="opticalphoton")
+  
+  if (particleType.GetParticleName() == "S1Photon")
+    counter[2]++; 
+  
+  if (particleType.GetParticleName()=="ie-") // || particleType.GetParticleName()=="opticalphoton")
     return true;
   return false;
 }
@@ -62,7 +61,9 @@ G4bool GarfieldVUVPhotonModel::ModelTrigger(const G4FastTrack& fastTrack){
   
   G4String particleName = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
 
-   if (ekin < GH_.thermalE_ && particleName=="thermalelectron")
+  // std::cout << "The particle name is: " << particleName <<  std::endl;
+
+   if (ekin < GH_.thermalE_ && particleName=="ie-")
     {
       return true;
     }
@@ -98,6 +99,9 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
      counter[1]++; // maybe not threadsafe
      if (!(counter[1]%1000))
        G4cout << "GarfieldVUV: actual NEST thermales: " << counter[1] << G4endl;
+
+     if (!(counter[2]%1000) && counter[2] >0)
+       G4cout << "GarfieldVUV: actual NEST S1: " << counter[2] << G4endl;
 
       if (!(counter[3]%1000) and (counter[3]>0))
          G4cout << "GarfieldVUV: S2 OpticalPhotons: " << counter[3] << G4endl;
@@ -342,7 +346,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
     // Now loop over and make the photons
     G4int colHitsEntries = EL_profile.size();
     // std::cout <<  colHitsEntries<< std::endl;
-    // colHitsEntries=1 ;
+    colHitsEntries=1 ;
 
     G4double tig4(0.);
     
@@ -353,7 +357,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
       
       if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
       
-        auto* optphot = S2Photon::OpticalPhotonDefinition();
+        auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
         
         G4DynamicParticle VUVphoton(optphot,G4RandomDirection(), 7.2*eV);
        
@@ -393,9 +397,10 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
       
       if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
       
-        auto* optphot = S2Photon::OpticalPhotonDefinition();
+        auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
         
         G4DynamicParticle VUVphoton(optphot,G4RandomDirection(), 7.2*eV);
+        // std::cout << "More Photons!"<< std::endl;
        
 
         /// std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << ti << std::endl;

@@ -30,21 +30,21 @@
 
 ##### GENERATOR #####
 /Generator/SingleParticle/particle e-
-/Generator/SingleParticle/min_energy 0.1 MeV
-/Generator/SingleParticle/min_energy 0.1 MeV
+/Generator/SingleParticle/min_energy 40 keV
+/Generator/SingleParticle/min_energy 40 keV
 #/Generator/SingleParticle/region CENTER
 
 
 /Generator/SingleParticle/region AD_HOC
-/Geometry/CRAB0/specific_vertex 0 0 -5 mm
+/Geometry/CRAB0/specific_vertex 0 0 0 mm
 
 ##### ACTIONS #####
-/Actions/DefaultEventAction/min_energy 0.6 keV
-/Actions/DefaultEventAction/max_energy 2.55 MeV
+#/Actions/DefaultEventAction/min_energy 0.6 keV
+#/Actions/DefaultEventAction/max_energy 2.55 MeV
 
 ##### PHYSICS #####
 ## No full simulation
-/PhysicsList/Nexus/clustering          false
+/PhysicsList/Nexus/clustering          true
 /PhysicsList/Nexus/drift               false
 /PhysicsList/Nexus/electroluminescence false
 /PhysicsList/Nexus/fastsim true
