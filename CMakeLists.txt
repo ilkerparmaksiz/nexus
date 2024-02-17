@@ -69,12 +69,12 @@ if(With_GarField)
 
   message(STATUS "Garfield package found.")
 
-  ## NEST
-  #find_package(NEST REQUIRED)
-  #if(NOT NEST_FOUND)
-  #  message(STATUS "NEST package not found.")
-  #  return()
-  #endif()
+  # NEST
+  find_package(NEST REQUIRED)
+  if(NOT NEST_FOUND)
+   message(STATUS "NEST package not found.")
+   return()
+  endif()
 
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 endif()
@@ -123,9 +123,9 @@ foreach(DIR ${SOURCE_DIRS})
 endforeach()
 
 if(With_GarField)
-    #target_include_directories(lib PRIVATE  ${NEST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
-    #target_link_libraries(lib PUBLIC  Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore NEST::NESTG4)
-  target_link_libraries(lib PUBLIC  Garfield::Garfield ROOT::RIO ROOT::Net)
+    target_include_directories(lib PRIVATE  ${NEST_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
+    target_link_libraries(lib PUBLIC  Garfield::Garfield ROOT::RIO ROOT::Net NEST::NESTCore NEST::NESTG4)
+  # target_link_libraries(lib PUBLIC  Garfield::Garfield ROOT::RIO ROOT::Net)
   MESSAGE(STATUS "Using Garfield Version ${Garfield_VERSION}" )
   option(GarfieldNewerVersion OFF)
   if(${Garfield_VERSION} VERSION_GREATER_EQUAL  0.3.0)

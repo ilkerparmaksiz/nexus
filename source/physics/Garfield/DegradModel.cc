@@ -32,7 +32,7 @@ DegradModel::DegradModel(G4String modelName, G4Region* envelope, GarfieldHelper 
 DegradModel::~DegradModel() {}
 
 G4bool DegradModel::IsApplicable(const G4ParticleDefinition& particleType) {
-    if (particleType.GetParticleName()=="e-" || particleType.GetParticleName()=="gamma")
+    if (particleType.GetParticleName()=="e-" || particleType.GetParticleName()=="gamma" || particleType.GetParticleName()=="e+")
         return true;
     
     return false;
