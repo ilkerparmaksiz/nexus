@@ -18,8 +18,9 @@
 // Krishan: this needs cleaning up
 #include "G4OpAbsorption.hh"
 #include "G4OpBoundaryProcess.hh"
-//#include "gasNESTdet.h"
-//#include "NEST/G4/NESTProc.hh"
+#include "gasNESTdet.h"
+#include "NEST/G4/NESTProc.hh"
+#include "NEST/G4/NESTS1Photon.hh"
 
 #include <G4GenericMessenger.hh>
 #include <G4OpticalPhoton.hh>
@@ -29,7 +30,6 @@
 #include <G4FastSimulationManagerProcess.hh>
 #include <G4PhysicsConstructorFactory.hh>
 
-// #include GarfieldVUVPhotonModel.h
 #include "G4FastSimulationPhysics.hh"
 namespace nexus {
 
@@ -76,7 +76,8 @@ namespace nexus {
   {
     IonizationElectron::Definition();
     G4OpticalPhoton::Definition();
-    //G4OpticalPhoton::OpticalPhotonDefinition();
+    // G4OpticalPhoton::OpticalPhotonDefinition();
+    NESTS1Photon::Definition();
   }
 
 
@@ -164,18 +165,16 @@ namespace nexus {
       auto fastSimProcess_garfield = new G4FastSimulationManagerProcess("fastSimPhys");
 
 
-      // gasNESTdet* gndet = new gasNESTdet();
+      gasNESTdet* gndet = new gasNESTdet();
       // std::shared_ptr<gasNESTdet> gndet(new gasNESTdet());
-      // NEST::NESTcalc* calcNEST = new NEST::NESTcalc(gndet);  
+      NEST::NESTcalc* calcNEST = new NEST::NESTcalc(gndet);  
 
-      // NEST::NESTProc* theNEST2ScintillationProcess = new NEST::NESTProc("S1",fElectromagnetic, calcNEST, gndet); //gndet);
-      // theNEST2ScintillationProcess->SetDetailedSecondaries(true);
-      // theNEST2ScintillationProcess->SetStackElectrons(true);
+      NEST::NESTProc* theNEST2ScintillationProcess = new NEST::NESTProc("S1",fElectromagnetic, calcNEST, gndet); //gndet);
+      theNEST2ScintillationProcess->SetDetailedSecondaries(true);
+      theNEST2ScintillationProcess->SetStackElectrons(true);
 
       G4OpBoundaryProcess* fBoundaryProcess = new G4OpBoundaryProcess();
       G4OpAbsorption* fAbsorptionProcess = new G4OpAbsorption();
-
-      // GarfieldVUVPhotonModel* fGarfieldVUV = new GarfieldVUVPhotonModel();
 
       auto aParticleIterator = GetParticleIterator();
       aParticleIterator->reset();
@@ -185,18 +184,21 @@ namespace nexus {
         G4ProcessManager* pmanager = particle->GetProcessManager();
         G4String particleName = particle->GetParticleName();
 
+        
+        // Skip electrons which are going to be now handled in Degrad
+        // Still add the fastsim process though
+        if ( (particleName == "e-" | particleName == "e+") && pmanager){
+          pmanager->AddDiscreteProcess(fastSimProcess_garfield);
+          continue;
+        }
+
         if (pmanager) {
-          // if (theNEST2ScintillationProcess->IsApplicable(*particle) && pmanager) {
+          if (theNEST2ScintillationProcess->IsApplicable(*particle) && pmanager) {
             // std::cout << "PhysicsList::InitialisePhysics(): particleName, pmanager  " << particleName << ", " << pmanager << "." << std::endl;
             // std::cout << "ordDefault, ordInActive " << ordDefault << ", " << ordInActive  << std::endl;
-            // pmanager->AddProcess(theNEST2ScintillationProcess, ordDefault + 1, ordInActive, ordDefault + 1);
+            pmanager->AddProcess(theNEST2ScintillationProcess, ordDefault + 1, ordInActive, ordDefault + 1);
             pmanager->AddDiscreteProcess(fastSimProcess_garfield);
-          // }
-
-          // if (particleName == "e-" && pmanager) {
-          //   G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
-          //   pmanager->AddDiscreteProcess(fAbsorptionProcess);
-          // }
+          }
 
           if (particleName == "opticalphoton" && pmanager) {
             G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
@@ -214,12 +216,12 @@ namespace nexus {
       pmanager->AddDiscreteProcess(fastSimProcess_garfield);
 
       // S1 photons created in NEST
-      // anInstance = pTable->FindParticle("S1Photon");
-      // pmanager = anInstance->GetProcessManager();
-      // pmanager->AddDiscreteProcess(fAbsorptionProcess);
-      // pmanager->AddDiscreteProcess(fBoundaryProcess);
-      // pmanager->AddDiscreteProcess(wls);
-      // pmanager->AddDiscreteProcess(fastSimProcess_garfield);
+      anInstance = pTable->FindParticle("NESTS1Photon");
+      pmanager = anInstance->GetProcessManager();
+      pmanager->AddDiscreteProcess(fAbsorptionProcess);
+      pmanager->AddDiscreteProcess(fBoundaryProcess);
+      pmanager->AddDiscreteProcess(wls);
+      pmanager->AddDiscreteProcess(fastSimProcess_garfield);
 
     }
   
