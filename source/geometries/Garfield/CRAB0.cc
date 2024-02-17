@@ -140,7 +140,15 @@ namespace nexus {
         gxe   ->SetMaterialPropertiesTable(opticalprops::GXe(gas_pressure_, 68, sc_yield_, e_lifetime_));
 
         // OpticalSurface
-        G4OpticalSurface *OpSteelSurf = new G4OpticalSurface("SteelSurface", unified, polished, dielectric_metal);
+        // G4OpticalSurface *OpSteelSurf = new G4OpticalSurface("SteelSurface", unified, polished, dielectric_metal);
+        // OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
+
+        // Add optical surface
+        G4OpticalSurface* OpSteelSurf = new G4OpticalSurface("OPSURF");
+        OpSteelSurf->SetType(dielectric_metal);
+        OpSteelSurf->SetModel(unified);
+        OpSteelSurf->SetFinish(ground);
+        // gas_mesh_opsur->SetSigmaAlpha(0.0);
         OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
 
         //  ----------------------- Lab Space ---------------------------------
@@ -434,10 +442,8 @@ namespace nexus {
                                                             false);
 
         // --- Optical ---
-        new G4LogicalBorderSurface("SteelSurface_Chamber", gas_phys, chamber_phys, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurface_LeftFlange", gas_phys, Left_Flange_phys, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurface_RightFlange", gas_phys, Right_Flange_phys, OpSteelSurf);
-
+        new G4LogicalSkinSurface("SteelSurface_Chamber", chamber_logic, OpSteelSurf);
+        new G4LogicalSkinSurface("SteelSurface_Flange", chamber_flange_logic, OpSteelSurf);
 
         //  --------------------- Window/lens ---------------------------------
         // MgF2 window
@@ -464,8 +470,8 @@ namespace nexus {
         // G4VPhysicalVolume* lensPhysical = new G4PVPlacement(0, G4ThreeVector(0., 0., window_posz), MgF2_window_logic,"MgF2_WINDOW1", lab_logic_volume,false, 0, false);
 
         G4VPhysicalVolume *lensPhysical = new G4PVPlacement(0, G4ThreeVector(0., 0., window_posz + maxLensLength / 2.0),
-                                                            lensLogical, "MgF2_WINDOW1", gas_logic, false, 0, false);
-        new G4PVPlacement(0, G4ThreeVector(0., 0., -window_posz), MgF2_window_logic, "MgF2_WINDOW2", gas_logic, false,
+                                                            lensLogical, "MgF2_LENS_CATHODE", gas_logic, false, 0, false);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., -window_posz), MgF2_window_logic, "MgF2_WINDOW_ANODE", gas_logic, false,
                           1, false);
 
         // --- Optical ---
@@ -634,12 +640,12 @@ namespace nexus {
 
 
         // EL_Gap
-        new G4PVPlacement(0, G4ThreeVector(0., 0., EL_pos), EL_logic, EL_solid->GetName(), gas_logic, 0, 0, false);
+        // new G4PVPlacement(0, G4ThreeVector(0., 0., EL_pos), EL_logic, EL_solid->GetName(), gas_logic, 0, 0, false);
 
         G4VPhysicalVolume *EL_Ring_Plus = new G4PVPlacement(0, G4ThreeVector(0., 0., EL_thick / 2.0 - FR_thick -
                                                                                      4 * (FR_thick + PEEK_Rod_thick) -
                                                                                      2.5 * cm - EL_thick),
-                                                            EL_ring_logic, EL_solid->GetName(), gas_logic, 0, 0, false);
+                                                            EL_ring_logic, "EL_Ring_Plus", gas_logic, 0, 0, false);
 
         // Place the Mesh bits
         G4VPhysicalVolume *EL_Mesh_Plus_plus = new G4PVPlacement(rotateMesh, G4ThreeVector(0., 0.,
@@ -657,7 +663,7 @@ namespace nexus {
                                                                                           (FR_thick + PEEK_Rod_thick) -
                                                                                           2.5 * cm - EL_thick - ElGap_ -
                                                                                           EL_thick), EL_ring_logic,
-                                                                 EL_solid->GetName(), gas_logic, 0, 0, false);
+                                                                 "EL_Ring_Plus_plus", gas_logic, 0, 0, false);
 
         // Place the Mesh bits
         G4VPhysicalVolume *EL_Mesh_Plus = new G4PVPlacement(0, G4ThreeVector(0., 0., EL_thick / 2.0 - FR_thick -
@@ -672,7 +678,7 @@ namespace nexus {
         // Cathode
         G4VPhysicalVolume *Cathode = new G4PVPlacement(0, G4ThreeVector(0., 0., EL_thick / 2.0 + 1 * cm +
                                                                                 5 * (FR_thick + PEEK_Rod_thick)),
-                                                       Cathode_ring_logic, EL_solid->GetName(), gas_logic, 0, 0, false);
+                                                       Cathode_ring_logic, "CATHODE", gas_logic, 0, 0, false);
 
         // Place the Mesh bits
         G4VPhysicalVolume *Cathode_EL_Mesh = new G4PVPlacement(rotateMesh, G4ThreeVector(0., 0.,
@@ -685,29 +691,14 @@ namespace nexus {
         HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, Cathode_Disk_logic, EL_Hex_logic);
 
         // --- Optical ---
-        new G4LogicalBorderSurface("SteelSurfaceFR1", gas_phys, FR_FC_1, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR2", gas_phys, FR_FC_2, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR3", gas_phys, FR_FC_3, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR4", gas_phys, FR_FC_4, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR5", gas_phys, FR_FC_5, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR6", gas_phys, FR_FC_6, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR7", gas_phys, FR_FC_7, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR8", gas_phys, FR_FC_8, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR9", gas_phys, FR_FC_9, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR10", gas_phys, FR_FC_10, OpSteelSurf);
+        new G4LogicalSkinSurface("SteelSurfaceFR", FR_logic, OpSteelSurf);
+        new G4LogicalSkinSurface("SteelSurfaceELRing1", EL_ring_logic, OpSteelSurf);
+        new G4LogicalSkinSurface("SteelSurfaceCathodeRing", Cathode_ring_logic, OpSteelSurf);
 
-        new G4LogicalBorderSurface("SteelSurfaceFR_EL1", gas_phys, FR_EL_1, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR_EL2", gas_phys, FR_EL_2, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceFR_EL3", gas_phys, FR_EL_3, OpSteelSurf);
-
-        new G4LogicalBorderSurface("SteelSurfaceELRing1", gas_phys, EL_Ring_Plus, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceELRing2", gas_phys, EL_Ring_Plus_plus, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceCathodeRing", gas_phys, Cathode, OpSteelSurf);
-
-
-        new G4LogicalBorderSurface("SteelSurfaceELMesh", gas_phys, EL_Mesh_Plus_plus, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceELMesh", gas_phys, EL_Mesh_Plus, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurfaceCathodeMesh", gas_phys, Cathode_EL_Mesh, OpSteelSurf);
+        
+        new G4LogicalSkinSurface("GAS_ELPMESH_OPSURF", ELP_Disk_logic, OpSteelSurf);
+        new G4LogicalSkinSurface("GAS_ELPPMESH_OPSURF", ELPP_Disk_logic, OpSteelSurf);
+        new G4LogicalSkinSurface("GAS_CATHODEMESH_OPSURF",Cathode_Disk_logic, OpSteelSurf);
 
 
         //  ----------------------- Needle Source -----------------------------
@@ -863,11 +854,11 @@ namespace nexus {
         // PMT Tube Vacuum
         G4VPhysicalVolume *PMT_Tube_Vacuum_Phys0 = new G4PVPlacement(0,
                                                                      G4ThreeVector(0, 0, PMT_pos + LongPMTTubeOffset),
-                                                                     InsideThePMT_Tube_Logic0, "PMT_TUBE_VACUUM0",
+                                                                     InsideThePMT_Tube_Logic0, "PMT_TUBE_VACUUM_CATH",
                                                                      lab_logic_volume, false, 0, false);
         G4VPhysicalVolume *PMT_Tube_Vacuum_Phys1 = new G4PVPlacement(0, G4ThreeVector(0, 0,
                                                                                       -(PMT_pos - PMT_offset) - offset),
-                                                                     InsideThePMT_Tube_Logic1, "PMT_TUBE_VACUUM1",
+                                                                     InsideThePMT_Tube_Logic1, "PMT_TUBE_VACUUM_ANODE",
                                                                      lab_logic_volume, false, 0, false);
 
         // PMT Tube Block
@@ -887,8 +878,8 @@ namespace nexus {
 
 
         // --- Optical ---        
-        new G4LogicalBorderSurface("SteelSurface_PMT3_Enclosing", PMT_Tube_Vacuum_Phys0, PMT_Tube_Phys0, OpSteelSurf);
-        new G4LogicalBorderSurface("SteelSurface_PMT1_Enclosing", PMT_Tube_Vacuum_Phys1, PMT_Tube_Phys1, OpSteelSurf);
+        new G4LogicalSkinSurface("SteelSurface_PMT3_Enclosing", PMT_Tube_Logic0, OpSteelSurf);
+        new G4LogicalSkinSurface("SteelSurface_PMT3_Enclosing", PMT_Tube_Logic1, OpSteelSurf);
 
 
         //  ------------------------ Camera -----------------------------------
@@ -897,7 +888,7 @@ namespace nexus {
         G4double camHalfLength = 0.5 * mm;
         G4double camRadius = 12.7 * mm;
         G4VSolid *camSolid = new G4Tubs("camWindow", 0., camRadius, camHalfLength, 0., twopi);
-        G4LogicalVolume *camLogical = new G4LogicalVolume(camSolid, MgF2, "camLogical");
+        G4LogicalVolume *camLogical = new G4LogicalVolume(camSolid, Steel, "camLogical");
 
 
         // --- Placement ---
