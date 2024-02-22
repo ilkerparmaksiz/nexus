@@ -119,82 +119,55 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
 
 }
 
-void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime)
-{
+void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep, G4ThreeVector garfPos, G4double garfTime) {
 
-    // Drift in main region, then as LEM region is approached and traversed, avalanche multiplication and excitations  will occur.
+
+  G4double x0=garfPos.getX()*0.1; //Garfield length units are in cm
+  G4double y0=garfPos.getY()*0.1;
+  G4double z0=garfPos.getZ()*0.1;
+  G4double t0=garfTime;
+
+  // Insert hits
+  InsertHits(x0, y0, z0, t0);
+
+  // Print Electric Field
+  // PlotElectricField(x0, y0, z0);
+
+  G4double xi,yi,zi,ti;
   
-    G4double x0=garfPos.getX()*0.1;//Garfield length units are in cm
-    G4double y0=garfPos.getY()*0.1;
-    G4double z0=garfPos.getZ()*0.1;
-    G4double t0=garfTime;
+  // AvalancheMC drift for drift, and then create excitations when reaching the EL.
+  fAvalancheMC->DriftElectron(x0,y0,z0,t0);
+  size_t n =fAvalancheMC->GetElectrons().at(0).path.size();
+  auto GetDriftLines=fAvalancheMC->GetElectrons().at(0).path;
 
-    // Insert hits
-    G4ThreeVector ie_pos(x0*100,y0*100,z0*100);
-    IonizationHit* ie_hit = new IonizationHit();
-    ie_hit->SetTrackID(1);
-    ie_hit->SetTime(t0);
-    ie_hit->SetEnergyDeposit(22.4*eV);
-    ie_hit->SetPosition(ie_pos);
-    fGarfieldSD->InsertIonizationHit(ie_hit);
+  // Get zi when in the beginning of the EL region
+  for(G4int i=0;i<n;i++){
+
+    xi=GetDriftLines.at(i).x;
+    yi=GetDriftLines.at(i).y;
+    zi=GetDriftLines.at(i).z;
+    ti=GetDriftLines.at(i).t;
+    // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
     
+    // Drift line point entered EL region
+    if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_) )
+      break; 
+    
+    // No drift line point meets criteria, so return
+    else if (i==n-1)
+      return;
 
-    G4double ekin = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
-    G4ThreeVector dir = fastTrack.GetPrimaryTrack()->GetMomentumDirection();
-    G4String particleName = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
+  }
 
-    // std::cout << "GVUVPM: start positions are " << particleName << " " << x0<<"," <<y0<<","<<z0 <<"," <<t0<< std::endl;
+  // Generate the El photons from a microphys model ran externally in Garfield
+  // We sample the output file which contains the timing profile of emission and diffusion
+  G4bool use_ELFile = false;
+  if (use_ELFile)
+      MakeELPhotonsFromFile(fastStep, xi, yi, zi, ti);
+  // Use a simpler model
+  else
+      MakeELPhotonsSimple(fastStep, xi, yi, zi, ti);
 
-    int status(0);
-
-    // Debug the electric field
-    // std::array<double, 3> ef{0,0,0};
-    // std::array<double, 3> bf{0,0,0};
-    // std::vector<double> vf{0,0,0};
-    // Garfield::Medium* medium = nullptr;
-    // fSensor->ElectricField(x0,y0,-12, ef[0], ef[1], ef[2], medium, status);                                        
-    // std::cout << "GVUVPM: E field in medium " << medium << " at " << x0<<","<<y0<<","<<z0 << " is: " << ef[0]<<","<<ef[1]<<","<<ef[2] << std::endl;
-    double xi,yi,zi,ti;
-    // Need to get the AvalancheMC drift at the High-Field point in z, and then call fAvalanche-AvalancheElectron() to create excitations/VUVphotons.
-    fAvalancheMC->DriftElectron(x0,y0,z0,t0);
-    // std::cout << "GVUVPM: positions are " << x0<<"," <<y0<<","<<z0 <<"," <<ti<< std::endl;
-
-    size_t n =fAvalancheMC->GetElectrons().at(0).path.size();
-    auto GetDriftLines=fAvalancheMC->GetElectrons().at(0).path;
-
-    // std::cout << "Avalanche end points: " << n<< std::endl;
-    // Get zi when in the beginning of the EL region
-    for(unsigned int i=0;i<n;i++){
-
-      xi=GetDriftLines.at(i).x;
-      yi=GetDriftLines.at(i).y;
-      zi=GetDriftLines.at(i).z;
-      ti=GetDriftLines.at(i).t;
-      // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
-      
-      // Drift line point entered LEM
-      if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_) )
-        break; 
-      
-      // No drift line point meets criteria, so return
-      else if (i==n-1)
-        return;
-
-    }  // pts in driftline
-
-    // Generate the El photons from a microphys model ran externally in Garfield
-    // We sample the output file which contains the timing profile of emission and diffusion
-    G4bool use_ELFile = false;
-    if (use_ELFile)
-        MakeELPhotonsFromFile(fastStep, xi, yi, zi, ti);
-    // Use a simpler model
-    else
-        MakeELPhotonsSimple(fastStep, xi, yi, zi, ti);
-
-
-    // std::cout << "GVUVPM: Avalanching in high field starting at: "  << xi<<"," <<yi<<","<<zi <<"," <<ti << std::endl;
-
-        
 }
 
 
@@ -312,39 +285,40 @@ Garfield::ComponentUser* GarfieldVUVPhotonModel::CreateSimpleGeometry(){
 
     // Set the electric field calculation function within the custom bounds for the component
     componentDriftLEM->SetElectricField([&](double x, double y, double z, double& ex, double& ey, double& ez) {
-      // Only want Ez component to the field
-      ex = ey = 0.;
+    
+    // Only want Ez component to the field
+    ex = ey = 0.;
 
-      // Define a field region for the whole gas region
+    // Define a field region for the whole gas region
 
-      // Set ez for regions outside of the radius of the FC
-      if ( std::sqrt(x*x + y*y) > GH_.DetActiveR_/2.0){
-          ez = -GH_.fieldDrift_; // Negative field will send them away from the LEM region
-      }
+    // Set ez for regions outside of the radius of the FC
+    if ( std::sqrt(x*x + y*y) > GH_.DetActiveR_/2.0){
+        ez = -GH_.fieldDrift_; // Negative field will send them away from the LEM region
+    }
 
-      // Field past the cathode drift them away from the LEM with negative field
-      if (z > FCTop_)
-          ez = -GH_.fieldDrift_;
+    // Field past the cathode drift them away from the LEM with negative field
+    if (z > FCTop_)
+        ez = -GH_.fieldDrift_;
 
-      // Drift region
-      if (z <= FCTop_)
-          ez = GH_.fieldDrift_;
+    // Drift region
+    if (z <= FCTop_)
+        ez = GH_.fieldDrift_;
 
-      // EL region
-      if (z <= ELPos_ && z > ELPos_-GH_.gap_EL_)
-          ez = GH_.fieldEL_;
+    // EL region
+    if (z <= ELPos_ && z > ELPos_-GH_.gap_EL_)
+        ez = GH_.fieldEL_;
 
-      // Drift towards the end cap
-      if (z <= ELPos_ - GH_.gap_EL_)
-          ez = GH_.fieldDrift_; 
-    });
+    // Drift towards the end cap
+    if (z <= ELPos_ - GH_.gap_EL_)
+        ez = GH_.fieldDrift_; 
+  });
 
-    // Printing pressure and temperature
-    std::cout << "GarfieldVUVPhotonModel::buildBox(): Garfield mass density [g/cm3], pressure [Torr], temp [K]: " <<
-         geo->GetMedium(0.,0.,0.)->GetMassDensity() << ", " << geo->GetMedium(0.,0.,0.)->GetPressure()<< ", " 
-         << geo->GetMedium(0.,0.,0.)->GetTemperature() << std::endl;
+  // Printing pressure and temperature
+  std::cout << "GarfieldVUVPhotonModel::buildBox(): Garfield mass density [g/cm3], pressure [Torr], temp [K]: " <<
+        geo->GetMedium(0.,0.,0.)->GetMassDensity() << ", " << geo->GetMedium(0.,0.,0.)->GetPressure()<< ", " 
+        << geo->GetMedium(0.,0.,0.)->GetTemperature() << std::endl;
 
-    return componentDriftLEM;
+  return componentDriftLEM;
 
 }
 
@@ -380,8 +354,6 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
         
         G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
         newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
-        //	G4ProcessManager* pm= newTrack->GetDefinition()->GetProcessManager();
-        //	G4ProcessVectorfAtRestDoItVector = pm->GetAtRestProcessVector(typeDoIt);
       }
       counter[3]++;
     }
@@ -390,16 +362,15 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
 
 void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti){
 
-  //std::cout << "Generating Photons"<< std::endl;
+    // std::cout << "Generating Photons"<< std::endl;
     
-    G4int colHitsEntries= 0.0; //garfExcHitsCol->entries();
-    //	G4cout<<"GarfExcHits entries "<<colHitsEntries<<G4endl; // This one is not cumulative.
+    G4int colHitsEntries= 0.0;
 
     const G4double YoverP = 140.*GH_.fieldEL_/((GH_.GasPressure_/bar)*1000) - 116.; // yield/cm/bar, with P in Torr ... JINST 2 p05001 (2007).
     colHitsEntries = YoverP * (GH_.GasPressure_/bar) * (GH_.gap_EL_/10); // with P in bar this time.
-    // colHitsEntries*=2; // Max val before G4 cant handle the memory anymore
-    //std::cout<<" Yield is "<<colHitsEntries <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_/10<<std::endl;
-    //  colHitsEntries=1; // This is to turn down S2 so the vis doesnt get overwelmed
+    
+    // std::cout<<" Yield is "<<colHitsEntries <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_/10<<std::endl;
+    // colHitsEntries=1; // This is to turn down S2 so the vis doesnt get overwelmed
 
     colHitsEntries *= (G4RandGauss::shoot(1.0,res));
     
@@ -414,23 +385,43 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
         auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
         
         G4DynamicParticle VUVphoton(optphot,G4RandomDirection(), 7.2*eV);
-        // std::cout << "More Photons!"<< std::endl;
-       
-
+      
         /// std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << ti << std::endl;
        
-
         tig4 = ti + float(i)/float(colHitsEntries)*GH_.gap_EL_*10./vd*1E3; // in nsec (gap_EL_ is in cm). Still ignoring diffusion in small LEM.
-        //	    std::cout << "VUV photon time [nsec]: " << tig4 << std::endl;
         
         G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
         newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
-        //	G4ProcessManager* pm= newTrack->GetDefinition()->GetProcessManager();
-        //	G4ProcessVectorfAtRestDoItVector = pm->GetAtRestProcessVector(typeDoIt);
       }
       counter[3]++;
     }
 
 
 }
+
+void GarfieldVUVPhotonModel::PrintElectricField(G4double x,G4double y, G4double z){
+    std::array<G4double, 3> ef{0,0,0};
+    std::array<G4double, 3> bf{0,0,0};
+    std::vector<G4double> vf{0,0,0};
+    Garfield::Medium* medium = nullptr;
+    G4int status(0);
+    fSensor->ElectricField(x, y, z, ef[0], ef[1], ef[2], medium, status);
+    std::cout << "GVUVPM: E field in medium " << medium << " at " << x<<","<<y<<","<<z << " is: " << ef[0]<<","<<ef[1]<<","<<ef[2] << std::endl;
+}
+
+void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t){
+  G4ThreeVector ie_pos(x*100,y*100,z*100);
+  IonizationHit* ie_hit = new IonizationHit();
+  ie_hit->SetTrackID(1);
+  ie_hit->SetTime(t);
+  ie_hit->SetEnergyDeposit(22.4*eV);
+  ie_hit->SetPosition(ie_pos);
+  fGarfieldSD->InsertIonizationHit(ie_hit);
+
+}
+
+
+
+
+
 }
