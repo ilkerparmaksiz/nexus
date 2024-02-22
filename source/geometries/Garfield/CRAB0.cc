@@ -77,7 +77,8 @@ namespace nexus {
             HideCollimator_(true),
             specific_vertex_{},
             fOffset(-0.8*cm),
-            useCAD_(false) {
+            useCOMSOL_(false),
+            useELFile_(false) {
 
             // Messenger
             msg_ = new G4GenericMessenger(this, "/Geometry/CRAB0/","Control commands of geometry of CRAB0.");
@@ -117,7 +118,9 @@ namespace nexus {
 
             msg_->DeclarePropertyWithUnit("specific_vertex", "mm",  specific_vertex_, "Set generation vertex.");
 
-            msg_->DeclareProperty("useCAD", useCAD_, "Use CAD geometry or G4 bools");
+            msg_->DeclareProperty("useCOMSOL", useCOMSOL_, "Use COMSOL for simulating drift fields");
+
+            msg_->DeclareProperty("useELFile", useELFile_, "Use file for loading in EL");
 
             Sampler=std::make_shared<SampleFromSurface>(SampleFromSurface("Needles"));
 
@@ -208,7 +211,8 @@ namespace nexus {
         G4Region *regionGas = new G4Region("GasRegion");
         regionGas->AddRootLogicalVolume(gas_logic);
 
-        GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_, ElGap_, fieldDrift_, fieldEL_, v_drift_, v_drift_el_, e_lifetime_);
+        GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_,
+                          ElGap_, fieldDrift_, fieldEL_, v_drift_, v_drift_el_, e_lifetime_, useCOMSOL_, useELFile_, "CRAB");
 
         //These commands generate the four gas models and connect it to the GasRegion
         G4Region *region = G4RegionStore::GetInstance()->GetRegion("GasRegion");

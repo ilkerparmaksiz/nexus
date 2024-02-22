@@ -72,7 +72,8 @@ namespace nexus{
         G4bool checkOverlaps; // Check overlaps in the detector geometry if true
         G4double gas_pressure_; // pressure in the gas
         G4double temperature; // temperature of the gas
-        G4bool useCAD_;        // Use CAD geometry
+        G4bool useCOMSOL_;        // Use COMSOL field
+        G4bool useELFile_;        // Use EL file to generate S2
 
         G4double Lab_size;
         G4double chamber_diam   ;

@@ -14,7 +14,8 @@ namespace nexus {
   GarfieldHelper::GarfieldHelper(G4double DetChamberR, G4double DetChamberL, G4double DetActiveR,
                                  G4double DetActiveL, G4double GasPressure, G4double gap_EL,
                                  G4double fieldDrift, G4double fieldEL, G4double v_drift,
-                                 G4double v_drift_el, G4double e_lifetime){
+                                 G4double v_drift_el, G4double e_lifetime, G4bool useCOMSOL, 
+                                 G4bool useELFile, G4String DetName){
     DetChamberR_ = DetChamberR;
     DetChamberL_ = DetChamberL;
     DetActiveR_  = DetActiveR;
@@ -26,6 +27,9 @@ namespace nexus {
     v_drift_     = v_drift;
     v_drift_el_  = v_drift_el;
     e_lifetime_  = e_lifetime;
+    useCOMSOL_   = useCOMSOL;
+    useELFile_   = useELFile;
+    DetName_     = DetName;
 
   }
 

@@ -41,9 +41,10 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     
     GH_ = GH;
     GH_.DumpParams();
+    ionMobFile = "IonMobility_Ar+_Ar.txt";
+    gasFile = "data/Xenon_10Bar.gas";
     InitialisePhysics();
-
-   
+  
 }
 
 G4bool GarfieldVUVPhotonModel::IsApplicable(const G4ParticleDefinition& particleType) {
@@ -185,8 +186,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
   // Generate the El photons from a microphys model ran externally in Garfield
   // We sample the output file which contains the timing profile of emission and diffusion
-  G4bool use_ELFile = false;
-  if (use_ELFile)
+  if (GH_.useELFile_)
       MakeELPhotonsFromFile(fastStep, xi, yi, zi, ti);
   // Use a simpler model
   else
@@ -203,21 +203,15 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     fMediumMagboltz->DisableDebugging();
     
     //  --- Load in Ion Mobility file --- 
-    ionMobFile = "IonMobility_Ar+_Ar.txt";
     const std::string path = getenv("GARFIELD_HOME");
     
     if(ionMobFile!="")
       fMediumMagboltz->LoadIonMobility(path + "/Data/" + ionMobFile);
     
     if(gasFile!=""){
-      
-      std::cout << "Loaded gasfile." << std::endl;
+      fMediumMagboltz->LoadGasFile(gasFile.c_str());
+      std::cout << "Loaded gasfile "<< gasFile << std::endl;
     }
-
-    gasFile = "data/Xenon_10Bar.gas";
-    G4cout << gasFile << G4endl;
-    fMediumMagboltz->LoadGasFile(gasFile.c_str());
-    std::cout << "Finished Loading in the gas file" << std::endl;
 
     // Initialize the gas
     fMediumMagboltz->Initialise(true);
@@ -232,9 +226,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
 
     fSensor = new Garfield::Sensor();
 
-    G4bool use_COMSOL = false;
-
-    if (!use_COMSOL){
+    if (!GH_.useCOMSOL_){
         Garfield::ComponentUser* componentDriftLEM = CreateSimpleGeometry();
         fSensor->AddComponent(componentDriftLEM);
         
@@ -245,10 +237,18 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     else {
         std::cout << "Initialising Garfiled with a COMSOL geometry" << std::endl;
 
-        G4String home = "./data/Garfield/";
-        std::string meshfile   = "CRAB_Mesh.mphtxt";
-        std::string fieldfile  = "CRAB_Data.txt";
-        std::string fileconfig = "CRABMaterialProperties.txt";
+        char* path = std::getenv("NEXUSDIR");
+        if (path == nullptr) {
+          G4Exception("[GarfieldVUVPhotonModel]", "InitializePhysics()", FatalException,
+                  "Environment variable NEXUSDIR not defined!");
+        }
+
+        G4String nexus_path(path);
+
+        G4String home = nexus_path + "/data/Garfield/";
+        std::string meshfile   = GH_.DetName_ + "_Mesh.mphtxt";
+        std::string fieldfile  = GH_.DetName_ + "_Data.txt";
+        std::string fileconfig = GH_.DetName_ + "MaterialProperties.txt";
 
         // Setup the electric potential map
         Garfield::ComponentComsol* fm = new Garfield::ComponentComsol(); // Field Map
@@ -275,11 +275,9 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     fAvalancheMC->EnableDebugging(false);  // way too much information. 
     fAvalancheMC->DisableAttachment();     // Currently getting warning messages about the attachment. You can supress those by switching this on.
     fAvalancheMC->EnableDriftLines();
-
-    G4bool use_ELFile = false;
-
+\
     // Load in the events
-    if (use_ELFile)
+    if (GH_.useELFile_)
         GetTimeProfileData("data/Garfield/CRAB_Profiles_Rotated.csv", EL_profiles, EL_events);
     
 }

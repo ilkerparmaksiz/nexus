@@ -25,7 +25,8 @@ namespace nexus {
     GarfieldHelper(G4double DetChamberR, G4double DetChamberL, G4double DetActiveR,
                    G4double DetActiveL, G4double GasPressure, G4double gap_EL,
                    G4double fieldDrift, G4double fieldEL, G4double v_drift,
-                   G4double v_drift_el, G4double e_liftetime);
+                   G4double v_drift_el, G4double e_liftetime, G4bool useCOMSOL, 
+                   G4bool useELFile, G4String DetName);
 
     void DumpParams();
 
@@ -43,8 +44,11 @@ namespace nexus {
     G4double fieldDrift_;  // V/cm
     G4double fieldEL_;     // V/cm 
     G4double v_drift_;     // mm/us
-    G4double v_drift_el_;     // mm/us
-    G4double e_lifetime_;   // ms
+    G4double v_drift_el_;  // mm/us
+    G4double e_lifetime_;  // ms
+    G4bool useCOMSOL_;
+    G4bool useELFile_;
+    G4String DetName_; // Name of the detector
 
     G4double thermalE_{1.3*eV}; // eV
 
