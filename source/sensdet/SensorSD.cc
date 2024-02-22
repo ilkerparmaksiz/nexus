@@ -15,6 +15,7 @@
 #include <G4OpBoundaryProcess.hh>
 #include <G4RunManager.hh>
 #include <G4RunManager.hh>
+#include "NEST/G4/NESTS1Photon.hh"
 
 
 namespace nexus {
@@ -60,7 +61,7 @@ namespace nexus {
   {
     // Check whether the track is an optical photon
     G4ParticleDefinition* pdef = step->GetTrack()->GetDefinition();
-    if (pdef != G4OpticalPhoton::Definition()) return false;
+    if (pdef != G4OpticalPhoton::Definition() && pdef != NESTS1Photon::Definition()) return false;
 
     const G4VTouchable* touchable =
       step->GetPostStepPoint()->GetTouchable();

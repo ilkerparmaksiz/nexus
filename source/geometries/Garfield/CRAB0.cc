@@ -899,11 +899,11 @@ namespace nexus {
                                                            "camPhysical", InsideThePMT_Tube_Logic0, false, 0, false);
 
         // Add the camera as a sensitive detector
-        SensorSD* camerasd = new SensorSD("/CRAB0/Camera");
-        camerasd->SetDetectorVolumeDepth(2);
-        camerasd->SetTimeBinning(100.*nanosecond);
-        G4SDManager::GetSDMpointer()->AddNewDetector(camerasd);
-        camLogical->SetSensitiveDetector(camerasd);
+        // SensorSD* camerasd = new SensorSD("/CRAB0/Camera");
+        // camerasd->SetDetectorVolumeDepth(2);
+        // camerasd->SetTimeBinning(100.*nanosecond);
+        // G4SDManager::GetSDMpointer()->AddNewDetector(camerasd);
+        // camLogical->SetSensitiveDetector(camerasd);
 
         // Camera
         // G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("XenonCamSurface");
