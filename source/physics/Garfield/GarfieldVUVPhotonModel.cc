@@ -115,6 +115,22 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
       trj->SetEnergyDeposit(22.4*counter[1]*eV); // This overwrites the same track
     }
 
+    // Set the scintillation timing
+    if (counter[1] == 1){
+      // Krishan: need to throw an exception if the medium is not GXe
+
+      G4Material* mat = fastTrack.GetPrimaryTrack()->GetMaterial();
+      G4MaterialPropertiesTable* mpt = mat->GetMaterialPropertiesTable();
+      // std::cout << "The material is: " << mat->GetName()<< std::endl;
+
+      slow_comp_ = mpt->GetConstProperty("SCINTILLATIONTIMECONSTANT1");
+      slow_prob_ = mpt->GetConstProperty("SCINTILLATIONYIELD1");
+      fast_comp_ = mpt->GetConstProperty("SCINTILLATIONTIMECONSTANT2");
+      fast_prob_ = mpt->GetConstProperty("SCINTILLATIONYIELD2");
+      // std::cout << "Printing timing properties " << slow_comp_ << ", " << fast_comp_ << ", " << slow_prob_ << std::endl;
+
+    }
+
     // Drift and make S2
     GenerateVUVPhotons(fastTrack,fastStep,garfPos,garfTime);
 
@@ -455,11 +471,11 @@ G4double GarfieldVUVPhotonModel::GetScintTime(){
   double randomNumber = G4UniformRand();
 
   // Fast Component - 4.5 ns
-  if (randomNumber < probability1) {
-      scint_time = G4RandExponential::shoot(decayConstant1);
+  if (randomNumber < slow_prob_) {
+      scint_time = G4RandExponential::shoot(slow_comp_);
   // Slow Component - 100 ns
   } else {
-      scint_time = G4RandExponential::shoot(decayConstant2);
+      scint_time = G4RandExponential::shoot(fast_comp_);
   }
 
   return scint_time;
@@ -467,7 +483,7 @@ G4double GarfieldVUVPhotonModel::GetScintTime(){
 
 G4bool GarfieldVUVPhotonModel::GetAttachment(G4double t){
 
-  G4double lifetime = 1000*ms;
+  G4double lifetime = GH_.e_lifetime_;
 
   G4double survivalProb = exp(-t / lifetime);
 

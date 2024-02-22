@@ -127,6 +127,12 @@ namespace nexus {
         /// The sensitive detector to fill hits into
         IonizationSD* fGarfieldSD;
 
+        // Scintillation timing 
+        G4double slow_comp_; // ns
+        G4double slow_prob_; // %
+        G4double fast_comp_; // ns
+        G4double fast_prob_; // %
+
     };
 
 
