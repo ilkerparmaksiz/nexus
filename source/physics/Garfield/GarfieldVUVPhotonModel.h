@@ -85,6 +85,15 @@ namespace nexus {
         // Function to add hits to the sensitive detector
         void InsertHits(G4double x, G4double y, G4double z, G4double t);
 
+        // Get a scintillation timing delay based on the constants
+        G4double GetScintTime();
+
+        // Function to add an electron lifetime survival rate
+        G4bool GetAttachment(G4double t);
+
+        // Function to get the photon polarization
+        void GetPhotonPol(G4ThreeVector &momentum, G4ThreeVector &polarization);
+
         G4ThreeVector garfPos;
         G4double garfTime;
 

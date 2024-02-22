@@ -122,6 +122,7 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
 void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep, G4ThreeVector garfPos, G4double garfTime) {
 
 
+  G4bool survived;
   G4double x0=garfPos.getX()*0.1; //Garfield length units are in cm
   G4double y0=garfPos.getY()*0.1;
   G4double z0=garfPos.getZ()*0.1;
@@ -150,14 +151,20 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
     
     // Drift line point entered EL region
-    if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_) )
+    if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_) ){
+      survived = GetAttachment(ti);
       break; 
+    }
     
     // No drift line point meets criteria, so return
     else if (i==n-1)
       return;
 
   }
+
+  // If the electron did not survive, then skip photon generation
+  if (!survived)
+    return;
 
   // Generate the El photons from a microphys model ran externally in Garfield
   // We sample the output file which contains the timing profile of emission and diffusion
@@ -346,14 +353,24 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
       if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
       
         auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
+
+        G4ThreeVector momentum, polarization;
+        GetPhotonPol(momentum, polarization);
         
-        G4DynamicParticle VUVphoton(optphot,G4RandomDirection(), 7.2*eV);
+        G4DynamicParticle VUVphoton(optphot, momentum, 7.2*eV);
+
+        G4double drift_time = EL_profile[i][3];
+        G4bool el_survived = GetAttachment(drift_time);
+
+        // The electron did not survive drifting in the EL gap due to attachment
+        if (!el_survived)
+          break;
        
-        tig4 = ti + EL_profile[i][3]; // in nsec, t = index 3 in vector. Units are ns, so just add it on
+        tig4 = ti + drift_time + GetScintTime(); // in nsec, t = index 3 in vector. Units are ns, so just add it on
         // std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << tig4 << std::endl;
         
         G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
-        newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
+        newTrack->SetPolarization(polarization);
       }
       counter[3]++;
     }
@@ -383,15 +400,27 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
       if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
       
         auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
+
+        G4ThreeVector momentum, polarization;
+        GetPhotonPol(momentum, polarization);
         
-        G4DynamicParticle VUVphoton(optphot,G4RandomDirection(), 7.2*eV);
+        G4DynamicParticle VUVphoton(optphot, momentum, 7.2*eV);
       
         /// std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << ti << std::endl;
-       
-        tig4 = ti + float(i)/float(colHitsEntries)*GH_.gap_EL_*10./vd*1E3; // in nsec (gap_EL_ is in cm). Still ignoring diffusion in small LEM.
+
+        // in nsec (gap_EL_ is in cm). Still ignoring diffusion in small LEM.
+        // Also add in the xenon scintillation timing delays and attachment
+        G4double drift_time = G4float(i)/G4float(colHitsEntries)*GH_.gap_EL_*10./vd*1E3;
+        G4bool el_survived = GetAttachment(drift_time);
+
+        // The electron did not survive drifting in the EL gap
+        if (!el_survived)
+          break;
+
+        tig4 = ti + drift_time + GetScintTime(); 
         
         G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
-        newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
+        newTrack->SetPolarization(polarization);
       }
       counter[3]++;
     }
@@ -420,6 +449,80 @@ void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4dou
 
 }
 
+G4double GarfieldVUVPhotonModel::GetScintTime(){
+
+  G4double scint_time = 0;
+
+  // Define decay constants and probabilities
+  const G4double decayConstant1  = 4.5;   // ns
+  const G4double probability1    = 0.1;   // 10%
+  const G4double decayConstant2  = 100.0; // ns
+  const G4double probability2    = 0.9;   // 90%
+
+  // Generate a random number to determine which distribution to sample from
+  double randomNumber = G4UniformRand();
+
+  // Fast Component - 4.5 ns
+  if (randomNumber < probability1) {
+      scint_time = G4RandExponential::shoot(decayConstant1);
+  // Slow Component - 100 ns
+  } else {
+      scint_time = G4RandExponential::shoot(decayConstant2);
+  }
+
+  return scint_time;
+}
+
+G4bool GarfieldVUVPhotonModel::GetAttachment(G4double t){
+
+  G4double lifetime = 1000*ms;
+
+  G4double survivalProb = exp(-t / lifetime);
+
+  // Generate a random number
+  G4double randNum = G4UniformRand();
+  
+  // Determine if survival occurred based on the random number
+  return randNum < survivalProb;
+}
+
+void GarfieldVUVPhotonModel::GetPhotonPol(G4ThreeVector &momentum, G4ThreeVector &polarization){
+  // Generate a random direction for the photon
+  // (EL is supposed isotropic)
+  G4double cos_theta = 1. - 2.*G4UniformRand();
+  G4double sin_theta = sqrt((1.-cos_theta)*(1.+cos_theta));
+
+  G4double phi = twopi * G4UniformRand();
+  G4double sin_phi = sin(phi);
+  G4double cos_phi = cos(phi);
+
+  G4double px = sin_theta * cos_phi;
+  G4double py = sin_theta * sin_phi;
+  G4double pz = cos_theta;
+
+  momentum.setX(px);
+  momentum.setY(py);
+  momentum.setZ(pz);
+
+  // Determine photon polarization accordingly
+  G4double sx = cos_theta * cos_phi;
+  G4double sy = cos_theta * sin_phi;
+  G4double sz = -sin_theta;
+
+  polarization.setX(sx);
+  polarization.setY(sy);
+  polarization.setZ(sz);
+
+  G4ThreeVector perp = momentum.cross(polarization);
+
+  phi = twopi * G4UniformRand();
+  sin_phi = sin(phi);
+  cos_phi = cos(phi);
+
+  polarization = cos_phi * polarization + sin_phi * perp;
+
+  return;
+}
 
 
 
