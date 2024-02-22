@@ -15,6 +15,7 @@
 #include "TrajectoryMap.h"
 #include "IonizationElectron.h"
 #include "FactoryBase.h"
+#include "NEST/G4/NESTS1Photon.hh"
 
 #include <G4Track.hh>
 #include <G4TrackingManager.hh>
@@ -37,7 +38,8 @@ void DefaultTrackingAction::PreUserTrackingAction(const G4Track *track)
 {
   // Do nothing if the track is an optical photon or an ionization electron
   if (track->GetDefinition() == G4OpticalPhoton::Definition() ||
-      track->GetDefinition() == IonizationElectron::Definition())
+      track->GetDefinition() == IonizationElectron::Definition() ||
+      track->GetDefinition() == NESTS1Photon::Definition())
   {
     fpTrackingManager->SetStoreTrajectory(false);
     return;
@@ -59,7 +61,8 @@ void DefaultTrackingAction::PostUserTrackingAction(const G4Track *track)
 {
   // Do nothing if the track is an optical photon or an ionization electron
   if (track->GetDefinition() == G4OpticalPhoton::Definition() ||
-      track->GetDefinition() == IonizationElectron::Definition())
+      track->GetDefinition() == IonizationElectron::Definition() ||
+      track->GetDefinition() == NESTS1Photon::Definition())
     return;
 
   Trajectory *trj = (Trajectory *)TrajectoryMap::Get(track->GetTrackID());
