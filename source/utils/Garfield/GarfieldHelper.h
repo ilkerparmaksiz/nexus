@@ -22,7 +22,10 @@ namespace nexus {
 
     /// Default constructor 
     GarfieldHelper();
-    GarfieldHelper(G4double DetChamberR ,G4double DetChamberL_,G4double DetActiveR ,G4double DetActiveL ,G4double GasPressure ,G4double gap_EL ,G4double fieldDrift ,G4double fieldEL);
+    GarfieldHelper(G4double DetChamberR, G4double DetChamberL, G4double DetActiveR,
+                   G4double DetActiveL, G4double GasPressure, G4double gap_EL,
+                   G4double fieldDrift, G4double fieldEL, G4double v_drift,
+                   G4double v_drift_el, G4double e_liftetime);
 
     void DumpParams();
 
@@ -39,6 +42,9 @@ namespace nexus {
     G4double gap_EL_;      // cm
     G4double fieldDrift_;  // V/cm
     G4double fieldEL_;     // V/cm 
+    G4double v_drift_;     // mm/us
+    G4double v_drift_el_;     // mm/us
+    G4double e_lifetime_;   // ms
 
     G4double thermalE_{1.3*eV}; // eV
 

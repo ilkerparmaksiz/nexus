@@ -88,6 +88,8 @@ namespace nexus{
         G4double Active_length;
         G4double sc_yield_;
         G4double e_lifetime_;
+        G4double v_drift_;
+        G4double v_drift_el_;
         G4double ElGap_;
         G4double PMT1_Pos_;
         G4double PMT3_Pos_;

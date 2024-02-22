@@ -31,6 +31,7 @@
 #include "config.h"
 #include "Trajectory.h"
 #include "TrajectoryMap.h"
+#include "XenonProperties.h"
 
 namespace nexus{
 
@@ -271,6 +272,7 @@ void GarfieldVUVPhotonModel::Reset()
 {
   fSensor->ClearSignal();
   counter[1] = 0;
+  counter[2] = 0;
   counter[3] = 0;
 }
 
@@ -339,39 +341,38 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
     std::vector<std::vector<G4double>> EL_profile = EL_profiles[EL_event];
 
     // Now loop over and make the photons
-    G4int colHitsEntries = EL_profile.size();
-    // std::cout <<  colHitsEntries<< std::endl;
-    colHitsEntries=1 ;
+    G4int el_gain = EL_profile.size();
+    // el_gain=1 ;
 
     G4double tig4(0.);
     
-    for (G4int i=0;i<colHitsEntries;i++){
+    for (G4int i=0;i<el_gain;i++){
       
-        // std::cout << xi << ", " <<  EL_profile[i][0]  << std::endl;
-      G4ThreeVector fakepos ( (xi+ EL_profile[i][0])*10., (yi+ EL_profile[i][1])*10., (zi+ EL_profile[i][2])*10. ); // 0 = x, 1 = y, 2 = z
+      // std::cout << xi << ", " <<  EL_profile[i][0]  << std::endl;
+      G4ThreeVector fakepos ( (xi+ EL_profile[i][0])*10., (yi+ EL_profile[i][1])*10., (zi+ EL_profile[i][2])*10. ); // 0 = x, 1 = y, 2 = z. Garfield units are cm, x10 for mm G4 units
+    
+      auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
+
+      G4ThreeVector momentum, polarization;
+      GetPhotonPol(momentum, polarization);
       
-      if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
+      G4DynamicParticle VUVphoton(optphot, momentum, 7.2*eV);
+
+      G4double drift_time = EL_profile[i][3];
+      G4bool el_survived = GetAttachment(GH_.gap_EL_/GH_.v_drift_el_);
+
+      std::cout << "Drift time is: " << drift_time << std::endl;
+
+      // The electron did not survive drifting in the EL gap due to attachment
+      if (!el_survived)
+        break;
       
-        auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
-
-        G4ThreeVector momentum, polarization;
-        GetPhotonPol(momentum, polarization);
-        
-        G4DynamicParticle VUVphoton(optphot, momentum, 7.2*eV);
-
-        G4double drift_time = EL_profile[i][3];
-        G4bool el_survived = GetAttachment(drift_time);
-
-        // The electron did not survive drifting in the EL gap due to attachment
-        if (!el_survived)
-          break;
-       
-        tig4 = ti + drift_time + GetScintTime(); // in nsec, t = index 3 in vector. Units are ns, so just add it on
-        // std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << tig4 << std::endl;
-        
-        G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
-        newTrack->SetPolarization(polarization);
-      }
+      tig4 = ti + drift_time + GetScintTime(); // in nsec, t = index 3 in vector. Units are ns, so just add it on
+      // std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << tig4 << std::endl;
+      
+      G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
+      newTrack->SetPolarization(polarization);
+    
       counter[3]++;
     }
 }
@@ -380,48 +381,39 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
 void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti){
 
     // std::cout << "Generating Photons"<< std::endl;
-    
-    G4int colHitsEntries= 0.0;
+    const G4int el_gain = XenonELLightYield(GH_.fieldEL_*kilovolt/cm, GH_.GasPressure_)*GH_.gap_EL_/cm; // E [kV/cm], P [bar], EL gap [cm]
 
-    const G4double YoverP = 140.*GH_.fieldEL_/((GH_.GasPressure_/bar)*1000) - 116.; // yield/cm/bar, with P in Torr ... JINST 2 p05001 (2007).
-    colHitsEntries = YoverP * (GH_.GasPressure_/bar) * (GH_.gap_EL_/10); // with P in bar this time.
-    
-    // std::cout<<" Yield is "<<colHitsEntries <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_/10<<std::endl;
-    // colHitsEntries=1; // This is to turn down S2 so the vis doesnt get overwelmed
-
-    colHitsEntries *= (G4RandGauss::shoot(1.0,res));
+    // std::cout << " Yield is "<< el_gain <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_/cm << std::endl;
     
     G4double tig4(0.);
-    const G4double vd(2.4); // mm/musec, https://arxiv.org/pdf/1902.05544.pdf. Pretty much flat at our E/p..
-    for (G4int i=0;i<colHitsEntries;i++){
+
+    for (G4int i=0;i<el_gain;i++){
 
       G4ThreeVector fakepos (xi*10,yi*10.,zi*10.); /// ignoring diffusion in small LEM gap, EC 17-June-2022.     
       
-      if (i % (colHitsEntries/colHitsEntries ) == 0){ // 50. Need to uncomment this condition, along with one in degradmodel.cc. EC, 2-Dec-2021.
+      auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
+
+      G4ThreeVector momentum, polarization;
+      GetPhotonPol(momentum, polarization);
       
-        auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
+      G4DynamicParticle VUVphoton(optphot, momentum, 7.2*eV);
+    
+      // in nsec (gap_EL_ is in cm). Still ignoring diffusion in small LEM.
+      // Also add in the xenon scintillation timing delays and attachment
+      G4double drift_time = G4float(i)/G4float(el_gain)*GH_.gap_EL_/GH_.v_drift_el_;
+      G4bool el_survived = GetAttachment(GH_.gap_EL_/GH_.v_drift_el_);
 
-        G4ThreeVector momentum, polarization;
-        GetPhotonPol(momentum, polarization);
-        
-        G4DynamicParticle VUVphoton(optphot, momentum, 7.2*eV);
+      // The electron did not survive drifting in the EL gap
+      if (!el_survived)
+        break;
+
+      tig4 = ti + drift_time + GetScintTime(); 
+
+      // std::cout <<  "pos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << tig4 << std::endl;
       
-        /// std::cout <<  "fakepos,time is " << fakepos[0] << ", " << fakepos[1] << ", " << fakepos[2] << ", " << ti << std::endl;
-
-        // in nsec (gap_EL_ is in cm). Still ignoring diffusion in small LEM.
-        // Also add in the xenon scintillation timing delays and attachment
-        G4double drift_time = G4float(i)/G4float(colHitsEntries)*GH_.gap_EL_*10./vd*1E3;
-        G4bool el_survived = GetAttachment(drift_time);
-
-        // The electron did not survive drifting in the EL gap
-        if (!el_survived)
-          break;
-
-        tig4 = ti + drift_time + GetScintTime(); 
-        
-        G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
-        newTrack->SetPolarization(polarization);
-      }
+      G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
+      newTrack->SetPolarization(polarization);
+      
       counter[3]++;
     }
 

@@ -64,6 +64,8 @@ namespace nexus {
             Active_diam(8.6 * cm),
             sc_yield_(25510. / MeV),
             e_lifetime_(1000. * ms),
+            v_drift_(0.9*mm/us),
+            v_drift_el_(4.6*mm/us),
             MgF2_window_thickness_(6. * mm),
             MgF2_window_diam_(16.5 * mm),
             HideSourceHolder_(false),
@@ -206,7 +208,7 @@ namespace nexus {
         G4Region *regionGas = new G4Region("GasRegion");
         regionGas->AddRootLogicalVolume(gas_logic);
 
-        GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_, ElGap_, fieldDrift_, fieldEL_);
+        GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_, ElGap_, fieldDrift_, fieldEL_, v_drift_, v_drift_el_, e_lifetime_);
 
         //These commands generate the four gas models and connect it to the GasRegion
         G4Region *region = G4RegionStore::GetInstance()->GetRegion("GasRegion");

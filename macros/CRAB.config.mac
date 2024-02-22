@@ -26,12 +26,12 @@
 /Geometry/CRAB0/DetActiveL 21.26 cm
 /Geometry/CRAB0/GasPressure 10 bar
 /Geometry/CRAB0/fieldDrift 438.0
-/Geometry/CRAB0/fieldEL 11400.0
+/Geometry/CRAB0/fieldEL 11.4 kilovolt/cm
 
 ##### GENERATOR #####
 /Generator/SingleParticle/particle e-
-/Generator/SingleParticle/min_energy 500 keV
-/Generator/SingleParticle/min_energy 500 keV
+/Generator/SingleParticle/min_energy 30 keV
+/Generator/SingleParticle/min_energy 30 keV
 #/Generator/SingleParticle/region CENTER
 
 
