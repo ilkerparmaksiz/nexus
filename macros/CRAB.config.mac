@@ -30,8 +30,8 @@
 
 ##### GENERATOR #####
 /Generator/SingleParticle/particle e-
-/Generator/SingleParticle/min_energy 40 keV
-/Generator/SingleParticle/min_energy 40 keV
+/Generator/SingleParticle/min_energy 500 keV
+/Generator/SingleParticle/min_energy 500 keV
 #/Generator/SingleParticle/region CENTER
 
 
@@ -44,7 +44,7 @@
 
 ##### PHYSICS #####
 ## No full simulation
-/PhysicsList/Nexus/clustering          true
+/PhysicsList/Nexus/clustering          false
 /PhysicsList/Nexus/drift               false
 /PhysicsList/Nexus/electroluminescence false
 /PhysicsList/Nexus/fastsim true
