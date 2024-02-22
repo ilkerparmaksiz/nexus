@@ -211,7 +211,7 @@ namespace nexus {
         //These commands generate the four gas models and connect it to the GasRegion
         G4Region *region = G4RegionStore::GetInstance()->GetRegion("GasRegion");
         new DegradModel("DegradModel",region, GH);
-        new GarfieldVUVPhotonModel("GarfieldVUVPhotonModel",region, GH);
+        new GarfieldVUVPhotonModel("GarfieldVUVPhotonModel",region, GH, ionisd);
 
         #ifdef With_Opticks
             std::cout <<"Setting our detector geometry with opticks" <<std::endl;
@@ -878,8 +878,8 @@ namespace nexus {
 
 
         // --- Optical ---        
-        new G4LogicalSkinSurface("SteelSurface_PMT3_Enclosing", PMT_Tube_Logic0, OpSteelSurf);
-        new G4LogicalSkinSurface("SteelSurface_PMT3_Enclosing", PMT_Tube_Logic1, OpSteelSurf);
+        new G4LogicalSkinSurface("SteelSurface_PMT_Enclosing", PMT_Tube_Logic0, OpSteelSurf);
+        new G4LogicalSkinSurface("SteelSurface_PMT_Enclosing", PMT_Tube_Logic1, OpSteelSurf);
 
 
         //  ------------------------ Camera -----------------------------------

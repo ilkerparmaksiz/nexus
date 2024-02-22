@@ -48,6 +48,8 @@
 #include "GarfieldHelper.h"
 #include "GeometryBase.h"
 #include "CRAB0.h"
+#include "IonizationSD.h"
+
 class G4GenericMessenger;
 namespace nexus {
     class GarfieldVUVPhotonModel : public G4VFastSimulationModel
@@ -56,7 +58,7 @@ namespace nexus {
       //-------------------------
       // Constructor, destructor
       //-------------------------
-        GarfieldVUVPhotonModel(G4String modelName, G4Region* envelope, GarfieldHelper GH);
+        GarfieldVUVPhotonModel(G4String modelName, G4Region* envelope, GarfieldHelper GH,  IonizationSD* ionisd);
         ~GarfieldVUVPhotonModel (){};
 
         //void SetPhysics(degradPhysics* fdegradPhysics);
@@ -106,6 +108,9 @@ namespace nexus {
 
         G4double ELPos_; // cm
         G4double FCTop_; // cm
+
+        /// The sensitive detector to fill hits into
+        IonizationSD* fGarfieldSD;
 
     };
     void userHandle(double x, double y, double z, double t, int type, int level,Garfield::Medium * m);

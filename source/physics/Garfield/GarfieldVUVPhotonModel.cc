@@ -11,6 +11,11 @@
 #include "G4TransportationManager.hh"
 #include "G4DynamicParticle.hh"
 #include "G4RandomDirection.hh"
+#include "G4AnalysisManager.hh"
+#include "G4Event.hh"
+#include "G4OpticalPhoton.hh"
+#include "G4ProcessManager.hh"
+#include "G4EventManager.hh"
 
 #include "globals.hh"
 #include "Garfield/MediumMagboltz.hh"
@@ -22,19 +27,16 @@
 #include "Garfield/AvalancheMC.hh"
 #include "Garfield/Medium.hh"
 #include "Garfield/SolidTube.hh"
-#include "G4OpticalPhoton.hh"
-#include "G4ProcessManager.hh"
-#include "G4EventManager.hh"
 #include "Garfield/ComponentComsol.hh"
 #include "config.h"
-#include "G4AnalysisManager.hh"
-#include "G4Event.hh"
+#include "Trajectory.h"
+#include "TrajectoryMap.h"
 
 namespace nexus{
 
 const G4double res(0.01); // Estimated fluctuations in EL yield - high? EC, 21-June-2022.
 
-GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* envelope, GarfieldHelper GH) : G4VFastSimulationModel(modelName, envelope) {
+GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* envelope, GarfieldHelper GH,  IonizationSD* ionisd) : G4VFastSimulationModel(modelName, envelope), fGarfieldSD(ionisd) {
     
     GH_ = GH;
     GH_.DumpParams();
@@ -87,42 +89,54 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
 
    */
     fastStep.SetNumberOfSecondaryTracks(1E3);
-  
-    // G4cout<<"HELLO Garfield"<<G4endl;
-    ////The details of the Garfield model are implemented here
-     fastStep.KillPrimaryTrack();//KILL NEST/DEGRAD/G4 TRACKS
-    //  fastStep.ProposeTrackStatus(fSuspend);
 
-     garfPos = fastTrack.GetPrimaryTrack()->GetVertexPosition();
-     garfTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
-     //G4cout<<"GLOBAL TIME "<<G4BestUnit(garfTime,"Time")<<" POSITION "<<G4BestUnit(garfPos,"Length")<<G4endl;
-     counter[1]++; // maybe not threadsafe
-     if (!(counter[1]%1000))
-       G4cout << "GarfieldVUV: actual NEST thermales: " << counter[1] << G4endl;
+    fastStep.KillPrimaryTrack(); //KILL NEST/DEGRAD/G4 TRACKS
 
-     if (!(counter[2]%1000) && counter[2] >0)
-       G4cout << "GarfieldVUV: actual NEST S1: " << counter[2] << G4endl;
+    garfPos = fastTrack.GetPrimaryTrack()->GetVertexPosition();
+    garfTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
+    //G4cout<<"GLOBAL TIME "<<G4BestUnit(garfTime,"Time")<<" POSITION "<<G4BestUnit(garfPos,"Length")<<G4endl;
+    
+    counter[1]++;
+    
+    // Print how many of each type we have
+    if (!(counter[1]%1000))
+      G4cout << "GarfieldVUV: ie-: " << counter[1] << G4endl;
 
-      if (!(counter[3]%1000) and (counter[3]>0))
-         G4cout << "GarfieldVUV: S2 OpticalPhotons: " << counter[3] << G4endl;
+    if (!(counter[2]%1000) && counter[2] >0)
+      G4cout << "GarfieldVUV: S1: " << counter[2] << G4endl;
 
+    if (!(counter[3]%1000) and (counter[3]>0))
+        G4cout << "GarfieldVUV: S2: " << counter[3] << G4endl;
 
-    //     if (!(counter[1]%1000)) // uncomment!
-       GenerateVUVPhotons(fastTrack,fastStep,garfPos,garfTime);
+    // Add the energy deposited to the trajectory so the event gets stored
+    Trajectory* trj = (Trajectory*) TrajectoryMap::Get(1);
+    if (trj) {
+      trj->SetEnergyDeposit(22.4*counter[1]*eV); // This overwrites the same track
+    }
+
+    // Drift and make S2
+    GenerateVUVPhotons(fastTrack,fastStep,garfPos,garfTime);
 
 }
-
-// GarfieldExcitationHitsCollection *garfExcHitsCol;
 
 void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime)
 {
 
-     // Drift in main region, then as LEM region is approached and traversed, avalanche multiplication and excitations  will occur.
+    // Drift in main region, then as LEM region is approached and traversed, avalanche multiplication and excitations  will occur.
   
     G4double x0=garfPos.getX()*0.1;//Garfield length units are in cm
     G4double y0=garfPos.getY()*0.1;
     G4double z0=garfPos.getZ()*0.1;
     G4double t0=garfTime;
+
+    // Insert hits
+    G4ThreeVector ie_pos(x0*100,y0*100,z0*100);
+    IonizationHit* ie_hit = new IonizationHit();
+    ie_hit->SetTrackID(1);
+    ie_hit->SetTime(t0);
+    ie_hit->SetEnergyDeposit(22.4*eV);
+    ie_hit->SetPosition(ie_pos);
+    fGarfieldSD->InsertIonizationHit(ie_hit);
     
 
     G4double ekin = fastTrack.GetPrimaryTrack()->GetKineticEnergy();

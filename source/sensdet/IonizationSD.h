@@ -42,6 +42,8 @@ namespace nexus {
 
     void IncludeInTotalEnergyDeposit(G4bool);
 
+    void InsertIonizationHit(IonizationHit* hit){IHC_->insert(hit);};
+
   private:
     ///
     virtual G4bool ProcessHits(G4Step*, G4TouchableHistory*);

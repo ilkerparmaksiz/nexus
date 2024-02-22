@@ -124,14 +124,14 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         (G4VPersistencyManager::GetPersistencyManager());
 
       if (!event->IsAborted() && edep>0) {
-	pm->InteractingEvent(true);
+        pm->InteractingEvent(true);
       } else {
-	pm->InteractingEvent(false);
+        pm->InteractingEvent(false);
       }
       if (!event->IsAborted() && edep > energy_min_ && edep < energy_max_) {
-	pm->StoreCurrentEvent(true);
+        pm->StoreCurrentEvent(true);
       } else {
-	pm->StoreCurrentEvent(false);
+        pm->StoreCurrentEvent(false);
       }
 
     }
