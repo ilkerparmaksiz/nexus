@@ -61,17 +61,15 @@ namespace nexus {
         GarfieldVUVPhotonModel(G4String modelName, G4Region* envelope, GarfieldHelper GH,  IonizationSD* ionisd);
         ~GarfieldVUVPhotonModel (){};
 
-        //void SetPhysics(degradPhysics* fdegradPhysics);
-        //void WriteGeometryToGDML(G4VPhysicalVolume* physicalVolume);
-
         virtual G4bool IsApplicable(const G4ParticleDefinition&);
         virtual G4bool ModelTrigger(const G4FastTrack &);
         virtual void DoIt(const G4FastTrack&, G4FastStep&);
-        void GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime);
-            void Reset();
-        G4ThreeVector garfPos;
-        G4double garfTime;
 
+        // Drift in main region, then as EL region is approached and traversed, avalanche multiplication and excitations will occur.
+        void GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime);
+        
+        void Reset();
+        
         // Function to create simple geometry for field
         Garfield::ComponentUser* CreateSimpleGeometry();
 
@@ -80,6 +78,15 @@ namespace nexus {
 
         // Generate EL photons in the gap according to a simple model
         void MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti);
+
+        // Function to print the electric field
+        void PrintElectricField(G4double x0,G4double y0, G4double z);
+
+        // Function to add hits to the sensitive detector
+        void InsertHits(G4double x, G4double y, G4double z, G4double t);
+
+        G4ThreeVector garfPos;
+        G4double garfTime;
 
 
     private:
@@ -105,7 +112,6 @@ namespace nexus {
 
         GarfieldHelper GH_;
 
-
         G4double ELPos_; // cm
         G4double FCTop_; // cm
 
@@ -113,6 +119,8 @@ namespace nexus {
         IonizationSD* fGarfieldSD;
 
     };
+
+
     void userHandle(double x, double y, double z, double t, int type, int level,Garfield::Medium * m);
 
 }
