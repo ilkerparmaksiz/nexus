@@ -197,16 +197,26 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
 // Selection of Xenon exitations and ionizations
 void GarfieldVUVPhotonModel::InitialisePhysics(){
+
+    // Set the path
+    char* path = std::getenv("NEXUSDIR");
+    if (path == nullptr) {
+      G4Exception("[GarfieldVUVPhotonModel]", "InitializePhysics()", FatalException,
+              "Environment variable NEXUSDIR not defined!");
+    }
+
+    G4String nexus_path(path);
+
     // Set the gas Properties
     fMediumMagboltz = new Garfield::MediumMagboltz();
     fMediumMagboltz->SetComposition("Xe", 100.);
     fMediumMagboltz->DisableDebugging();
     
     //  --- Load in Ion Mobility file --- 
-    const std::string path = getenv("GARFIELD_HOME");
+    const std::string garfpath = getenv("GARFIELD_HOME");
     
     if(ionMobFile!="")
-      fMediumMagboltz->LoadIonMobility(path + "/Data/" + ionMobFile);
+      fMediumMagboltz->LoadIonMobility(garfpath + "/Data/" + ionMobFile);
     
     if(gasFile!=""){
       fMediumMagboltz->LoadGasFile(gasFile.c_str());
@@ -236,15 +246,6 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     }
     else {
         std::cout << "Initialising Garfiled with a COMSOL geometry" << std::endl;
-
-        char* path = std::getenv("NEXUSDIR");
-        if (path == nullptr) {
-          G4Exception("[GarfieldVUVPhotonModel]", "InitializePhysics()", FatalException,
-                  "Environment variable NEXUSDIR not defined!");
-        }
-
-        G4String nexus_path(path);
-
         G4String home = nexus_path + "/data/Garfield/";
         std::string meshfile   = GH_.DetName_ + "_Mesh.mphtxt";
         std::string fieldfile  = GH_.DetName_ + "_Data.txt";
@@ -278,7 +279,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
 \
     // Load in the events
     if (GH_.useELFile_)
-        GetTimeProfileData("data/Garfield/CRAB_Profiles_Rotated.csv", EL_profiles, EL_events);
+        GetTimeProfileData(nexus_path +"/data/Garfield/CRAB_Profiles_Rotated.csv", EL_profiles, EL_events);
     
 }
 
