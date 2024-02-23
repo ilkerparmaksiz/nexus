@@ -37,13 +37,14 @@ namespace nexus{
 
 const G4double res(0.01); // Estimated fluctuations in EL yield - high? EC, 21-June-2022.
 
-GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* envelope, GarfieldHelper GH,  IonizationSD* ionisd) : G4VFastSimulationModel(modelName, envelope), fGarfieldSD(ionisd) {
+GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* envelope, GarfieldHelper GH,  IonizationSD* ionisd) : G4VFastSimulationModel(modelName, envelope), fGarfieldSD(ionisd), theFastIntegralTable_(0) {
     
     GH_ = GH;
     GH_.DumpParams();
     ionMobFile = "IonMobility_Ar+_Ar.txt";
     gasFile = "data/Xenon_10Bar.gas";
     InitialisePhysics();
+    BuildThePhysicsTable();
   
 }
 
@@ -128,6 +129,7 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
       slow_prob_ = mpt->GetConstProperty("SCINTILLATIONYIELD1");
       fast_comp_ = mpt->GetConstProperty("SCINTILLATIONTIMECONSTANT2");
       fast_prob_ = mpt->GetConstProperty("SCINTILLATIONYIELD2");
+      spectrum_integral = (G4PhysicsOrderedFreeVector*)(*theFastIntegralTable_)(mat->GetIndex());
       // std::cout << "Printing timing properties " << slow_comp_ << ", " << fast_comp_ << ", " << slow_prob_ << std::endl;
 
     }
@@ -276,7 +278,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     fAvalancheMC->EnableDebugging(false);  // way too much information. 
     fAvalancheMC->DisableAttachment();     // Currently getting warning messages about the attachment. You can supress those by switching this on.
     fAvalancheMC->EnableDriftLines();
-\
+
     // Load in the events
     if (GH_.useELFile_)
         GetTimeProfileData(nexus_path +"/data/Garfield/CRAB_Profiles_Rotated.csv", EL_profiles, EL_events);
@@ -370,13 +372,17 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
 
       G4ThreeVector momentum, polarization;
       GetPhotonPol(momentum, polarization);
+
+      // Get Photon energy
+      G4double sc_max = spectrum_integral->GetMaxValue();
+      G4double sc_value = G4UniformRand()*sc_max;
+      G4double sampled_energy = spectrum_integral->GetEnergy(sc_value);
+
       
-      G4DynamicParticle VUVphoton(optphot, momentum, 7.2*eV);
+      G4DynamicParticle VUVphoton(optphot, momentum, sampled_energy);
 
       G4double drift_time = EL_profile[i][3];
       G4bool el_survived = GetAttachment(GH_.gap_EL_/GH_.v_drift_el_);
-
-      std::cout << "Drift time is: " << drift_time << std::endl;
 
       // The electron did not survive drifting in the EL gap due to attachment
       if (!el_survived)
@@ -410,8 +416,13 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
 
       G4ThreeVector momentum, polarization;
       GetPhotonPol(momentum, polarization);
+
+      // Get Photon energy
+      G4double sc_max = spectrum_integral->GetMaxValue();
+      G4double sc_value = G4UniformRand()*sc_max;
+      G4double sampled_energy = spectrum_integral->GetEnergy(sc_value);
       
-      G4DynamicParticle VUVphoton(optphot, momentum, 7.2*eV);
+      G4DynamicParticle VUVphoton(optphot, momentum, sampled_energy);
     
       // in nsec (gap_EL_ is in cm). Still ignoring diffusion in small LEM.
       // Also add in the xenon scintillation timing delays and attachment
@@ -531,6 +542,64 @@ void GarfieldVUVPhotonModel::GetPhotonPol(G4ThreeVector &momentum, G4ThreeVector
   return;
 }
 
+
+void GarfieldVUVPhotonModel::BuildThePhysicsTable()
+{
+  if (theFastIntegralTable_) return;
+
+  const G4MaterialTable* theMaterialTable = G4Material::GetMaterialTable();
+  G4int numOfMaterials = G4Material::GetNumberOfMaterials();
+
+  // create new physics table
+
+  if(!theFastIntegralTable_)
+    theFastIntegralTable_ = new G4PhysicsTable(numOfMaterials);
+
+  for (G4int i=0 ; i<numOfMaterials; i++) {
+
+  	G4PhysicsOrderedFreeVector* aPhysicsOrderedFreeVector =
+  	  new G4PhysicsOrderedFreeVector();
+
+  	// Retrieve vector of scintillation wavelength intensity for
+  	// the material from the material's optical properties table.
+
+  	G4Material* material = (*theMaterialTable)[i];
+
+    G4MaterialPropertiesTable* mpt = material->GetMaterialPropertiesTable();
+
+    if (mpt) {
+
+  	  G4MaterialPropertyVector* theFastLightVector =
+  	    mpt->GetProperty("ELSPECTRUM");
+
+  	  if (theFastLightVector) {
+        ComputeCumulativeDistribution(*theFastLightVector, *aPhysicsOrderedFreeVector);
+		  }
+  	}
+
+  	// The scintillation integral(s) for a given material
+  	// will be inserted in the table(s) according to the
+  	// position of the material in the material table.
+
+  	theFastIntegralTable_->insertAt(i,aPhysicsOrderedFreeVector);
+  }
+}
+
+
+
+void GarfieldVUVPhotonModel::ComputeCumulativeDistribution(
+  const G4PhysicsOrderedFreeVector& pdf, G4PhysicsOrderedFreeVector& cdf)
+{
+  G4double sum = 0.;
+  cdf.InsertValues(pdf.Energy(0), sum);
+
+  for (unsigned int i=1; i<pdf.GetVectorLength(); ++i) {
+    G4double area =
+      0.5 * (pdf.Energy(i) - pdf.Energy(i-1)) * (pdf[i] + pdf[i-1]);
+    sum = sum + area;
+    cdf.InsertValues(pdf.Energy(i), sum);
+  }
+}
 
 
 

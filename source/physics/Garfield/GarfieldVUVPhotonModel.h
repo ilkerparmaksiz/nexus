@@ -37,6 +37,7 @@
 #include "G4OpBoundaryProcess.hh"
 #include "IOUtils.h"
 #include "G4GenericMessenger.hh"
+#include <G4PhysicsOrderedFreeVector.hh>
 
 #include "G4VFastSimulationModel.hh"
 #include "Garfield/Medium.hh"
@@ -69,6 +70,10 @@ namespace nexus {
         void GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime);
         
         void Reset();
+
+        void BuildThePhysicsTable();
+        void ComputeCumulativeDistribution(const G4PhysicsOrderedFreeVector&,
+                                       G4PhysicsOrderedFreeVector&);
         
         // Function to create simple geometry for field
         Garfield::ComponentUser* CreateSimpleGeometry();
@@ -132,6 +137,9 @@ namespace nexus {
         G4double slow_prob_; // %
         G4double fast_comp_; // ns
         G4double fast_prob_; // %
+
+        G4PhysicsTable* theFastIntegralTable_;
+        G4PhysicsOrderedFreeVector* spectrum_integral;
 
     };
 
