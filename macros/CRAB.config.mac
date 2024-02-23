@@ -17,7 +17,6 @@
 ##### GEOMETRY #####
 #/Geometry/Next100/elfield false
 #/Geometry/Next100/max_step_size 1. mm
-/Geometry/CRAB0/useCAD false
 
 # Garfield
 /Geometry/CRAB0/DetChamberD 16.4 cm
@@ -28,10 +27,14 @@
 /Geometry/CRAB0/fieldDrift 438.0
 /Geometry/CRAB0/fieldEL 11.4 kilovolt/cm
 
+/Geometry/CRAB0/useCOMSOL false
+/Geometry/CRAB0/useELFile false
+/Geometry/CRAB0/useDEGRAD true
+
 ##### GENERATOR #####
 /Generator/SingleParticle/particle e-
-/Generator/SingleParticle/min_energy 30 keV
-/Generator/SingleParticle/min_energy 30 keV
+/Generator/SingleParticle/min_energy 1 MeV
+/Generator/SingleParticle/min_energy 1 MeV
 #/Generator/SingleParticle/region CENTER
 
 
@@ -48,6 +51,7 @@
 /PhysicsList/Nexus/drift               false
 /PhysicsList/Nexus/electroluminescence false
 /PhysicsList/Nexus/fastsim true
+/PhysicsList/Nexus/nest true
 
 ##### PERSISTENCY #####
 /nexus/persistency/output_file CRAB.next

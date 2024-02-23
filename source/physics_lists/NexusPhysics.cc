@@ -41,7 +41,7 @@ namespace nexus {
 
   NexusPhysics::NexusPhysics():
     G4VPhysicsConstructor("NexusPhysics"),
-    clustering_(true), drift_(true), electroluminescence_(true), photoelectric_(false), fastsim_(false)
+    clustering_(true), drift_(true), electroluminescence_(true), photoelectric_(false), fastsim_(false), nest_(false)
   {
     msg_ = new G4GenericMessenger(this, "/PhysicsList/Nexus/",
       "Control commands of the nexus physics list.");
@@ -60,6 +60,9 @@ namespace nexus {
 
     msg_->DeclareProperty("fastsim", fastsim_,
       "Switch on/off NEST/Garfield/Degrad physics.");
+
+    msg_->DeclareProperty("nest", nest_,
+      "Switch on/off NEST physics.");
 
   }
 
@@ -196,7 +199,8 @@ namespace nexus {
           if (theNEST2ScintillationProcess->IsApplicable(*particle) && pmanager) {
             // std::cout << "PhysicsList::InitialisePhysics(): particleName, pmanager  " << particleName << ", " << pmanager << "." << std::endl;
             // std::cout << "ordDefault, ordInActive " << ordDefault << ", " << ordInActive  << std::endl;
-            pmanager->AddProcess(theNEST2ScintillationProcess, ordDefault + 1, ordInActive, ordDefault + 1);
+            if (nest_)
+              pmanager->AddProcess(theNEST2ScintillationProcess, ordDefault + 1, ordInActive, ordDefault + 1);
             pmanager->AddDiscreteProcess(fastSimProcess_garfield);
           }
 

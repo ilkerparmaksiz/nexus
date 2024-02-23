@@ -74,6 +74,7 @@ namespace nexus{
         G4double temperature; // temperature of the gas
         G4bool useCOMSOL_;        // Use COMSOL field
         G4bool useELFile_;        // Use EL file to generate S2
+        G4bool useDEGRAD_;        // Use DEGRAD to generate electrons/gammas
 
         G4double Lab_size;
         G4double chamber_diam   ;
@@ -109,6 +110,9 @@ namespace nexus{
         G4double ELyield_;
 
         G4double FielCageGap;
+
+        G4double cathode_zpos;
+        G4double anode_zpos;
 
         G4LogicalVolume* gas_logic;
 

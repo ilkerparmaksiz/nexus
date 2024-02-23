@@ -32,10 +32,14 @@ DegradModel::DegradModel(G4String modelName, G4Region* envelope, GarfieldHelper 
 DegradModel::~DegradModel() {}
 
 G4bool DegradModel::IsApplicable(const G4ParticleDefinition& particleType) {
-    if (particleType.GetParticleName()=="e-" || particleType.GetParticleName()=="gamma" || particleType.GetParticleName()=="e+")
-        return true;
-    
-    return false;
+
+    if (GH_.useDEGRAD_){
+        if (particleType.GetParticleName()=="e-" || particleType.GetParticleName()=="gamma" || particleType.GetParticleName()=="e+")
+            return true;
+    }
+    else {
+        return false;
+    }
 }
 
 G4bool DegradModel::ModelTrigger(const G4FastTrack& fastTrack) {

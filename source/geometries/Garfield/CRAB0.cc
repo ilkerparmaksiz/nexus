@@ -29,6 +29,7 @@
 #include "MaterialsList.h"
 #include "GarfieldHelper.h"
 #include "SensorSD.h"
+#include "UniformElectricDriftField.h"
 
 #ifdef With_Opticks
 #include "G4CXOpticks.hh"
@@ -78,7 +79,8 @@ namespace nexus {
             specific_vertex_{},
             fOffset(-0.8*cm),
             useCOMSOL_(false),
-            useELFile_(false) {
+            useELFile_(false),
+            useDEGRAD_(false) {
 
             // Messenger
             msg_ = new G4GenericMessenger(this, "/Geometry/CRAB0/","Control commands of geometry of CRAB0.");
@@ -121,6 +123,8 @@ namespace nexus {
             msg_->DeclareProperty("useCOMSOL", useCOMSOL_, "Use COMSOL for simulating drift fields");
 
             msg_->DeclareProperty("useELFile", useELFile_, "Use file for loading in EL");
+
+            msg_->DeclareProperty("useDEGRAD", useDEGRAD_, "Use DEGRAD for electron or gamma generation");
 
             Sampler=std::make_shared<SampleFromSurface>(SampleFromSurface("Needles"));
 
@@ -211,8 +215,19 @@ namespace nexus {
         G4Region *regionGas = new G4Region("GasRegion");
         regionGas->AddRootLogicalVolume(gas_logic);
 
+
+        /// Define a drift field for this volume
+        UniformElectricDriftField* field = new UniformElectricDriftField();
+        field->SetCathodePosition(cathode_zpos);
+        field->SetAnodePosition(anode_zpos);
+        field->SetDriftVelocity(v_drift_);
+        field->SetTransverseDiffusion(0.92 * mm/sqrt(cm));
+        field->SetLongitudinalDiffusion(0.36 * mm/sqrt(cm));
+        regionGas->SetUserInformation(field);
+
+
         GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_,
-                          ElGap_, fieldDrift_, fieldEL_, v_drift_, v_drift_el_, e_lifetime_, useCOMSOL_, useELFile_, "CRAB");
+                          ElGap_, fieldDrift_, fieldEL_, v_drift_, v_drift_el_, e_lifetime_, useCOMSOL_, useELFile_, useDEGRAD_, "CRAB");
 
         //These commands generate the four gas models and connect it to the GasRegion
         G4Region *region = G4RegionStore::GetInstance()->GetRegion("GasRegion");
@@ -664,11 +679,8 @@ namespace nexus {
                                                                  0, 0, false);
         HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELP_Disk_logic, EL_Hex_logic);
 
-        G4VPhysicalVolume *EL_Ring_Plus_plus = new G4PVPlacement(0, G4ThreeVector(0., 0., EL_thick / 2.0 - FR_thick -
-                                                                                          4 *
-                                                                                          (FR_thick + PEEK_Rod_thick) -
-                                                                                          2.5 * cm - EL_thick - ElGap_ -
-                                                                                          EL_thick), EL_ring_logic,
+        anode_zpos = EL_thick / 2.0 - FR_thick - 4 * (FR_thick + PEEK_Rod_thick) - 2.5 * cm - EL_thick - ElGap_ - EL_thick;
+        G4VPhysicalVolume *EL_Ring_Plus_plus = new G4PVPlacement(0, G4ThreeVector(0., 0., anode_zpos), EL_ring_logic,
                                                                  "EL_Ring_Plus_plus", gas_logic, 0, 0, false);
 
         // Place the Mesh bits
@@ -682,8 +694,8 @@ namespace nexus {
 
 
         // Cathode
-        G4VPhysicalVolume *Cathode = new G4PVPlacement(0, G4ThreeVector(0., 0., EL_thick / 2.0 + 1 * cm +
-                                                                                5 * (FR_thick + PEEK_Rod_thick)),
+        cathode_zpos = EL_thick / 2.0 + 1 * cm + 5 * (FR_thick + PEEK_Rod_thick);
+        G4VPhysicalVolume *Cathode = new G4PVPlacement(0, G4ThreeVector(0., 0., cathode_zpos),
                                                        Cathode_ring_logic, "CATHODE", gas_logic, 0, 0, false);
 
         // Place the Mesh bits

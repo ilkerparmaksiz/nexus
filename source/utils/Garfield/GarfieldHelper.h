@@ -26,7 +26,7 @@ namespace nexus {
                    G4double DetActiveL, G4double GasPressure, G4double gap_EL,
                    G4double fieldDrift, G4double fieldEL, G4double v_drift,
                    G4double v_drift_el, G4double e_liftetime, G4bool useCOMSOL, 
-                   G4bool useELFile, G4String DetName);
+                   G4bool useELFile, G4bool useDEGRAD, G4String DetName);
 
     void DumpParams();
 
@@ -48,6 +48,7 @@ namespace nexus {
     G4double e_lifetime_;  // ms
     G4bool useCOMSOL_;
     G4bool useELFile_;
+    G4bool useDEGRAD_;
     G4String DetName_; // Name of the detector
 
     G4double thermalE_{1.3*eV}; // eV

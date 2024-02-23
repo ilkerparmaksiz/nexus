@@ -15,7 +15,7 @@ namespace nexus {
                                  G4double DetActiveL, G4double GasPressure, G4double gap_EL,
                                  G4double fieldDrift, G4double fieldEL, G4double v_drift,
                                  G4double v_drift_el, G4double e_lifetime, G4bool useCOMSOL, 
-                                 G4bool useELFile, G4String DetName){
+                                 G4bool useELFile,  G4bool useDEGRAD, G4String DetName){
     DetChamberR_ = DetChamberR;
     DetChamberL_ = DetChamberL;
     DetActiveR_  = DetActiveR;
@@ -29,6 +29,7 @@ namespace nexus {
     e_lifetime_  = e_lifetime;
     useCOMSOL_   = useCOMSOL;
     useELFile_   = useELFile;
+    useDEGRAD_   = useDEGRAD;
     DetName_     = DetName;
 
   }
@@ -51,6 +52,9 @@ namespace nexus {
     "Drift Velocity: " << v_drift_ << "\n" <<
     "EL Drift Velocity: " << v_drift_el_ << "\n" <<
     "Electron Lifetime: " << e_lifetime_ << "\n" <<
+    "COMSOL: " << useCOMSOL_ << "\n" <<
+    "Generate from EL file: " << useELFile_ << "\n" <<
+    "DEGRAD: " << useDEGRAD_ << "\n" <<
     std::endl;
 
   }

@@ -35,6 +35,7 @@ namespace nexus {
     G4bool electroluminescence_; ///< Switch on/off the electroluminescence
     G4bool photoelectric_;       ///< Switch on/off the photoelectric effect
     G4bool fastsim_;             ///< Switch on/off NEST/Garfield/Degrad Physics
+    G4bool nest_;                ///< Switch on/off NESTPhysics
 
     G4GenericMessenger* msg_;
   };
