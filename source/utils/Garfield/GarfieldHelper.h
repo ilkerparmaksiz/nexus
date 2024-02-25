@@ -23,7 +23,8 @@ namespace nexus {
     /// Default constructor 
     GarfieldHelper();
     GarfieldHelper(G4double DetChamberR, G4double DetChamberL, G4double DetActiveR,
-                   G4double DetActiveL, G4double GasPressure, G4double gap_EL,
+                   G4double DetActiveL, G4double CathodePos_, G4double ELPos_, G4int nsides,
+                   G4double GasPressure, G4double gap_EL, G4ThreeVector origin_,
                    G4double fieldDrift, G4double fieldEL, G4double v_drift,
                    G4double v_drift_el, G4double e_liftetime, G4bool useCOMSOL, 
                    G4bool useELFile, G4bool useDEGRAD, G4String DetName);
@@ -38,8 +39,11 @@ namespace nexus {
     G4double DetChamberL_; // cm
     G4double DetActiveR_;  // cm
     G4double DetActiveL_;  // cm
+    G4double CathodePos_;  // cm
+    G4double ELPos_;       // cm
+    G4int nsides_;         // polygon definition
+    G4ThreeVector origin_; // Origin of drift tube [cm] 
     G4double GasPressure_; // bar
-
     G4double gap_EL_;      // cm
     G4double fieldDrift_;  // V/cm
     G4double fieldEL_;     // V/cm 

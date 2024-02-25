@@ -225,9 +225,9 @@ namespace nexus {
         field->SetLongitudinalDiffusion(0.36 * mm/sqrt(cm));
         regionGas->SetUserInformation(field);
 
-
-        GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_,
-                          ElGap_/cm, fieldDrift_, fieldEL_, v_drift_, v_drift_el_, e_lifetime_, useCOMSOL_, useELFile_, useDEGRAD_, "CRAB");
+        G4ThreeVector origin = {0., 0., 0.}; // cm
+        GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, FielCageGap/2.0/cm, -FielCageGap/2.0/cm, 1,
+         gas_pressure_, ElGap_/cm, origin, fieldDrift_, fieldEL_, v_drift_, v_drift_el_, e_lifetime_, useCOMSOL_, useELFile_, useDEGRAD_, "CRAB");
 
         //These commands generate the four gas models and connect it to the GasRegion
         G4Region *region = G4RegionStore::GetInstance()->GetRegion("GasRegion");

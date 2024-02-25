@@ -75,8 +75,10 @@ namespace nexus {
         void ComputeCumulativeDistribution(const G4PhysicsOrderedFreeVector&,
                                        G4PhysicsOrderedFreeVector&);
         
-        // Function to create simple geometry for field
-        Garfield::ComponentUser* CreateSimpleGeometry();
+        // Function to set the electric field
+        // Use cylindrical field in any case with some padding to stop Garfield
+        // throwing excptions where field is not defined
+        Garfield::ComponentUser* SetComponentField();
 
         // Generate EL photons in the gap according to Garfield Microphysical Model
         void MakeELPhotonsFromFile(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti);
@@ -98,6 +100,13 @@ namespace nexus {
 
         // Function to get the photon polarization
         void GetPhotonPol(G4ThreeVector &momentum, G4ThreeVector &polarization);
+
+        // Function to check the position is inside a polygon
+        // Used for light tubes which have a polygon shape with n sides
+        G4bool CheckXYBoundsPolygon(std::vector<G4double> point);
+
+        // Set the values of the drift tube polygon
+        void InitalizePolygon();
 
         G4ThreeVector garfPos;
         G4double garfTime;
@@ -126,9 +135,6 @@ namespace nexus {
 
         GarfieldHelper GH_;
 
-        G4double ELPos_; // cm
-        G4double FCTop_; // cm
-
         /// The sensitive detector to fill hits into
         IonizationSD* fGarfieldSD;
 
@@ -140,6 +146,9 @@ namespace nexus {
 
         G4PhysicsTable* theFastIntegralTable_;
         G4PhysicsOrderedFreeVector* spectrum_integral;
+
+        // Define the points in a polygon for drift tube
+        std::vector<std::vector<G4double>> polygon_;
 
     };
 

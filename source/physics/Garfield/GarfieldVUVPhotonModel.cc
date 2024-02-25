@@ -80,15 +80,9 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
 {
 
   /* 
-     This tracks all the ionization/conversion electrons created by Degrad in its simulation of the primary gamma's photoelectric effect on Xe.
-     Each such electron is drifted in the E-field and avalanched, as appropriate. That creates excited Xe atoms. We put one ELM photon
-     per excitation of 172 (7.2) nm (eV) onto the optical photon stack. Geant4 will track those in the normal way. 
-
-
-     Note, the weirdness of userHandle, which seems to be called at each excitation by the AvalancheMicroscopic model and fills our
-     GarfieldExcitationHitCollection. And which somehow we're allowed to grab here.
-
-     EC, 2-Dec-2021.
+     This tracks all the ionization/conversion electrons created by G4/NEST/Degrad in its simulation.
+     Each such electron is drifted in the E-field. We create S2 photons if the 
+     electrons reach the EL region. These will be tracked in the normal way with G4 or via optics. 
 
    */
     fastStep.SetNumberOfSecondaryTracks(1E3);
@@ -141,8 +135,6 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
 
 void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep, G4ThreeVector garfPos, G4double garfTime) {
 
-
-  G4bool survived;
   G4double x0=garfPos.getX()/cm; //Garfield length units are in cm
   G4double y0=garfPos.getY()/cm;
   G4double z0=garfPos.getZ()/cm;
@@ -169,10 +161,26 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     zi=GetDriftLines.at(i).z;
     ti=GetDriftLines.at(i).t;
     // std::cout << "GVUVPM: positions are " << xi<<"," <<yi<<","<<zi <<"," <<ti<< std::endl;
-    
+
+    G4bool b_xy_bounds;
+
+    // Do a check against a polygon
+    if (GH_.nsides_> 1){
+      std::vector<G4double> point = {xi,yi};
+      b_xy_bounds = CheckXYBoundsPolygon(point);
+    }
+    // Check against cylinder
+    else {
+       b_xy_bounds = std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_;
+    }
+
     // Drift line point entered EL region
-    if (zi < ELPos_ && ( std::sqrt(xi*xi + yi*yi) < GH_.DetActiveR_) ){
-      survived = GetAttachment(ti);
+    if (zi < GH_.ELPos_ && b_xy_bounds ){
+      
+      // Check if attachment killed the ie-
+      if (!GetAttachment(ti))
+        return;
+      
       break; 
     }
     
@@ -181,10 +189,6 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
       return;
 
   }
-
-  // If the electron did not survive, then skip photon generation
-  if (!survived)
-    return;
 
   // Generate the El photons from a microphys model ran externally in Garfield
   // We sample the output file which contains the timing profile of emission and diffusion
@@ -231,19 +235,21 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     // Print the gas properties
     // fMediumMagboltz->PrintGas();
 
-    ELPos_ =  - GH_.DetActiveL_/2.0;
-    FCTop_ =  + GH_.DetActiveL_/2.0;
-
     std::cout << "Detector Dimentions: "<< GH_.DetChamberR_ << " " << GH_.DetChamberL_ << "  " << GH_.DetActiveR_ << "  " << GH_.DetActiveL_ << std::endl; 
 
     fSensor = new Garfield::Sensor();
 
     if (!GH_.useCOMSOL_){
-        Garfield::ComponentUser* componentDriftLEM = CreateSimpleGeometry();
+
+        // The drift tube is a polygon not cylinder
+        if (GH_.nsides_ > 1)
+          InitalizePolygon();
+
+        Garfield::ComponentUser* componentDriftLEM = SetComponentField();
         fSensor->AddComponent(componentDriftLEM);
         
         // Set the region where the sensor is active -- based on the gas volume
-        fSensor->SetArea(-GH_.DetChamberR_, -GH_.DetChamberR_, -GH_.DetChamberL_/2.0, GH_.DetChamberR_, GH_.DetChamberR_, GH_.DetChamberL_/2.0); // cm
+        // fSensor->SetArea(-GH_.DetChamberR_, -GH_.DetChamberR_, -GH_.DetChamberL_/2.0, GH_.DetChamberR_, GH_.DetChamberR_, GH_.DetChamberL_/2.0); // cm
 
     }
     else {
@@ -294,13 +300,13 @@ void GarfieldVUVPhotonModel::Reset()
 }
 
 
-Garfield::ComponentUser* GarfieldVUVPhotonModel::CreateSimpleGeometry(){
+Garfield::ComponentUser* GarfieldVUVPhotonModel::SetComponentField(){
 
     //  ---- Create the Garfield Field region --- 
     Garfield::GeometrySimple* geo = new Garfield::GeometrySimple();
 
     // Tube oriented in Y'axis (0.,1.,0.,) The addition of the 1 cm is for making sure it doesnt fail on the boundary
-    Garfield::SolidTube* tube = new Garfield::SolidTube(0.0, 0.0 ,0.0, GH_.DetChamberR_+1, GH_.DetChamberL_*0.5, 0.,0.,1.);
+    Garfield::SolidTube* tube = new Garfield::SolidTube(GH_.origin_.x(), GH_.origin_.y() ,GH_.origin_.z(), GH_.DetChamberR_+1, GH_.DetChamberL_*0.5, 0.,0.,1.);
 
     // Add the solid to the geometry, together with the medium inside
     geo->AddSolid(tube, fMediumMagboltz);
@@ -323,19 +329,21 @@ Garfield::ComponentUser* GarfieldVUVPhotonModel::CreateSimpleGeometry(){
     }
 
     // Field past the cathode drift them away from the LEM with negative field
-    if (z > FCTop_)
+    // These make no photons and we kill these anyway
+    // Garfield does not like any points with zero field
+    if (z > GH_.CathodePos_)
         ez = -GH_.fieldDrift_;
 
     // Drift region
-    if (z <= FCTop_)
+    if (z <= GH_.CathodePos_)
         ez = GH_.fieldDrift_;
 
     // EL region
-    if (z <= ELPos_ && z > ELPos_-GH_.gap_EL_)
+    if (z <= GH_.ELPos_ && z > GH_.ELPos_-GH_.gap_EL_)
         ez = GH_.fieldEL_;
 
     // Drift towards the end cap
-    if (z <= ELPos_ - GH_.gap_EL_)
+    if (z <= GH_.ELPos_ - GH_.gap_EL_)
         ez = GH_.fieldDrift_; 
   });
 
@@ -601,6 +609,85 @@ void GarfieldVUVPhotonModel::ComputeCumulativeDistribution(
   }
 }
 
+
+G4bool GarfieldVUVPhotonModel::CheckXYBoundsPolygon(std::vector<G4double> point){
+
+  // This code checks if a point is inside a polygon (needed for checking if
+  // inside the drift tube which has an octagonal shape).
+  // It works by counting intersections of the point in the horizontal plane
+  // as described in 
+  // https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
+  
+
+  G4int num_vertices = polygon_[0].size();
+  G4double x = point[0], y = point[1];
+  G4bool inside = false;
+
+  // Store the first point in the polygon and initialize
+  // the second point
+  std::vector<G4double> p1 = {polygon_[0][0],polygon_[1][0]};
+
+  // Loop through each edge in the polygon
+  for (G4int i = 1; i <= num_vertices; i++) {
+      // Get the next point in the polygon
+      std::vector<G4double> p2 ={polygon_[0][i % num_vertices], polygon_[1][i % num_vertices]};
+
+      // Check if the point is above the minimum y
+      // coordinate of the edge
+      if (y > min(p1[1], p2[1])) {
+          // Check if the point is below the maximum y
+          // coordinate of the edge
+          if (y <= max(p1[1], p2[1])) {
+              // Check if the point is to the left of the
+              // maximum x coordinate of the edge
+              if (x <= max(p1[0], p2[0])) {
+                  // Calculate the x-intersection of the
+                  // line connecting the point to the edge
+                  G4double x_intersection
+                      = (y - p1[1]) * (p2[0] - p1[0])
+                            / (p2[1] - p1[1])
+                        + p1[0];
+
+                  // Check if the point is on the same
+                  // line as the edge or to the left of
+                  // the x-intersection
+                  if (p1[0] == p2[0]
+                      || x <= x_intersection) {
+                      // Flip the inside flag
+                      inside = !inside;
+                  }
+              }
+          }
+      }
+
+      // Store the current point as the first point for
+      // the next iteration
+      p1 = p2;
+  }
+
+  // Return the value of the inside flag
+  return inside;
+}
+
+void GarfieldVUVPhotonModel::InitalizePolygon(){
+
+  std::cout << "Initializing polygon with " << GH_.nsides_ << " sides" << std::endl;
+
+  // Define the number of sides, the radius, and the center 
+  G4int n = GH_.nsides_;
+  G4double radius = GH_.DetActiveR_;
+
+  // Plot the regular polygon
+  std::vector<G4double> theta(n);
+  for (G4int i = 0; i < n; ++i) {
+      theta[i] = 2 * M_PI * i / n;
+  }
+
+  for (int i = 0; i < n; ++i) {
+      polygon_.push_back({radius * cos(theta[i]) + GH_.origin_.x(), radius * sin(theta[i]) + GH_.origin_.y()});
+  }
+
+}
 
 
 }

@@ -36,6 +36,8 @@ G4bool DegradModel::IsApplicable(const G4ParticleDefinition& particleType) {
     if (GH_.useDEGRAD_){
         if (particleType.GetParticleName()=="e-" || particleType.GetParticleName()=="gamma" || particleType.GetParticleName()=="e+")
             return true;
+        else
+            return false;
     }
     else {
         return false;
