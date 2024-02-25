@@ -41,7 +41,7 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     
     GH_ = GH;
     GH_.DumpParams();
-    ionMobFile = "IonMobility_Ar+_Ar.txt";
+    ionMobFile = "IonMobility_Xe+_P12_Xe.txt";
     gasFile = "data/Xenon_10Bar.gas";
     InitialisePhysics();
     BuildThePhysicsTable();
@@ -143,9 +143,9 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
 
   G4bool survived;
-  G4double x0=garfPos.getX()*0.1; //Garfield length units are in cm
-  G4double y0=garfPos.getY()*0.1;
-  G4double z0=garfPos.getZ()*0.1;
+  G4double x0=garfPos.getX()/cm; //Garfield length units are in cm
+  G4double y0=garfPos.getY()/cm;
+  G4double z0=garfPos.getZ()/cm;
   G4double t0=garfTime;
 
   // Insert hits
@@ -281,7 +281,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
 
     // Load in the events
     if (GH_.useELFile_)
-        GetTimeProfileData(nexus_path +"/data/Garfield/CRAB_Profiles_Rotated.csv", EL_profiles, EL_events);
+        GetTimeProfileData(nexus_path + "/data/Garfield/" + GH_.DetName_ + "_Profiles_Rotated.csv", EL_profiles, EL_events);
     
 }
 
@@ -366,7 +366,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
     for (G4int i=0;i<el_gain;i++){
       
       // std::cout << xi << ", " <<  EL_profile[i][0]  << std::endl;
-      G4ThreeVector fakepos ( (xi+ EL_profile[i][0])*10., (yi+ EL_profile[i][1])*10., (zi+ EL_profile[i][2])*10. ); // 0 = x, 1 = y, 2 = z. Garfield units are cm, x10 for mm G4 units
+      G4ThreeVector fakepos ( (xi+ EL_profile[i][0])*cm, (yi+ EL_profile[i][1])*cm, (zi+ EL_profile[i][2])*cm ); // 0 = x, 1 = y, 2 = z. Garfield units are cm, x10 for mm G4 units
     
       auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
 
@@ -382,7 +382,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
       G4DynamicParticle VUVphoton(optphot, momentum, sampled_energy);
 
       G4double drift_time = EL_profile[i][3];
-      G4bool el_survived = GetAttachment(GH_.gap_EL_/GH_.v_drift_el_);
+      G4bool el_survived = GetAttachment(GH_.gap_EL_*cm/GH_.v_drift_el_);
 
       // The electron did not survive drifting in the EL gap due to attachment
       if (!el_survived)
@@ -402,7 +402,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
 void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti){
 
     // std::cout << "Generating Photons"<< std::endl;
-    const G4int el_gain = XenonELLightYield(GH_.fieldEL_*kilovolt/cm, GH_.GasPressure_)*GH_.gap_EL_/cm; // E [kV/cm], P [bar], EL gap [cm]
+    const G4int el_gain = XenonELLightYield(GH_.fieldEL_*kilovolt/cm, GH_.GasPressure_)*GH_.gap_EL_; // E [kV/cm], P [bar], EL gap [cm]
 
     // std::cout << " Yield is "<< el_gain <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_/cm << std::endl;
     
@@ -410,7 +410,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
 
     for (G4int i=0;i<el_gain;i++){
 
-      G4ThreeVector fakepos (xi*10,yi*10.,zi*10.); /// ignoring diffusion in small LEM gap, EC 17-June-2022.     
+      G4ThreeVector fakepos (xi*cm,yi*cm,zi*cm); /// ignoring diffusion in small LEM gap, EC 17-June-2022.     
       
       auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
 
@@ -426,8 +426,8 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
     
       // in nsec (gap_EL_ is in cm). Still ignoring diffusion in small LEM.
       // Also add in the xenon scintillation timing delays and attachment
-      G4double drift_time = G4float(i)/G4float(el_gain)*GH_.gap_EL_/GH_.v_drift_el_;
-      G4bool el_survived = GetAttachment(GH_.gap_EL_/GH_.v_drift_el_);
+      G4double drift_time = G4float(i)/G4float(el_gain)*GH_.gap_EL_*cm/GH_.v_drift_el_;
+      G4bool el_survived = GetAttachment(GH_.gap_EL_*cm/GH_.v_drift_el_);
 
       // The electron did not survive drifting in the EL gap
       if (!el_survived)
@@ -457,7 +457,7 @@ void GarfieldVUVPhotonModel::PrintElectricField(G4double x,G4double y, G4double 
 }
 
 void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t){
-  G4ThreeVector ie_pos(x*100,y*100,z*100);
+  G4ThreeVector ie_pos(x*cm,y*cm,z*cm);
   IonizationHit* ie_hit = new IonizationHit();
   ie_hit->SetTrackID(1);
   ie_hit->SetTime(t);
