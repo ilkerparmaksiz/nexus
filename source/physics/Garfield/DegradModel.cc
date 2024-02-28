@@ -48,12 +48,20 @@ G4bool DegradModel::ModelTrigger(const G4FastTrack& fastTrack) {
     
     //  also require that only photoelectric effect electrons are tracked here.
     // Krishan turn this off since now we are running the gammas
-    // G4int id = fastTrack.GetPrimaryTrack()->GetParentID();
+    G4int id = fastTrack.GetPrimaryTrack()->GetParentID();
     // if (id == 1){
     //     if ( (fastTrack.GetPrimaryTrack()->GetCreatorProcess()->GetProcessName().find("phot") != std::string::npos) ||
     //          (fastTrack.GetPrimaryTrack()->GetCreatorProcess()->GetProcessName().find("comp") != std::string::npos))
     //         return true;
     // }
+
+    // Set the kinetic energy
+    fPrimKE = fastTrack.GetPrimaryTrack()->GetKineticEnergy()/eV;
+
+    std::cout << "The track id is: " << fastTrack.GetPrimaryTrack()->GetTrackID() << std::endl;
+    if (id > 0 )
+        std::cout << "Was created via: " << fastTrack.GetPrimaryTrack()->GetCreatorProcess()->GetProcessName() << std::endl;
+
 
     // Krishan: Degrad handles gammas/X-Rays but not for energies > 2 MeV
     // The photoelectron should be produced though from the >= 2 MeV gammas
@@ -77,6 +85,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     // The output file from degrad is then read back in
 
     fastStep.KillPrimaryTrack();
+
     if(!processOccured){
         
         // Initialization
@@ -91,18 +100,22 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
         G4String seed = G4UIcommand::ConvertToString(SEED);
 
         // Gamma KE
-        fPrimKE = fastTrack.GetPrimaryTrack()->GetKineticEnergy()/eV;
+        std::cout <<"The particle energy is: " << fPrimKE*eV << "MeV" << std::endl;
         G4int KE = int(fPrimKE); // in eV
         G4String particleKE(","+std::to_string(KE));
 
         G4String particle_name = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
 
         G4String degrad_mode = "0";
-        if (particle_name == "gamma")
+        if (particle_name == "gamma"){
             degrad_mode = "3";
+            std::cout << "The particle is a gamma"<< std::endl;
+        }
         // Assume its an electron then
-        else
+        else{
             degrad_mode = "2";
+            std::cout << "The particle is an electron/positron"<< std::endl;
+        }
         
         std::cout << "The degrad mode is: " << degrad_mode << std::endl;
 
