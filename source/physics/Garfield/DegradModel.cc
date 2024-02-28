@@ -96,7 +96,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
         
         
         // Input parameters
-        G4int SEED=54217137*G4UniformRand();
+        G4int SEED=CLHEP::HepRandom::getTheSeed();
         G4String seed = G4UIcommand::ConvertToString(SEED);
 
         // Gamma KE
