@@ -140,11 +140,22 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
   G4double z0=garfPos.getZ()/cm;
   G4double t0=garfTime;
 
+  // std::cout << "GVUVPM: positions are " << x0<<"," <<y0<<","<<z0 <<"," <<t0<< std::endl;
+
+  // Check in which Physical volume the point bellongs
+  G4ThreeVector myPoint(x0, y0, z0);
+  G4Navigator* theNavigator= G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
+  G4String solidName=theNavigator->LocateGlobalPointAndSetup(myPoint)->GetName();
+
+  // Ensure that we only drift electrons in the active volume
+  if (solidName != "ACTIVE")
+    return;
+
   // Insert hits
   InsertHits(x0, y0, z0, t0);
 
   // Print Electric Field
-  // PlotElectricField(x0, y0, z0);
+  // PrintElectricField(x0, y0, z0);
 
   G4double xi,yi,zi,ti;
   
@@ -249,7 +260,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
         fSensor->AddComponent(componentDriftLEM);
         
         // Set the region where the sensor is active -- based on the gas volume
-        // fSensor->SetArea(-GH_.DetChamberR_, -GH_.DetChamberR_, -GH_.DetChamberL_/2.0, GH_.DetChamberR_, GH_.DetChamberR_, GH_.DetChamberL_/2.0); // cm
+        // fSensor->SetArea(-GH_.DetChamberR_, -GH_.DetChamberR_, -GH_.DetChamberL_, GH_.DetChamberR_, GH_.DetChamberR_, GH_.CathodePos_); // cm
 
     }
     else {
@@ -305,8 +316,8 @@ Garfield::ComponentUser* GarfieldVUVPhotonModel::SetComponentField(){
     //  ---- Create the Garfield Field region --- 
     Garfield::GeometrySimple* geo = new Garfield::GeometrySimple();
 
-    // Tube oriented in Y'axis (0.,1.,0.,) The addition of the 1 cm is for making sure it doesnt fail on the boundary
-    Garfield::SolidTube* tube = new Garfield::SolidTube(GH_.origin_.x(), GH_.origin_.y() ,GH_.origin_.z(), GH_.DetChamberR_+1, GH_.DetChamberL_*0.5, 0.,0.,1.);
+    // Tube oriented in z-axis (0.,0.,1.,) The addition of the 1 cm is for making sure it doesnt fail on the boundary
+    Garfield::SolidTube* tube = new Garfield::SolidTube(GH_.origin_.x(), GH_.origin_.y() ,GH_.origin_.z(), GH_.DetChamberR_+1, GH_.DetChamberL_, 0.,0.,1.);
 
     // Add the solid to the geometry, together with the medium inside
     geo->AddSolid(tube, fMediumMagboltz);
@@ -324,7 +335,7 @@ Garfield::ComponentUser* GarfieldVUVPhotonModel::SetComponentField(){
     // Define a field region for the whole gas region
 
     // Set ez for regions outside of the radius of the FC
-    if ( std::sqrt(x*x + y*y) > GH_.DetActiveR_/2.0){
+    if ( std::sqrt(x*x + y*y) > GH_.DetActiveR_){
         ez = -GH_.fieldDrift_; // Negative field will send them away from the LEM region
     }
 
@@ -612,61 +623,47 @@ void GarfieldVUVPhotonModel::ComputeCumulativeDistribution(
 
 G4bool GarfieldVUVPhotonModel::CheckXYBoundsPolygon(std::vector<G4double> point){
 
-  // This code checks if a point is inside a polygon (needed for checking if
-  // inside the drift tube which has an octagonal shape).
-  // It works by counting intersections of the point in the horizontal plane
-  // as described in 
-  // https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
-  
+  // This function checks if a point is inside a polygon (needed for checking if
+    // inside the drift tube which has an octagonal-like shape).
+    // It works by counting intersections of the point in the horizontal plane
+    // as described in 
+    // https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
+    
 
-  G4int num_vertices = polygon_[0].size();
-  G4double x = point[0], y = point[1];
-  G4bool inside = false;
+    G4double x = point[0], y = point[1];
+    G4bool inside = false;
 
-  // Store the first point in the polygon and initialize
-  // the second point
-  std::vector<G4double> p1 = {polygon_[0][0],polygon_[1][0]};
+    // Store the first point in the polygon and initialize the second point
+    std::vector<G4double> p1 = {polygon_[0][0],polygon_[0][1]};
 
-  // Loop through each edge in the polygon
-  for (G4int i = 1; i <= num_vertices; i++) {
+    // Loop through each edge in the polygon
+    for (G4int i = 1; i <= GH_.nsides_; i++) {
+      
       // Get the next point in the polygon
-      std::vector<G4double> p2 ={polygon_[0][i % num_vertices], polygon_[1][i % num_vertices]};
+      std::vector<G4double> p2 ={polygon_[i % GH_.nsides_][0], polygon_[i % GH_.nsides_][1]};
 
-      // Check if the point is above the minimum y
-      // coordinate of the edge
-      if (y > min(p1[1], p2[1])) {
-          // Check if the point is below the maximum y
-          // coordinate of the edge
-          if (y <= max(p1[1], p2[1])) {
-              // Check if the point is to the left of the
-              // maximum x coordinate of the edge
-              if (x <= max(p1[0], p2[0])) {
-                  // Calculate the x-intersection of the
-                  // line connecting the point to the edge
-                  G4double x_intersection
-                      = (y - p1[1]) * (p2[0] - p1[0])
-                            / (p2[1] - p1[1])
-                        + p1[0];
+      // 1. Check if the point is above the minimum y coordinate of the edge
+      // 2. Check if the point is below the maximum y coordinate of the edge
+      // 3. Check if the point is to the left of the maximum x coordinate of the edge
+      if ( (y > std::min(p1[1], p2[1])) && (y <= std::max(p1[1], p2[1])) && (x <= std::max(p1[0], p2[0])) ) {
 
-                  // Check if the point is on the same
-                  // line as the edge or to the left of
-                  // the x-intersection
-                  if (p1[0] == p2[0]
-                      || x <= x_intersection) {
-                      // Flip the inside flag
-                      inside = !inside;
-                  }
-              }
-          }
+        // Calculate the x-intersection of the line connecting the point to the edge
+        G4double x_intersection = (y - p1[1]) * (p2[0] - p1[0]) / (p2[1] - p1[1]) + p1[0];
+
+        // Check if the point is on the same line as the edge or to the left of
+        // the x-intersection
+        if (p1[0] == p2[0] || x <= x_intersection) {
+          // Flip the inside flag
+          inside = !inside;
+        }
       }
 
-      // Store the current point as the first point for
-      // the next iteration
-      p1 = p2;
-  }
-
-  // Return the value of the inside flag
-  return inside;
+        // Store the current point as the first point for the next iteration
+        p1 = p2;
+    }
+   
+    // Return the value of the inside flag
+    return inside;
 }
 
 void GarfieldVUVPhotonModel::InitalizePolygon(){

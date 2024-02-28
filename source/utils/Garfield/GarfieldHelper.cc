@@ -46,26 +46,26 @@ namespace nexus {
 
     std::cout << 
     "\n\nPrinting Garfield geometry params\n"
-    "Chamber Radius: "        << DetChamberR_ << " cm"    << "\n" <<
-    "Chamber Length: "        << DetChamberL_ << " cm"    << "\n" <<
-    "Active Radius: "         << DetActiveR_  << " cm"    << "\n" <<
-    "Chamber length: "        << DetActiveL_  << " cm"    << "\n" <<
-    "Cathode Position: "      << CathodePos_  << " cm"    << "\n" <<
-    "EL Position: "           << ELPos_       << " cm"    << "\n" <<
-    "N polygon sides: "       << nsides_      << "   "    << "\n" <<
-    "Gas Pressure: "          << GasPressure_ << " Pa"    << "\n" <<
-    "EL Gap: "                << gap_EL_      << " cm"    << "\n" <<
-    "OriginXYZ: "             << "( " << origin_.x()      << ", " << 
-                              origin_.y()     << ", "     << origin_.z() 
-                              << ") cm" <<"\n"<<
-    "Drift Field: "           << fieldDrift_  << " V/cm"  << "\n" <<
-    "EL Field: "              << fieldEL_     << " kV/cm" << "\n" <<
-    "Drift Velocity: "        << v_drift_     << " mm/ns" << "\n" <<
-    "EL Drift Velocity: "     << v_drift_el_  << " mm/ns" << "\n" <<
-    "Electron Lifetime: "     << e_lifetime_  << " ns"    << "\n" <<
-    "COMSOL: "                << useCOMSOL_   << "  "     << "\n" <<
-    "Generate from EL file: " << useELFile_   << "  "     << "\n" <<
-    "DEGRAD: "                << useDEGRAD_   << "  "     << "\n" <<
+    "Chamber Radius: "        << DetChamberR_     << " cm"    << "\n" <<
+    "Chamber Length: "        << DetChamberL_     << " cm"    << "\n" <<
+    "Active Radius: "         << DetActiveR_      << " cm"    << "\n" <<
+    "Chamber length: "        << DetActiveL_      << " cm"    << "\n" <<
+    "Cathode Position: "      << CathodePos_      << " cm"    << "\n" <<
+    "EL Position: "           << ELPos_           << " cm"    << "\n" <<
+    "N polygon sides: "       << nsides_          << "   "    << "\n" <<
+    "Gas Pressure: "          << GasPressure_/bar << " bar"   << "\n" <<
+    "EL Gap: "                << gap_EL_          << " cm"    << "\n" <<
+    "OriginXYZ: "             << "( "     << origin_.x()      << ", " << 
+                              origin_.y()         << ", "     << origin_.z() 
+                              << ") cm" <<"\n"    <<
+    "Drift Field: "           << fieldDrift_      << " V/cm"  << "\n" <<
+    "EL Field: "              << fieldEL_         << " kV/cm" << "\n" <<
+    "Drift Velocity: "        << v_drift_*microsecond     << " mm/us" << "\n" <<
+    "EL Drift Velocity: "     << v_drift_el_*microsecond  << " mm/us" << "\n" <<
+    "Electron Lifetime: "     << e_lifetime_/ms           << " ms"    << "\n" <<
+    "COMSOL: "                << useCOMSOL_               << "  "     << "\n" <<
+    "Generate from EL file: " << useELFile_               << "  "     << "\n" <<
+    "DEGRAD: "                << useDEGRAD_               << "  "     << "\n" <<
     std::endl;
 
   }
