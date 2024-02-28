@@ -21,9 +21,6 @@
 #include <G4SDManager.hh>
 #include <G4HCtable.hh>
 #include <globals.hh>
-// Krishan Garfield specific code
-#include "DegradModel.h"
-#include "G4GlobalFastSimulationManager.hh"
 
 
 namespace nexus {
@@ -70,19 +67,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       G4cout << " >> Event no. " << nevt_  << G4endl;
       if (nevt_  == (10 * nupdate_)) nupdate_ *= 10;
     }
-
-    // Krishan: Garfield specific code
-    DegradModel* dm = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
-    if(dm)
-        dm->Reset();
-
-    G4PrimaryVertex* pVtx;
-    pVtx = event->GetPrimaryVertex();
-    if (pVtx)
-      {
-        G4double PKE = pVtx->GetPrimary(0)->GetKineticEnergy();
-        dm->SetPrimaryKE(PKE/eV);
-      }
 
   }
 

@@ -34,7 +34,7 @@ DegradModel::~DegradModel() {}
 G4bool DegradModel::IsApplicable(const G4ParticleDefinition& particleType) {
 
     if (GH_.useDEGRAD_){
-        if (particleType.GetParticleName()=="e-" || particleType.GetParticleName()=="gamma" || particleType.GetParticleName()=="e+")
+        if (particleType.GetParticleName()== "e-" || particleType.GetParticleName()== "gamma" || particleType.GetParticleName()== "e+")
             return true;
         else
             return false;
@@ -45,10 +45,10 @@ G4bool DegradModel::IsApplicable(const G4ParticleDefinition& particleType) {
 }
 
 G4bool DegradModel::ModelTrigger(const G4FastTrack& fastTrack) {
-    G4int id = fastTrack.GetPrimaryTrack()->GetParentID();
     
     //  also require that only photoelectric effect electrons are tracked here.
     // Krishan turn this off since now we are running the gammas
+    // G4int id = fastTrack.GetPrimaryTrack()->GetParentID();
     // if (id == 1){
     //     if ( (fastTrack.GetPrimaryTrack()->GetCreatorProcess()->GetProcessName().find("phot") != std::string::npos) ||
     //          (fastTrack.GetPrimaryTrack()->GetCreatorProcess()->GetProcessName().find("comp") != std::string::npos))
@@ -91,6 +91,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
         G4String seed = G4UIcommand::ConvertToString(SEED);
 
         // Gamma KE
+        fPrimKE = fastTrack.GetPrimaryTrack()->GetKineticEnergy()/eV;
         G4int KE = int(fPrimKE); // in eV
         G4String particleKE(","+std::to_string(KE));
 
