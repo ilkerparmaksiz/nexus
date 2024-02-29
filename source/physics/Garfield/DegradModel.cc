@@ -25,9 +25,6 @@ DegradModel::DegradModel(G4String modelName, G4Region* envelope, GarfieldHelper 
     
     GH_ = GH;
 
-    processOccured = false;
-
-
 }
 
 DegradModel::~DegradModel() {}
@@ -78,81 +75,71 @@ G4bool DegradModel::ModelTrigger(const G4FastTrack& fastTrack) {
 
 void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
 
-    // Here we start by killing G4's naive little one photo-electron.
-    // Then we run degrad with a photon of desired energy. Then we read up all the electrons it produces.
-
     // To run degrad, we have to write the input parameters to a string
     // The string documentation is in the start of the degrad fortran file
     // The output file from degrad is then read back in
 
+
+    // Start by killing G4's primary before it deposits any energy.
     fastStep.KillPrimaryTrack();
 
-    if(!processOccured){
-        
-        // Initialization
-        G4ThreeVector degradPos =fastTrack.GetPrimaryTrack()->GetVertexPosition();
-        G4double degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
-        fastStep.SetPrimaryTrackPathLength(0.0);
-        G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
-        
-        
-        // Input parameters
-        G4int SEED=CLHEP::HepRandom::getTheSeed() + G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
-        G4String seed = G4UIcommand::ConvertToString(SEED);
+    // Initialization
+    G4ThreeVector degradPos =fastTrack.GetPrimaryTrack()->GetVertexPosition();
+    G4double degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
+    fastStep.SetPrimaryTrackPathLength(0.0);
+    G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
 
-        // Gamma KE
-        std::cout <<"The particle energy is: " << fPrimKE*eV << "MeV" << std::endl;
-        G4int KE = int(fPrimKE); // in eV
-        G4String particleKE(","+std::to_string(KE));
+    // Input parameters
+    G4int SEED=CLHEP::HepRandom::getTheSeed() + G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+    G4String seed = G4UIcommand::ConvertToString(SEED);
 
-        G4String particle_name = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
+    // Gamma KE
+    std::cout <<"The particle energy is: " << fPrimKE*eV << "MeV" << std::endl;
+    G4int KE = int(fPrimKE); // in eV
+    G4String particleKE(","+std::to_string(KE));
 
-        G4String degrad_mode = "0";
-        if (particle_name == "gamma"){
-            degrad_mode = "3";
-            std::cout << "The particle is a gamma"<< std::endl;
-        }
-        // Assume its an electron then
-        else{
-            degrad_mode = "2";
-            std::cout << "The particle is an electron/positron"<< std::endl;
-        }
-        
-        std::cout << "The degrad mode is: " << degrad_mode << std::endl;
+    G4String particle_name = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
 
-        // Xenon Pressure
-        const static G4double torr = 1. / 750.062 * bar;
-        G4int Press = GH_.GasPressure_/torr;  // Krishan: need to make sure the gas pressure is in the right units here -- Degrad takes torr units
-        std::cout << "The gas pressure is:" << Press<< std::endl;
-        G4String xenonP(","+std::to_string(Press));
-        
-        // Electric field
-         G4int Efield = 500; // V/cm  
-         G4String Efield_str(std::to_string(Efield));
-
-        // Create the input card
-        // Note the exact precision in below arguments. The integers gammaKE,xenonP in particular need a ".0" tacked on. 
-        G4String degradString="printf \"1,1,"+degrad_mode+",2,"+seed+particleKE+".0,7.0,10000.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0"+xenonP+".0\n"+Efield_str+".0,0.0,0.0,2,0\n100.0,0.5,0,0,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
-        // G4String degradString="printf \"1,1,3,-1,"+seed+gammaKE+".0,7.0,0.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0"+xenonP+".0\n"+Efield_str+".0,0.0,0.0,2,0\n100.0,0.5,1,1,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
-        // Execute
-        G4int stdout=system(degradString.data());
-        G4cout << degradString << G4endl;
-        const std::string degradpath = std::getenv("DEGRAD_HOME");
-        G4cout << degradpath << G4endl;
-        std::string exec = "/Degrad < conditions_Degrad.txt";
-        std::string full_path = degradpath + exec;
-        const char *mychar = full_path.c_str();
-        G4cout << mychar << G4endl;
-        stdout=system(mychar);
-        stdout=system("./scripts/convertDegradFile.py");
-
-        GetElectronsFromDegrad(fastStep,degradPos,degradTime);
-        
-        // We call Degrad only once, which now that we have the x,y,z location of our primary Xray interaction, re-simulates that interaction. 
-        // Note the 5900 in the Degrad config file. The above system() line forces the single Degrad execution. EC, 2-Dec-2021.
-        // Krishan - Turn this off so we can try to generate multiple particles above threshold
-        // processOccured=true; 
+    G4String degrad_mode = "0";
+    if (particle_name == "gamma"){
+        degrad_mode = "3";
+        std::cout << "The particle is a gamma"<< std::endl;
     }
+    // Assume its an electron then
+    else{
+        degrad_mode = "2";
+        std::cout << "The particle is an electron/positron"<< std::endl;
+    }
+    
+    std::cout << "The degrad mode is: " << degrad_mode << std::endl;
+
+    // Xenon Pressure
+    const static G4double torr = 1. / 750.062 * bar;
+    G4int Press = GH_.GasPressure_/torr; // Use torr in Degrad
+    std::cout << "The gas pressure is:" << Press<< std::endl;
+    G4String xenonP(","+std::to_string(Press));
+    
+    // Electric field
+    G4int Efield = 500; // V/cm  
+    G4String Efield_str(std::to_string(Efield));
+
+    // Create the input card
+    // Note the exact precision in below arguments. The integers gammaKE,xenonP in particular need a ".0" tacked on. 
+    G4String degradString="printf \"1,1,"+degrad_mode+",2,"+seed+particleKE+".0,7.0,10000.0\n7,0,0,0,0,0\n100.0,0.0,0.0,0.0,0.0,0.0,20.0"+xenonP+".0\n"+Efield_str+".0,0.0,0.0,2,0\n100.0,0.5,0,0,1,1,1,1,1\n0,0,0,0,0,0\" > conditions_Degrad.txt";
+    G4int stdout=system(degradString.data());
+
+    // Execute degrad
+    std::string degrad_exec = std::string(std::getenv("DEGRAD_HOME")) + "/Degrad < conditions_Degrad.txt";
+    const char *degrad_exec_str = degrad_exec.c_str();
+    stdout=system(degrad_exec_str);
+    
+    // Convert file format
+    std::string conv_path = std::string(std::getenv("NEXUSDIR")) + "/scripts/convertDegradFile.py";
+    const char *conv_path_str = conv_path.c_str();
+    stdout=system(conv_path_str);
+
+    // Load the file and pop ie- and S1 to the stack
+    GetElectronsFromDegrad(fastStep,degradPos,degradTime);
 
 }
 

@@ -33,17 +33,12 @@ namespace nexus{
         virtual G4bool ModelTrigger(const G4FastTrack&);
         virtual void DoIt(const G4FastTrack&, G4FastStep&);
         inline G4bool FindParticleName(G4String s){if(s=="e-") return true; return false;};
-        inline void Reset(){processOccured=false;};
         void SetPrimaryKE(G4double KE) {fPrimKE = KE;};
 
         private:
         void GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime);
 
         G4double fPrimKE; // Primary kinetic energy of the particle
-        G4bool processOccured;
-
-
-        char* crab_path; // Path to the root directory
 
         GarfieldHelper GH_;
 
