@@ -42,7 +42,7 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     GH_ = GH;
     GH_.DumpParams();
     ionMobFile = "IonMobility_Xe+_P12_Xe.txt";
-    gasFile = "data/Xenon_10Bar.gas";
+    gasFile = "Xenon_10Bar.gas";
     InitialisePhysics();
     BuildThePhysicsTable();
   
@@ -153,6 +153,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
   // Insert hits
   InsertHits(x0, y0, z0, t0);
+  // return;
 
   // Print Electric Field
   // PrintElectricField(x0, y0, z0);
@@ -236,7 +237,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
       fMediumMagboltz->LoadIonMobility(garfpath + "/Data/" + ionMobFile);
     
     if(gasFile!=""){
-      fMediumMagboltz->LoadGasFile(gasFile.c_str());
+      fMediumMagboltz->LoadGasFile(nexus_path + "/data/" + gasFile.c_str());
       std::cout << "Loaded gasfile "<< gasFile << std::endl;
     }
 
