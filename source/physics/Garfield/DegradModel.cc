@@ -16,6 +16,7 @@
 #include "IonizationElectron.h"
 #include "G4GenericMessenger.hh"
 #include <G4OpticalPhoton.hh>
+#include <G4RunManager.hh>
 
 using namespace nexus;
 
@@ -96,7 +97,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
         
         
         // Input parameters
-        G4int SEED=CLHEP::HepRandom::getTheSeed();
+        G4int SEED=CLHEP::HepRandom::getTheSeed() + G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
         G4String seed = G4UIcommand::ConvertToString(SEED);
 
         // Gamma KE
