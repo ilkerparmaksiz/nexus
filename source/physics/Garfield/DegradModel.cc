@@ -17,6 +17,8 @@
 #include "G4GenericMessenger.hh"
 #include <G4OpticalPhoton.hh>
 #include <G4RunManager.hh>
+#include "GarfieldVUVPhotonModel.h"
+#include "G4GlobalFastSimulationManager.hh"
 
 using namespace nexus;
 
@@ -67,6 +69,19 @@ G4bool DegradModel::ModelTrigger(const G4FastTrack& fastTrack) {
         std::cout << "Primary gamma energy larger than what Degrad can simulate, will use G4 generation" << std::endl;
         return false;
     }
+
+    // We should only simulate particles if the interaction was on the xenon
+    G4String solidName = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()
+                                  ->LocateGlobalPointAndSetup(fastTrack.GetPrimaryTrack()->GetVertexPosition())->GetName();
+
+    if (solidName != "ACTIVE")
+        return false;
+
+
+    // Zero out the counters to reset the nexcitations, which is cumulative.
+    GarfieldVUVPhotonModel* gvm = (GarfieldVUVPhotonModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("GarfieldVUVPhotonModel"));
+    if(gvm)
+      gvm->Reset(); 
 
     return true; // Now return true
     // return false;
