@@ -134,7 +134,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     stdout=system(degrad_exec_str);
     
     // Convert file format
-    std::string conv_path = std::string(std::getenv("NEXUSDIR")) + "/scripts/convertDegradFile.py";
+    std::string conv_path = "python3 " + std::string(std::getenv("NEXUSDIR")) + "/scripts/convertDegradFile.py";
     const char *conv_path_str = conv_path.c_str();
     stdout=system(conv_path_str);
 
