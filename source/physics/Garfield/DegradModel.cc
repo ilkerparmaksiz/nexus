@@ -58,11 +58,6 @@ G4bool DegradModel::ModelTrigger(const G4FastTrack& fastTrack) {
     // Set the kinetic energy
     fPrimKE = fastTrack.GetPrimaryTrack()->GetKineticEnergy()/eV;
 
-    std::cout << "The track id is: " << fastTrack.GetPrimaryTrack()->GetTrackID() << std::endl;
-    if (id > 0 )
-        std::cout << "Was created via: " << fastTrack.GetPrimaryTrack()->GetCreatorProcess()->GetProcessName() << std::endl;
-
-
     // Krishan: Degrad handles gammas/X-Rays but not for energies > 2 MeV
     // The photoelectron should be produced though from the >= 2 MeV gammas
     if (fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName() == "gamma" && fPrimKE>= 2/eV){
@@ -167,6 +162,9 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
     G4double  posYInitial=degradPos.getY();
     G4double  posZInitial=degradPos.getZ();
     G4double  timeInitial=degradTime;
+    G4double  Fluorescence=0;
+    G4double  PairProd=0;
+    G4double  Brems=0;
     G4String line;
     std::vector<G4double> v;
     
@@ -203,19 +201,23 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
             }
             
             for (i=0;i<v.size();i=i+7){
-                posXDegrad=v[i];
-                posYDegrad=v[i+1];
-                posZDegrad=v[i+2];
-                timeDegrad=v[i+3];
-                //convert from um to mm in GEANT4
-                //also Y and Z axes are swapped in GEANT4 and Garfield++ relatively to Degrad
+                posXDegrad   = v[i];
+                posYDegrad   = v[i+1];
+                posZDegrad   = v[i+2];
+                timeDegrad   = v[i+3];
+                Fluorescence = v[i+4]; // 0 to N where N is the ie- for each N absorbed fluorescence photon in the event
+                PairProd     = v[i+5]; // 0: not from pair prod, 1: produced from electron track,     2: produced from positron track
+                Brems        = v[i+6]; // 0: not from brem,      1: produced from remaining electron, 2: produced from brem gamma
+                
+                // Convert from um to mm in GEANT4
+                // also Y and Z axes are swapped in GEANT4 and Garfield++ relatively to Degrad
                 posX=posXDegrad*0.001+posXInitial;
                 posY=posZDegrad*0.001+posYInitial;
                 posZ=posYDegrad*0.001+posZInitial;
                 // std::cout << "DegradModel::DoIt(): v[i-4]" << v[i] << "," << v[i+1] << "," << v[i+2] << "," << v[i+3] << "," << v[i+4]   << std::endl;
-                //std::cout << "DegradModel::DoIt(): xinitial, poxXDegrad [mm]" << posXInitial << ", " << posXDegrad*0.001 << std::endl;
+                // std::cout << "DegradModel::DoIt(): xinitial, poxXDegrad [mm]" << posXInitial << ", " << posXDegrad*0.001 << std::endl;
     
-                //convert ps to ns
+                // Convert ps to ns
                 time=timeDegrad*0.001+timeInitial;
                 
                 
@@ -224,25 +226,23 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 myPoint.setY(posY);
                 myPoint.setZ(posZ);
                 
-                //Check in which Physical volume the point bellongs
-                G4Navigator* theNavigator= G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
-                
-                G4VPhysicalVolume* myVolume = theNavigator->LocateGlobalPointAndSetup(myPoint);
-              
-                G4String solidName=myVolume->GetName();
+                //Check in which Physical volume the point bellongs              
+                G4String solidName = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()
+                                     ->LocateGlobalPointAndSetup(myPoint)->GetName();
                 
                 if (G4StrUtil::contains(solidName,"ACTIVE") ){
 
                     electronNumber++;
                     
+                    // if (Fluorescence ==0 && PairProd == 0 && (Brems == 0 || Brems == 1))std::cout << posXDegrad << ", " << posZDegrad << ", " << posYDegrad << ", " << time << ", " << v[i+4] << ", " << v[i+5] << ", " << v[i+6]   << std::endl;
+
                     // Create secondary electron
                     G4DynamicParticle electron(IonizationElectron::Definition(),G4RandomDirection(), 1.13*eV);
                     G4Track *newTrack=fastStep.CreateSecondaryTrack(electron, myPoint, time,false);
 
-                    // }
                 }
             }
-            v.clear(); //Faz reset ao vector senão vai continuar a adicionar os dadosadicionar os dados
+            v.clear(); // Faz reset ao vector senão vai continuar a adicionar os dadosadicionar os dados
             // nline=0;
             
         }
@@ -304,7 +304,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
 
 
         nline++;
-        
+
         
     }
     inFile.close();
