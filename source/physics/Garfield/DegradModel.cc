@@ -1,24 +1,9 @@
-#include "G4Electron.hh"
-#include "G4SystemOfUnits.hh"
 #include "DegradModel.h"
-#include "G4Region.hh"
-#include "G4ParticleDefinition.hh"
-#include "G4UnitsTable.hh"
-#include "G4Track.hh"
-#include "Randomize.hh"
-#include "G4UIcommand.hh"
-#include <fstream>
-#include "G4TransportationManager.hh"
-#include "G4DynamicParticle.hh"
-#include "G4RandomDirection.hh"
-#include "G4VProcess.hh"
-// #include "NESTProc.hh"
 #include "IonizationElectron.h"
-#include "G4GenericMessenger.hh"
-#include <G4OpticalPhoton.hh>
-#include <G4RunManager.hh>
 #include "GarfieldVUVPhotonModel.h"
-#include "G4GlobalFastSimulationManager.hh"
+
+#include <G4TransportationManager.hh>
+#include <G4GlobalFastSimulationManager.hh>
 
 using namespace nexus;
 
@@ -157,49 +142,47 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
 
 void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime)
 {
-    G4int eventNumber,Nep, nline, i, electronNumber, S1Number; //Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
-    G4double posX,posY,posZ,time,n;
-    G4double  posXDegrad,posYDegrad,posZDegrad,timeDegrad;
-    G4double  posXInitial=degradPos.getX();
-    G4double  posYInitial=degradPos.getY();
-    G4double  posZInitial=degradPos.getZ();
-    G4double  timeInitial=degradTime;
-    G4double  Fluorescence=0;
-    G4double  PairProd=0;
-    G4double  Brems=0;
-    G4String line;
+    G4int eventNumber, Nep, Nexc, nline, i, electronNumber, S1Number; // Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
+    G4double  posX, posY, posZ, time, n;
+    G4double  posXDegrad, posYDegrad, posZDegrad, timeDegrad;
+    G4double  posXInitial = degradPos.getX();
+    G4double  posYInitial = degradPos.getY();
+    G4double  posZInitial = degradPos.getZ();
+    G4double  timeInitial = degradTime;
+    G4double  Fluorescence = 0;
+    G4double  PairProd = 0;
+    G4double  Brems = 0;
+    G4String  line;
     std::vector<G4double> v;
     
     std::ifstream inFile;
     G4String fname= "DEGRAD.OUT";
     inFile.open(fname,std::ifstream::in);
     
-    G4cout<< "Working in "<<fname<<G4endl;
-    
     nline=1;
     electronNumber=0;
     S1Number=0;
     while (getline(inFile, line,'\n')) {
         
-        std::istringstream iss(line);//stream de strings
+        std::istringstream iss(line);
         
         if (nline ==1) {
             while (iss >> n) {
                 v.push_back(n);
             }
             
-            eventNumber=v[0];
-            Nep=v[1];
-            //  Nexc=v[2];
+            eventNumber = v[0];
+            Nep =v[1];
+            Nexc = v[2];
             v.clear();
         }
-        //Ionizations
+        // Ionizations
         if (nline ==2)  {
             
-            fastStep.SetNumberOfSecondaryTracks(1E6); // reasonable max # of electrons created by degrad
+            fastStep.SetNumberOfSecondaryTracks(2E6); // reasonable max # of ie-/excitations created by degrad
             
             while (iss >> n) {
-                v.push_back(n); //o n é adicionado ao vector
+                v.push_back(n);
             }
             
             for (i=0;i<v.size();i=i+7){
@@ -223,7 +206,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 
                 G4ThreeVector myPoint(posX, posY, posZ);
                 
-                //Check in which Physical volume the point bellongs              
+                // Check in which Physical volume the point belongs              
                 G4String solidName = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()
                                      ->LocateGlobalPointAndSetup(myPoint)->GetName();
 
@@ -243,47 +226,33 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
 
                 }
             }
-            v.clear(); // Faz reset ao vector senão vai continuar a adicionar os dadosadicionar os dados
-            // nline=0;
-            
+            v.clear();
         }
         // Excitations
         if (nline == 3)  {
             
             while (iss >> n) {
-                v.push_back(n); //o n é adicionado ao vector
+                v.push_back(n);
             }
-
-            std::cout << v.size() << std::endl;
             
             for (i=0;i<v.size();i=i+4){
                 posXDegrad=v[i];
                 posYDegrad=v[i+1];
                 posZDegrad=v[i+2];
                 timeDegrad=v[i+3];
-                //convert from um to mm in GEANT4
-                //also Y and Z axes are swapped in GEANT4 and Garfield++ relatively to Degrad
+                
+                // Convert from um to mm in GEANT4
+                // also Y and Z axes are swapped in GEANT4 and Garfield++ relatively to Degrad
                 posX=posXDegrad*0.001+posXInitial;
                 posY=posZDegrad*0.001+posYInitial;
                 posZ=posYDegrad*0.001+posZInitial;
-                // std::cout << "DegradModel::DoIt(): v[i-4]" << v[i] << "," << v[i+1] << "," << v[i+2] << "," << v[i+3] << "," << v[i+4]   << std::endl;
-                //std::cout << "DegradModel::DoIt(): xinitial, poxXDegrad [mm]" << posXInitial << ", " << posXDegrad*0.001 << std::endl;
-    
-                //convert ps to ns
-                time=timeDegrad*0.001+timeInitial;
+                time=timeDegrad*0.001+timeInitial; // Convert ps to ns
                 
+                G4ThreeVector myPoint(posX, posY, posZ);
                 
-                G4ThreeVector myPoint;
-                myPoint.setX(posX);
-                myPoint.setY(posY);
-                myPoint.setZ(posZ);
-                
-                //Check in which Physical volume the point bellongs
-                G4Navigator* theNavigator= G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
-                
-                G4VPhysicalVolume* myVolume = theNavigator->LocateGlobalPointAndSetup(myPoint);
-              
-                G4String solidName=myVolume->GetName();
+                // Check in which Physical volume the point belongs
+                G4String solidName = G4TransportationManager::GetTransportationManager()
+                                     ->GetNavigatorForTracking()->LocateGlobalPointAndSetup(myPoint)->GetName();
                 
                 if (G4StrUtil::contains(solidName,"ACTIVE")){
 
@@ -295,23 +264,20 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                     G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, myPoint, time ,false);
                     newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
 
-                    // }
                 }
             }
-            v.clear(); //Faz reset ao vector senão vai continuar a adicionar os dadosadicionar os dados
+            v.clear();
             nline=0;
             
         }
 
-
         nline++;
 
-        
     }
+
     inFile.close();
     G4cout << "Number of initial electrons: " << electronNumber << G4endl;
     G4cout << "Number of initial S1: " << S1Number << G4endl;
-    
     
 }
 

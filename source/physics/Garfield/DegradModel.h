@@ -8,18 +8,11 @@
 #ifndef DEGRADMODEL_H_
 #define DEGRADMODEL_H_
 
-#include "G4ThreeVector.hh"
-#include "G4VFastSimulationModel.hh"
-#include "IonizationSD.h"
 #include "GarfieldHelper.h"
 
-
-class G4VPhysicalVolume;
-class G4GenericMessenger;
+#include <G4VFastSimulationModel.hh>
 
 namespace nexus{
-    class IonizationSD;
-    class GeometryBase;
     class DegradModel : public G4VFastSimulationModel {
      public:
         //-------------------------
