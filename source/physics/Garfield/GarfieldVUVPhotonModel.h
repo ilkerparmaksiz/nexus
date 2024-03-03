@@ -31,10 +31,6 @@
 #ifndef GarfieldVUVPhotonModel_h
 #define GarfieldVUVPhotonModel_h 1
 
-#include "G4OpAbsorption.hh"
-#include "G4OpRayleigh.hh"
-#include "G4OpWLS.hh"
-#include "G4OpBoundaryProcess.hh"
 #include "IOUtils.h"
 #include "G4GenericMessenger.hh"
 #include <G4PhysicsOrderedFreeVector.hh>
@@ -71,10 +67,6 @@ namespace nexus {
         
         void Reset();
 
-        void BuildThePhysicsTable();
-        void ComputeCumulativeDistribution(const G4PhysicsOrderedFreeVector&,
-                                       G4PhysicsOrderedFreeVector&);
-        
         // Function to set the electric field
         // Use cylindrical field in any case with some padding to stop Garfield
         // throwing excptions where field is not defined
@@ -97,9 +89,6 @@ namespace nexus {
 
         // Function to add an electron lifetime survival rate
         G4bool GetAttachment(G4double t);
-
-        // Function to get the photon polarization
-        void GetPhotonPol(G4ThreeVector &momentum, G4ThreeVector &polarization);
 
         // Function to check the position is inside a polygon
         // Used for light tubes which have a polygon shape with n sides

@@ -32,6 +32,7 @@
 #include "Trajectory.h"
 #include "TrajectoryMap.h"
 #include "XenonProperties.h"
+#include "PhysicsUtils.h"
 
 namespace nexus{
 
@@ -44,7 +45,7 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     ionMobFile = "IonMobility_Xe+_P12_Xe.txt";
     gasFile = "Xenon_10Bar.gas";
     InitialisePhysics();
-    BuildThePhysicsTable();
+    BuildThePhysicsTable(theFastIntegralTable_);
   
 }
 
@@ -523,104 +524,6 @@ G4bool GarfieldVUVPhotonModel::GetAttachment(G4double t){
   // Determine if survival occurred based on the random number
   return randNum < survivalProb;
 }
-
-void GarfieldVUVPhotonModel::GetPhotonPol(G4ThreeVector &momentum, G4ThreeVector &polarization){
-  // Generate a random direction for the photon
-  // (EL is supposed isotropic)
-  G4double cos_theta = 1. - 2.*G4UniformRand();
-  G4double sin_theta = sqrt((1.-cos_theta)*(1.+cos_theta));
-
-  G4double phi = twopi * G4UniformRand();
-  G4double sin_phi = sin(phi);
-  G4double cos_phi = cos(phi);
-
-  G4double px = sin_theta * cos_phi;
-  G4double py = sin_theta * sin_phi;
-  G4double pz = cos_theta;
-
-  momentum.setX(px);
-  momentum.setY(py);
-  momentum.setZ(pz);
-
-  // Determine photon polarization accordingly
-  G4double sx = cos_theta * cos_phi;
-  G4double sy = cos_theta * sin_phi;
-  G4double sz = -sin_theta;
-
-  polarization.setX(sx);
-  polarization.setY(sy);
-  polarization.setZ(sz);
-
-  G4ThreeVector perp = momentum.cross(polarization);
-
-  phi = twopi * G4UniformRand();
-  sin_phi = sin(phi);
-  cos_phi = cos(phi);
-
-  polarization = cos_phi * polarization + sin_phi * perp;
-
-  return;
-}
-
-
-void GarfieldVUVPhotonModel::BuildThePhysicsTable()
-{
-  if (theFastIntegralTable_) return;
-
-  const G4MaterialTable* theMaterialTable = G4Material::GetMaterialTable();
-  G4int numOfMaterials = G4Material::GetNumberOfMaterials();
-
-  // create new physics table
-
-  if(!theFastIntegralTable_)
-    theFastIntegralTable_ = new G4PhysicsTable(numOfMaterials);
-
-  for (G4int i=0 ; i<numOfMaterials; i++) {
-
-  	G4PhysicsOrderedFreeVector* aPhysicsOrderedFreeVector =
-  	  new G4PhysicsOrderedFreeVector();
-
-  	// Retrieve vector of scintillation wavelength intensity for
-  	// the material from the material's optical properties table.
-
-  	G4Material* material = (*theMaterialTable)[i];
-
-    G4MaterialPropertiesTable* mpt = material->GetMaterialPropertiesTable();
-
-    if (mpt) {
-
-  	  G4MaterialPropertyVector* theFastLightVector =
-  	    mpt->GetProperty("ELSPECTRUM");
-
-  	  if (theFastLightVector) {
-        ComputeCumulativeDistribution(*theFastLightVector, *aPhysicsOrderedFreeVector);
-		  }
-  	}
-
-  	// The scintillation integral(s) for a given material
-  	// will be inserted in the table(s) according to the
-  	// position of the material in the material table.
-
-  	theFastIntegralTable_->insertAt(i,aPhysicsOrderedFreeVector);
-  }
-}
-
-
-
-void GarfieldVUVPhotonModel::ComputeCumulativeDistribution(
-  const G4PhysicsOrderedFreeVector& pdf, G4PhysicsOrderedFreeVector& cdf)
-{
-  G4double sum = 0.;
-  cdf.InsertValues(pdf.Energy(0), sum);
-
-  for (unsigned int i=1; i<pdf.GetVectorLength(); ++i) {
-    G4double area =
-      0.5 * (pdf.Energy(i) - pdf.Energy(i-1)) * (pdf[i] + pdf[i-1]);
-    sum = sum + area;
-    cdf.InsertValues(pdf.Energy(i), sum);
-  }
-}
-
 
 G4bool GarfieldVUVPhotonModel::CheckXYBoundsPolygon(std::vector<G4double> point){
 
