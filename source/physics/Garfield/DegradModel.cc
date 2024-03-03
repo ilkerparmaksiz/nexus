@@ -26,6 +26,8 @@ DegradModel::DegradModel(G4String modelName, G4Region* envelope, GarfieldHelper 
     : G4VFastSimulationModel(modelName, envelope){
     
     GH_ = GH;
+    end_time = -1;
+    track_end_pos = G4ThreeVector(0,0,0);
 
 }
 
@@ -214,21 +216,20 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 posX=posXDegrad*0.001+posXInitial;
                 posY=posZDegrad*0.001+posYInitial;
                 posZ=posYDegrad*0.001+posZInitial;
+                time=timeDegrad*0.001+timeInitial; // Convert ps to ns
+
                 // std::cout << "DegradModel::DoIt(): v[i-4]" << v[i] << "," << v[i+1] << "," << v[i+2] << "," << v[i+3] << "," << v[i+4]   << std::endl;
                 // std::cout << "DegradModel::DoIt(): xinitial, poxXDegrad [mm]" << posXInitial << ", " << posXDegrad*0.001 << std::endl;
-    
-                // Convert ps to ns
-                time=timeDegrad*0.001+timeInitial;
                 
-                
-                G4ThreeVector myPoint;
-                myPoint.setX(posX);
-                myPoint.setY(posY);
-                myPoint.setZ(posZ);
+                G4ThreeVector myPoint(posX, posY, posZ);
                 
                 //Check in which Physical volume the point bellongs              
                 G4String solidName = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()
                                      ->LocateGlobalPointAndSetup(myPoint)->GetName();
+
+                // Set the track end position
+                if (Fluorescence == 0 && PairProd == 0 && (Brems == 0 || Brems == 1))
+                    SetTrackEndPoint(myPoint, time);
                 
                 if (G4StrUtil::contains(solidName,"ACTIVE") ){
 
@@ -314,4 +315,20 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
     
 }
 
+void DegradModel::SetTrackEndPoint(G4ThreeVector pos, G4double time){
+
+    if (time > end_time){
+        end_time = time;
+        track_end_pos = pos;
+    }
+
+}
+
+G4ThreeVector DegradModel::GetTrackEndPoint(){
+    return G4ThreeVector(track_end_pos);
+}
+
+G4double DegradModel::GetTrackEndTime(){
+    return end_time;
+}
 

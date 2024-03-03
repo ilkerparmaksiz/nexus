@@ -26,6 +26,8 @@ namespace nexus{
         // Constructor, destructor
         //-------------------------
         DegradModel(G4String, G4Region*, GarfieldHelper GH);
+        G4ThreeVector GetTrackEndPoint();
+        G4double GetTrackEndTime();
         ~DegradModel();
 
 
@@ -37,10 +39,14 @@ namespace nexus{
 
         private:
         void GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime);
+        void SetTrackEndPoint(G4ThreeVector pos, G4double time);
 
         G4double fPrimKE; // Primary kinetic energy of the particle
 
         GarfieldHelper GH_;
+
+        G4double      end_time;
+        G4ThreeVector track_end_pos;
 
     };
 }

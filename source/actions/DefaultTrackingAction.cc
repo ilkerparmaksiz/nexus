@@ -16,12 +16,15 @@
 #include "IonizationElectron.h"
 #include "FactoryBase.h"
 #include "NEST/G4/NESTS1Photon.hh"
+#include "DegradModel.h"
 
 #include <G4Track.hh>
 #include <G4TrackingManager.hh>
 #include <G4Trajectory.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4OpticalPhoton.hh>
+#include <G4GlobalFastSimulationManager.hh>
+#include <G4TransportationManager.hh>
 using namespace nexus;
 
 REGISTER_CLASS(DefaultTrackingAction, G4UserTrackingAction)
@@ -70,9 +73,18 @@ void DefaultTrackingAction::PostUserTrackingAction(const G4Track *track)
   // Do nothing if the track has no associated trajectory in the map
   if (!trj) return;
 
+  // Setting the track end positions from degrad
+  DegradModel* dm = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
+  if(dm && dm->GetTrackEndTime() != -1){
+    trj->SetFinalPosition(dm->GetTrackEndPoint());
+    trj->SetFinalTime(dm->GetTrackEndTime());
+  }
+  else {
+    trj->SetFinalPosition(track->GetPosition());
+    trj->SetFinalTime(track->GetGlobalTime());
+  }
+
   // Record final time and position of the track
-  trj->SetFinalPosition(track->GetPosition());
-  trj->SetFinalTime(track->GetGlobalTime());
   trj->SetTrackLength(track->GetTrackLength());
   trj->SetFinalVolume(track->GetVolume()->GetName());
   trj->SetFinalMomentum(track->GetMomentum());
