@@ -1,18 +1,23 @@
 #include "DegradModel.h"
 #include "IonizationElectron.h"
 #include "GarfieldVUVPhotonModel.h"
+#include "PhysicsUtils.h"
 
 #include <G4TransportationManager.hh>
 #include <G4GlobalFastSimulationManager.hh>
+#include <G4OpticalPhoton.hh>
+#include <G4RandomDirection.hh>
 
 using namespace nexus;
 
 DegradModel::DegradModel(G4String modelName, G4Region* envelope, GarfieldHelper GH)
-    : G4VFastSimulationModel(modelName, envelope){
+    : G4VFastSimulationModel(modelName, envelope), theFastIntegralTable_(0){
     
     GH_ = GH;
     end_time = -1;
     track_end_pos = G4ThreeVector(0,0,0);
+
+    BuildThePhysicsTable(theFastIntegralTable_);
 
 }
 
@@ -85,6 +90,16 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     G4double degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
     fastStep.SetPrimaryTrackPathLength(0.0);
     G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
+
+    // Set the scintialltion components based on the xenon
+    G4Material* mat = fastTrack.GetPrimaryTrack()->GetMaterial();
+    G4MaterialPropertiesTable* mpt = mat->GetMaterialPropertiesTable();
+
+    slow_comp_ = mpt->GetConstProperty("SCINTILLATIONTIMECONSTANT1");
+    slow_prob_ = mpt->GetConstProperty("SCINTILLATIONYIELD1");
+    fast_comp_ = mpt->GetConstProperty("SCINTILLATIONTIMECONSTANT2");
+    fast_prob_ = mpt->GetConstProperty("SCINTILLATIONYIELD2");
+    spectrum_integral = (G4PhysicsOrderedFreeVector*)(*theFastIntegralTable_)(mat->GetIndex());
 
     // Input parameters
     G4int SEED=CLHEP::HepRandom::getTheSeed() + G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
@@ -260,9 +275,19 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                     
                     // Create secondary electron
                     auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
-                    G4DynamicParticle VUVphoton(optphot,G4RandomDirection(), 7.2*eV);
+
+                    G4ThreeVector momentum, polarization;
+                    GetPhotonPol(momentum, polarization);
+
+                    // Get Photon energy
+                    G4double sc_max = spectrum_integral->GetMaxValue();
+                    G4double sc_value = G4UniformRand()*sc_max;
+                    G4double sampled_energy = spectrum_integral->GetEnergy(sc_value);
+                    
+                    G4DynamicParticle VUVphoton(optphot, momentum, sampled_energy);
+
                     G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, myPoint, time ,false);
-                    newTrack->SetPolarization(G4ThreeVector(0.,0.,1.0)); // Needs some pol'n, else we will only ever reflect at an OpBoundary. EC, 8-Aug-2022.
+                    newTrack->SetPolarization(polarization);
 
                 }
             }

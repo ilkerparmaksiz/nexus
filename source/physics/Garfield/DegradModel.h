@@ -11,6 +11,8 @@
 #include "GarfieldHelper.h"
 
 #include <G4VFastSimulationModel.hh>
+#include <G4PhysicsTable.hh>
+#include <G4PhysicsOrderedFreeVector.hh>
 
 namespace nexus{
     class DegradModel : public G4VFastSimulationModel {
@@ -40,6 +42,15 @@ namespace nexus{
 
         G4double      end_time;
         G4ThreeVector track_end_pos;
+
+        // Scintillation timing 
+        G4double slow_comp_; // ns
+        G4double slow_prob_; // %
+        G4double fast_comp_; // ns
+        G4double fast_prob_; // %
+
+        G4PhysicsTable* theFastIntegralTable_;
+        G4PhysicsOrderedFreeVector* spectrum_integral;
 
     };
 }
