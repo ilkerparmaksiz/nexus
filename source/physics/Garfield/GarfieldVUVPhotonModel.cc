@@ -423,9 +423,10 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
 void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti){
 
     // std::cout << "Generating Photons"<< std::endl;
-    const G4int el_gain = XenonELLightYield(GH_.fieldEL_*kilovolt/cm, GH_.GasPressure_)*GH_.gap_EL_; // E [kV/cm], P [bar], EL gap [cm]
+    // EL field in G4 units (V/mm), Pressure in G4 units (MeV/mm3), gap in G4 units (mm)
+    const G4int el_gain = XenonELLightYield(GH_.fieldEL_*kilovolt/cm, GH_.GasPressure_)*GH_.gap_EL_*cm; // E [V/mm], P [MeV/mm3], EL gap [mm]
 
-    // std::cout << " Yield is "<< el_gain <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_/cm << std::endl;
+    // std::cout << " Yield is "<< el_gain <<" Field " <<GH_.fieldEL_<< " Pressure  " << GH_.GasPressure_/bar<< " EL  " << GH_.gap_EL_*cm << std::endl;
     
     G4double tig4(0.);
 
