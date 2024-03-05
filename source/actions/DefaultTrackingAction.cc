@@ -75,9 +75,9 @@ void DefaultTrackingAction::PostUserTrackingAction(const G4Track *track)
 
   // Setting the track end positions from degrad
   DegradModel* dm = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
-  if(dm && dm->GetTrackEndTime() != -1){
-    trj->SetFinalPosition(dm->GetTrackEndPoint());
-    trj->SetFinalTime(dm->GetTrackEndTime());
+  if(dm && dm->GetCurrentTrackIndex(track->GetTrackID()) != -1){
+    trj->SetFinalPosition(dm->GetTrackEndPoint(track->GetTrackID()));
+    trj->SetFinalTime(dm->GetTrackEndTime(track->GetTrackID()));
   }
   else {
     trj->SetFinalPosition(track->GetPosition());

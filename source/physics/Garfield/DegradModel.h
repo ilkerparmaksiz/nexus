@@ -21,27 +21,32 @@ namespace nexus{
         // Constructor, destructor
         //-------------------------
         DegradModel(G4String, G4Region*, GarfieldHelper GH);
-        G4ThreeVector GetTrackEndPoint();
-        G4double GetTrackEndTime();
+        G4ThreeVector GetTrackEndPoint(G4int trk_id);
+        G4double GetTrackEndTime(G4int trk_id);
+        G4int GetCurrentTrackIndex(G4int trk_id); // Get the index of the track in the vector
         ~DegradModel();
 
 
         virtual G4bool IsApplicable(const G4ParticleDefinition&);
         virtual G4bool ModelTrigger(const G4FastTrack&);
         virtual void DoIt(const G4FastTrack&, G4FastStep&);
-        inline G4bool FindParticleName(G4String s){if(s=="e-") return true; return false;};
-        void SetPrimaryKE(G4double KE) {fPrimKE = KE;};
+        void Reset();
+        void AddTrack(G4int trk_id);
 
         private:
-        void GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime);
-        void SetTrackEndPoint(G4ThreeVector pos, G4double time);
+        void GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime, G4int trk_id);
+        void SetTrackEndPoint(G4ThreeVector pos, G4double time, G4int trk_index);
 
         G4double fPrimKE; // Primary kinetic energy of the particle
 
         GarfieldHelper GH_;
 
-        G4double      end_time;
-        G4ThreeVector track_end_pos;
+        G4int event_id_;
+        std::vector<G4double>      end_times_;
+        std::vector<G4ThreeVector> track_end_pos_;
+        G4bool degrad_status_; // Checks if degrad has been run
+
+        std::vector<G4int> track_ids_;
 
         // Scintillation timing 
         G4double slow_comp_; // ns

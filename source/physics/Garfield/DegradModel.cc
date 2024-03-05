@@ -14,8 +14,7 @@ DegradModel::DegradModel(G4String modelName, G4Region* envelope, GarfieldHelper 
     : G4VFastSimulationModel(modelName, envelope), theFastIntegralTable_(0){
     
     GH_ = GH;
-    end_time = -1;
-    track_end_pos = G4ThreeVector(0,0,0);
+    event_id_ = -1;
 
     BuildThePhysicsTable(theFastIntegralTable_);
 
@@ -81,13 +80,23 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     // The string documentation is in the start of the degrad fortran file
     // The output file from degrad is then read back in
 
+    // Reset variables if we are on a new event
+    G4int evt =  G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+    if (event_id_ !=  evt){
+        event_id_  = evt;
+        Reset();
+    }
+
+    // Get the current track ID
+    G4int trk_id = fastTrack.GetPrimaryTrack()->GetTrackID();
+    AddTrack(trk_id);
 
     // Start by killing G4's primary before it deposits any energy.
     fastStep.KillPrimaryTrack();
 
     // Initialization
-    G4ThreeVector degradPos =fastTrack.GetPrimaryTrack()->GetVertexPosition();
-    G4double degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
+    G4ThreeVector degradPos  = fastTrack.GetPrimaryTrack()->GetVertexPosition();
+    G4double      degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
     fastStep.SetPrimaryTrackPathLength(0.0);
     G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
 
@@ -102,7 +111,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     spectrum_integral = (G4PhysicsOrderedFreeVector*)(*theFastIntegralTable_)(mat->GetIndex());
 
     // Input parameters
-    G4int SEED=CLHEP::HepRandom::getTheSeed() + G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+    G4int SEED=CLHEP::HepRandom::getTheSeed() + evt;
     G4String seed = G4UIcommand::ConvertToString(SEED);
 
     // Gamma KE
@@ -151,11 +160,11 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     stdout=system(conv_path_str);
 
     // Load the file and pop ie- and S1 to the stack
-    GetElectronsFromDegrad(fastStep,degradPos,degradTime);
+    GetElectronsFromDegrad(fastStep,degradPos,degradTime,trk_id);
 
 }
 
-void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime)
+void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime, G4int trk_id)
 {
     G4int eventNumber, Nep, Nexc, nline, i, electronNumber, S1Number; // Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
     G4double  posX, posY, posZ, time, n;
@@ -185,10 +194,12 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
             while (iss >> n) {
                 v.push_back(n);
             }
-            
+
             eventNumber = v[0];
             Nep =v[1];
             Nexc = v[2];
+            G4cout << "Total ie-: " << Nep << G4endl;
+            G4cout << "Total S1: " << Nexc << G4endl;
             v.clear();
         }
         // Ionizations
@@ -226,8 +237,10 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                                      ->LocateGlobalPointAndSetup(myPoint)->GetName();
 
                 // Set the track end position
-                if (Fluorescence == 0 && PairProd == 0 && (Brems == 0 || Brems == 1))
-                    SetTrackEndPoint(myPoint, time);
+                if (Fluorescence == 0 && PairProd == 0 && (Brems == 0 || Brems == 1)){
+                    G4int trk_index = GetCurrentTrackIndex(trk_id);
+                    SetTrackEndPoint(myPoint, time, trk_index);
+                }
                 
                 if (G4StrUtil::contains(solidName,"ACTIVE") ){
 
@@ -292,7 +305,6 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 }
             }
             v.clear();
-            nline=0;
             
         }
 
@@ -301,25 +313,59 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
     }
 
     inFile.close();
-    G4cout << "Number of initial electrons: " << electronNumber << G4endl;
-    G4cout << "Number of initial S1: " << S1Number << G4endl;
+    G4cout << "Number of active ie-: " << electronNumber << G4endl;
+    G4cout << "Number of active S1: " << S1Number << G4endl;
     
 }
 
-void DegradModel::SetTrackEndPoint(G4ThreeVector pos, G4double time){
+void DegradModel::SetTrackEndPoint(G4ThreeVector pos, G4double time, G4int trk_index){
 
-    if (time > end_time){
-        end_time = time;
-        track_end_pos = pos;
+    if (time > end_times_[trk_index]){
+        end_times_[trk_index] = time;
+        track_end_pos_[trk_index] = pos;
     }
 
 }
 
-G4ThreeVector DegradModel::GetTrackEndPoint(){
-    return G4ThreeVector(track_end_pos);
+G4ThreeVector DegradModel::GetTrackEndPoint(G4int trk_id){
+    G4int trk_index = GetCurrentTrackIndex(trk_id);
+    return G4ThreeVector(track_end_pos_[trk_index]);
 }
 
-G4double DegradModel::GetTrackEndTime(){
-    return end_time;
+G4double DegradModel::GetTrackEndTime(G4int trk_id){
+    G4int trk_index = GetCurrentTrackIndex(trk_id);
+    return end_times_[trk_index];
 }
 
+void DegradModel::Reset(){
+    end_times_.clear();
+    track_end_pos_.clear();
+    track_ids_.clear();
+}
+
+void DegradModel::AddTrack(G4int trk_id){
+
+    // Check if track exists in vec, if not then add
+    if (std::find(track_ids_.begin(), track_ids_.end(), trk_id) == track_ids_.end()) {
+        track_ids_.push_back(trk_id);
+        end_times_.push_back(-1);
+        track_end_pos_.push_back(G4ThreeVector(0,0,0));
+    }
+}
+
+G4int DegradModel::GetCurrentTrackIndex(G4int trk_id){
+
+    G4int index =-1;
+
+    // Search for searchValue in vec
+    auto it = std::find(track_ids_.begin(), track_ids_.end(), trk_id);
+
+    // Check if value was found
+    if (it != track_ids_.end()) {
+        // Calculate the index
+        index = std::distance(track_ids_.begin(), it);
+    }
+
+    return index;
+
+}
