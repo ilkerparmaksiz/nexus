@@ -24,6 +24,8 @@ namespace nexus{
         G4ThreeVector GetTrackEndPoint(G4int trk_id);
         G4double GetTrackEndTime(G4int trk_id);
         G4int GetCurrentTrackIndex(G4int trk_id); // Get the index of the track in the vector
+        G4double GetAvgIoniEnergy(G4int trk_id);
+        G4int GetTotIonizations(G4int trk_id);
         ~DegradModel();
 
 
@@ -36,6 +38,7 @@ namespace nexus{
         private:
         void GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime, G4int trk_id);
         void SetTrackEndPoint(G4ThreeVector pos, G4double time, G4int trk_index);
+        void SetNioni(G4int Ne, G4int trk_index); // Set the number of ionization particles
 
         G4double fPrimKE; // Primary kinetic energy of the particle
 
@@ -43,6 +46,8 @@ namespace nexus{
 
         G4int event_id_;
         std::vector<G4double>      end_times_;
+        std::vector<G4int>         N_ioni_;
+        std::vector<G4double>      ke_vec_;
         std::vector<G4ThreeVector> track_end_pos_;
         G4bool degrad_status_; // Checks if degrad has been run
 

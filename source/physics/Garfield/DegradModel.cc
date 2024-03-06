@@ -166,7 +166,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
 
 void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degradPos,G4double degradTime, G4int trk_id)
 {
-    G4int eventNumber, Nep, Nexc, nline, i, electronNumber, S1Number; // Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
+    G4int     eventNumber, Nep, Nexc, nline, i, electronNumber, S1Number; // Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
     G4double  posX, posY, posZ, time, n;
     G4double  posXDegrad, posYDegrad, posZDegrad, timeDegrad;
     G4double  posXInitial = degradPos.getX();
@@ -182,6 +182,9 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
     std::ifstream inFile;
     G4String fname= "DEGRAD.OUT";
     inFile.open(fname,std::ifstream::in);
+
+    // Get the track index
+    G4int trk_index = GetCurrentTrackIndex(trk_id);
     
     nline=1;
     electronNumber=0;
@@ -198,6 +201,8 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
             eventNumber = v[0];
             Nep =v[1];
             Nexc = v[2];
+
+            SetNioni(Nep, trk_index);
             G4cout << "Total ie-: " << Nep << G4endl;
             G4cout << "Total S1: " << Nexc << G4endl;
             v.clear();
@@ -238,7 +243,6 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
 
                 // Set the track end position
                 if (Fluorescence == 0 && PairProd == 0 && (Brems == 0 || Brems == 1)){
-                    G4int trk_index = GetCurrentTrackIndex(trk_id);
                     SetTrackEndPoint(myPoint, time, trk_index);
                 }
                 
@@ -327,6 +331,12 @@ void DegradModel::SetTrackEndPoint(G4ThreeVector pos, G4double time, G4int trk_i
 
 }
 
+void DegradModel::SetNioni(G4int Ne, G4int trk_index){
+
+    N_ioni_[trk_index] =  Ne;
+
+}
+
 G4ThreeVector DegradModel::GetTrackEndPoint(G4int trk_id){
     G4int trk_index = GetCurrentTrackIndex(trk_id);
     return G4ThreeVector(track_end_pos_[trk_index]);
@@ -341,6 +351,9 @@ void DegradModel::Reset(){
     end_times_.clear();
     track_end_pos_.clear();
     track_ids_.clear();
+    ke_vec_.clear();
+    N_ioni_.clear();
+
 }
 
 void DegradModel::AddTrack(G4int trk_id){
@@ -350,6 +363,8 @@ void DegradModel::AddTrack(G4int trk_id){
         track_ids_.push_back(trk_id);
         end_times_.push_back(-1);
         track_end_pos_.push_back(G4ThreeVector(0,0,0));
+        ke_vec_.push_back(fPrimKE);
+        N_ioni_.push_back(0);
     }
 }
 
@@ -367,5 +382,21 @@ G4int DegradModel::GetCurrentTrackIndex(G4int trk_id){
     }
 
     return index;
+
+}
+
+G4double DegradModel::GetAvgIoniEnergy(G4int trk_id){
+
+    G4int trk_index = GetCurrentTrackIndex(trk_id);
+
+    return ke_vec_[trk_index]/N_ioni_[trk_index];
+
+}
+
+G4int DegradModel::GetTotIonizations(G4int trk_id){
+
+    G4int trk_index = GetCurrentTrackIndex(trk_id);
+
+    return N_ioni_[trk_index];
 
 }

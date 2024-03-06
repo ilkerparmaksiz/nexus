@@ -16,6 +16,7 @@
 #include "G4OpticalPhoton.hh"
 #include "G4ProcessManager.hh"
 #include "G4EventManager.hh"
+#include <G4GlobalFastSimulationManager.hh>
 
 #include "globals.hh"
 #include "Garfield/MediumMagboltz.hh"
@@ -33,6 +34,8 @@
 #include "TrajectoryMap.h"
 #include "XenonProperties.h"
 #include "PhysicsUtils.h"
+#include "DegradModel.h"
+
 
 namespace nexus{
 
@@ -63,7 +66,7 @@ G4bool GarfieldVUVPhotonModel::IsApplicable(const G4ParticleDefinition& particle
 G4bool GarfieldVUVPhotonModel::ModelTrigger(const G4FastTrack& fastTrack){
  
   G4double ekin = fastTrack.GetPrimaryTrack()->GetKineticEnergy();
-  //  std::cout << "GarfieldVUVPhotonModel::ModelTrigger() thermalE, ekin is " << GH_.thermalE_ << ",  "<< ekin / MeV << std::endl;
+  //  std::cout << "GarfieldVUVPhotonModel::ModelTrigger() thermalE, ekin is " << GH_.thermalE_/eV << ",  "<< ekin / eV << std::endl;
   
   G4String particleName = fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName();
 
@@ -106,10 +109,22 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
     if (!(counter[3]%1000) and (counter[3]>0))
         G4cout << "GarfieldVUV: S2: " << counter[3] << G4endl;
 
+    G4int parent_id = fastTrack.GetPrimaryTrack()->GetParentID();
+
+    G4double mean_ioni_E = 22.4*eV;
+
     // Add the energy deposited to the trajectory so the event gets stored
-    Trajectory* trj = (Trajectory*) TrajectoryMap::Get(1);
+    Trajectory* trj = (Trajectory*) TrajectoryMap::Get(parent_id);
     if (trj) {
-      trj->SetEnergyDeposit(22.4*counter[1]*eV); // This overwrites the same track
+
+      DegradModel* dm = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
+      
+      // Check if the parent was made by degrad and set mean energy deposit
+      if (dm && dm->GetCurrentTrackIndex(parent_id) != -1){
+        mean_ioni_E = dm->GetAvgIoniEnergy(parent_id)*eV;
+        trj->SetEnergyDeposit(mean_ioni_E * dm->GetTotIonizations(parent_id)); // This overwrites the same track
+      }
+     
     }
 
     // Set the scintillation timing
@@ -130,11 +145,11 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
     }
 
     // Drift and make S2
-    GenerateVUVPhotons(fastTrack,fastStep,garfPos,garfTime);
+    GenerateVUVPhotons(fastTrack,fastStep,garfPos,garfTime, parent_id, mean_ioni_E);
 
 }
 
-void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep, G4ThreeVector garfPos, G4double garfTime) {
+void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep, G4ThreeVector garfPos, G4double garfTime, G4double trk_id, G4double mean_ioni_E) {
 
   G4double x0=garfPos.getX()/cm; //Garfield length units are in cm
   G4double y0=garfPos.getY()/cm;
@@ -153,7 +168,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     return;
 
   // Insert hits
-  InsertHits(x0, y0, z0, t0);
+  InsertHits(x0, y0, z0, t0, trk_id, mean_ioni_E);
   // return;
 
   // Print Electric Field
@@ -478,12 +493,12 @@ void GarfieldVUVPhotonModel::PrintElectricField(G4double x,G4double y, G4double 
     std::cout << "GVUVPM: E field in medium " << medium << " at " << x<<","<<y<<","<<z << " is: " << ef[0]<<","<<ef[1]<<","<<ef[2] << std::endl;
 }
 
-void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t){
+void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t, G4double trk_id, G4double mean_ioni_E){
   G4ThreeVector ie_pos(x*cm,y*cm,z*cm);
   IonizationHit* ie_hit = new IonizationHit();
-  ie_hit->SetTrackID(1);
+  ie_hit->SetTrackID(trk_id);
   ie_hit->SetTime(t);
-  ie_hit->SetEnergyDeposit(22.4*eV);
+  ie_hit->SetEnergyDeposit(mean_ioni_E);
   ie_hit->SetPosition(ie_pos);
   fGarfieldSD->InsertIonizationHit(ie_hit);
 

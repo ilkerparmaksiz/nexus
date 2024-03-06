@@ -63,7 +63,7 @@ namespace nexus {
         virtual void DoIt(const G4FastTrack&, G4FastStep&);
 
         // Drift in main region, then as EL region is approached and traversed, avalanche multiplication and excitations will occur.
-        void GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime);
+        void GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime, G4double trk_id, G4double mean_ioni_E);
         
         void Reset();
 
@@ -82,7 +82,7 @@ namespace nexus {
         void PrintElectricField(G4double x0,G4double y0, G4double z);
 
         // Function to add hits to the sensitive detector
-        void InsertHits(G4double x, G4double y, G4double z, G4double t);
+        void InsertHits(G4double x, G4double y, G4double z, G4double t, G4double trk_id, G4double mean_ioni_E);
 
         // Get a scintillation timing delay based on the constants
         G4double GetScintTime();
