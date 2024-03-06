@@ -34,7 +34,6 @@
 #include "TrajectoryMap.h"
 #include "XenonProperties.h"
 #include "PhysicsUtils.h"
-#include "DegradModel.h"
 
 
 namespace nexus{
@@ -49,14 +48,12 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     gasFile = "Xenon_10Bar.gas";
     InitialisePhysics();
     BuildThePhysicsTable(theFastIntegralTable_);
+    dm_ = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
   
 }
 
 G4bool GarfieldVUVPhotonModel::IsApplicable(const G4ParticleDefinition& particleType) {
   //  std::cout << "GarfieldVUVPhotonModel::IsApplicable() particleType is " << particleType.GetParticleName() << std::endl;
-  
-  if (particleType.GetParticleName() == "S1Photon")
-    counter[2]++; 
   
   if (particleType.GetParticleName()=="ie-") // || particleType.GetParticleName()=="opticalphoton")
     return true;
@@ -93,42 +90,42 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
 
     fastStep.KillPrimaryTrack(); //KILL NEST/DEGRAD/G4 TRACKS
 
-    garfPos = fastTrack.GetPrimaryTrack()->GetVertexPosition();
-    garfTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
+    G4int parent_id = fastTrack.GetPrimaryTrack()->GetParentID();
+    AddTrack(parent_id);    
+    garfPos         = fastTrack.GetPrimaryTrack()->GetVertexPosition();
+    garfTime        = fastTrack.GetPrimaryTrack()->GetGlobalTime();
+    G4int parent_track_idx = GetCurrentTrackIndex(parent_id);
+
     //G4cout<<"GLOBAL TIME "<<G4BestUnit(garfTime,"Time")<<" POSITION "<<G4BestUnit(garfPos,"Length")<<G4endl;
     
-    counter[1]++;
-    
+    N_ioni_[parent_track_idx]++;
+        
     // Print how many of each type we have
-    if (!(counter[1]%1000))
-      G4cout << "GarfieldVUV: ie-: " << counter[1] << G4endl;
+    if (!(N_ioni_[parent_track_idx]%1000)){
+      G4cout << "GarfieldVUV: ie-: " << N_ioni_[parent_track_idx] << " for track: " << parent_id << G4endl;
+      
+    }
 
-    if (!(counter[2]%1000) && counter[2] >0)
-      G4cout << "GarfieldVUV: S1: " << counter[2] << G4endl;
-
-    if (!(counter[3]%1000) and (counter[3]>0))
-        G4cout << "GarfieldVUV: S2: " << counter[3] << G4endl;
-
-    G4int parent_id = fastTrack.GetPrimaryTrack()->GetParentID();
+    if (!(N_S2_[parent_track_idx]%1000) and (N_S2_[parent_track_idx]>0)){
+      G4cout << "GarfieldVUV: S2: "  << N_S2_[parent_track_idx]   << " for track: " << parent_id << G4endl;
+    }
 
     G4double mean_ioni_E = 22.4*eV;
 
     // Add the energy deposited to the trajectory so the event gets stored
     Trajectory* trj = (Trajectory*) TrajectoryMap::Get(parent_id);
     if (trj) {
-
-      DegradModel* dm = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
-      
+    
       // Check if the parent was made by degrad and set mean energy deposit
-      if (dm && dm->GetCurrentTrackIndex(parent_id) != -1){
-        mean_ioni_E = dm->GetAvgIoniEnergy(parent_id)*eV;
-        trj->SetEnergyDeposit(mean_ioni_E * dm->GetTotIonizations(parent_id)); // This overwrites the same track
+      if (dm_ && dm_->GetCurrentTrackIndex(parent_id) != -1){
+        mean_ioni_E = dm_->GetAvgIoniEnergy(parent_id)*eV;
+        trj->SetEnergyDeposit(mean_ioni_E * dm_->GetTotIonizations(parent_id)); // This overwrites the same track
       }
      
     }
 
     // Set the scintillation timing
-    if (counter[1] == 1){
+    if (N_ioni_[parent_track_idx] == 1){
       // Krishan: need to throw an exception if the medium is not GXe
 
       G4Material* mat = fastTrack.GetPrimaryTrack()->GetMaterial();
@@ -149,7 +146,7 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
 
 }
 
-void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep, G4ThreeVector garfPos, G4double garfTime, G4double trk_id, G4double mean_ioni_E) {
+void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep, G4ThreeVector garfPos, G4double garfTime, G4int trk_id, G4double mean_ioni_E) {
 
   G4double x0=garfPos.getX()/cm; //Garfield length units are in cm
   G4double y0=garfPos.getY()/cm;
@@ -168,7 +165,9 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
     return;
 
   // Insert hits
-  InsertHits(x0, y0, z0, t0, trk_id, mean_ioni_E);
+  if (dm_ && dm_->GetCurrentTrackIndex(trk_id) != -1){
+    InsertHits(x0, y0, z0, t0, trk_id, mean_ioni_E);
+  }
   // return;
 
   // Print Electric Field
@@ -221,10 +220,10 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
   // Generate the El photons from a microphys model ran externally in Garfield
   // We sample the output file which contains the timing profile of emission and diffusion
   if (GH_.useELFile_)
-      MakeELPhotonsFromFile(fastStep, xi, yi, zi, ti);
+      MakeELPhotonsFromFile(fastStep, xi, yi, zi, ti, trk_id);
   // Use a simpler model
   else
-      MakeELPhotonsSimple(fastStep, xi, yi, zi, ti);
+      MakeELPhotonsSimple(fastStep, xi, yi, zi, ti, trk_id);
 
 }
 
@@ -319,12 +318,14 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     
 }
 
-void GarfieldVUVPhotonModel::Reset()
-{
+void GarfieldVUVPhotonModel::Reset(){
+
+  std::cout <<"Resetting GarfieldVUV" << std::endl;
   fSensor->ClearSignal();
-  counter[1] = 0;
-  counter[2] = 0;
-  counter[3] = 0;
+
+  track_ids_.clear();
+  N_ioni_.clear();
+  N_S2_.clear();
 }
 
 
@@ -385,7 +386,7 @@ Garfield::ComponentUser* GarfieldVUVPhotonModel::SetComponentField(){
 }
 
 
-void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti){
+void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti, G4int trk_id){
 
     // Here we get the photon timing profile from a file
     G4int EL_event  = round(G4UniformRand()* (EL_events.size() - 1) );
@@ -430,12 +431,12 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
       G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
       newTrack->SetPolarization(polarization);
     
-      counter[3]++;
+      N_S2_[GetCurrentTrackIndex(trk_id)]++;
     }
 }
 
 
-void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti){
+void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti, G4int trk_id){
 
     // std::cout << "Generating Photons"<< std::endl;
     // EL field in G4 units (V/mm), Pressure in G4 units (MeV/mm3), gap in G4 units (mm)
@@ -477,7 +478,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
       G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, fakepos, tig4 ,false);
       newTrack->SetPolarization(polarization);
       
-      counter[3]++;
+      N_S2_[GetCurrentTrackIndex(trk_id)]++;
     }
 
 
@@ -493,7 +494,7 @@ void GarfieldVUVPhotonModel::PrintElectricField(G4double x,G4double y, G4double 
     std::cout << "GVUVPM: E field in medium " << medium << " at " << x<<","<<y<<","<<z << " is: " << ef[0]<<","<<ef[1]<<","<<ef[2] << std::endl;
 }
 
-void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t, G4double trk_id, G4double mean_ioni_E){
+void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t, G4int trk_id, G4double mean_ioni_E){
   G4ThreeVector ie_pos(x*cm,y*cm,z*cm);
   IonizationHit* ie_hit = new IonizationHit();
   ie_hit->SetTrackID(trk_id);
@@ -603,6 +604,34 @@ void GarfieldVUVPhotonModel::InitalizePolygon(){
   for (int i = 0; i < n; ++i) {
       polygon_.push_back({radius * cos(theta[i]) + GH_.origin_.x(), radius * sin(theta[i]) + GH_.origin_.y()});
   }
+
+}
+
+void GarfieldVUVPhotonModel::AddTrack(G4int trk_id){
+
+    // Check if track exists in vec, if not then add
+    if (std::find(track_ids_.begin(), track_ids_.end(), trk_id) == track_ids_.end()) {
+        std::cout <<"Adding Track!" << std::endl;
+        track_ids_.push_back(trk_id);
+        N_ioni_.push_back(0);
+        N_S2_.push_back(0);
+    }
+}
+
+G4int GarfieldVUVPhotonModel::GetCurrentTrackIndex(G4int trk_id){
+
+    G4int index =-1;
+
+    // Search for searchValue in vec
+    auto it = std::find(track_ids_.begin(), track_ids_.end(), trk_id);
+
+    // Check if value was found
+    if (it != track_ids_.end()) {
+        // Calculate the index
+        index = std::distance(track_ids_.begin(), it);
+    }
+
+    return index;
 
 }
 

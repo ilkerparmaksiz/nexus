@@ -46,6 +46,7 @@
 #include "GeometryBase.h"
 #include "CRAB0.h"
 #include "IonizationSD.h"
+#include "DegradModel.h"
 
 class G4GenericMessenger;
 namespace nexus {
@@ -63,7 +64,7 @@ namespace nexus {
         virtual void DoIt(const G4FastTrack&, G4FastStep&);
 
         // Drift in main region, then as EL region is approached and traversed, avalanche multiplication and excitations will occur.
-        void GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime, G4double trk_id, G4double mean_ioni_E);
+        void GenerateVUVPhotons(const G4FastTrack& fastTrack, G4FastStep& fastStep,G4ThreeVector garfPos,G4double garfTime, G4int trk_id, G4double mean_ioni_E);
         
         void Reset();
 
@@ -73,16 +74,16 @@ namespace nexus {
         Garfield::ComponentUser* SetComponentField();
 
         // Generate EL photons in the gap according to Garfield Microphysical Model
-        void MakeELPhotonsFromFile(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti);
+        void MakeELPhotonsFromFile(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti, G4int trk_id);
 
         // Generate EL photons in the gap according to a simple model
-        void MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti);
+        void MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti, G4int trk_id);
 
         // Function to print the electric field
         void PrintElectricField(G4double x0,G4double y0, G4double z);
 
         // Function to add hits to the sensitive detector
-        void InsertHits(G4double x, G4double y, G4double z, G4double t, G4double trk_id, G4double mean_ioni_E);
+        void InsertHits(G4double x, G4double y, G4double z, G4double t, G4int trk_id, G4double mean_ioni_E);
 
         // Get a scintillation timing delay based on the constants
         G4double GetScintTime();
@@ -97,6 +98,8 @@ namespace nexus {
         // Set the values of the drift tube polygon
         void InitalizePolygon();
 
+        G4int GetCurrentTrackIndex(G4int trk_id); // Get the index of the track in the vector
+
         G4ThreeVector garfPos;
         G4double garfTime;
 
@@ -104,6 +107,8 @@ namespace nexus {
     private:
 
         void InitialisePhysics();
+        void AddTrack(G4int trk_id);
+
 
         G4String gasFile;
         G4String ionMobFile;
@@ -138,6 +143,13 @@ namespace nexus {
 
         // Define the points in a polygon for drift tube
         std::vector<std::vector<G4double>> polygon_;
+
+        std::vector<G4int> track_ids_;
+        std::vector<G4int> N_ioni_;
+        std::vector<G4int> N_S2_;
+
+        DegradModel* dm_;
+
 
     };
 

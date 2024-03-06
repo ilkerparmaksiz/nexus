@@ -1,12 +1,12 @@
 #include "DegradModel.h"
 #include "IonizationElectron.h"
-#include "GarfieldVUVPhotonModel.h"
 #include "PhysicsUtils.h"
 
 #include <G4TransportationManager.hh>
 #include <G4GlobalFastSimulationManager.hh>
 #include <G4OpticalPhoton.hh>
 #include <G4RandomDirection.hh>
+#include <G4RunManager.hh>
 
 using namespace nexus;
 
@@ -62,12 +62,6 @@ G4bool DegradModel::ModelTrigger(const G4FastTrack& fastTrack) {
 
     if (solidName != "ACTIVE")
         return false;
-
-
-    // Zero out the counters to reset the nexcitations, which is cumulative.
-    GarfieldVUVPhotonModel* gvm = (GarfieldVUVPhotonModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("GarfieldVUVPhotonModel"));
-    if(gvm)
-      gvm->Reset(); 
 
     return true; // Now return true
     // return false;
@@ -380,6 +374,9 @@ G4int DegradModel::GetCurrentTrackIndex(G4int trk_id){
         // Calculate the index
         index = std::distance(track_ids_.begin(), it);
     }
+
+    // if (index == -1)
+        // std::cout <<"DegradModel: Warning negative index " << trk_id << std::endl;
 
     return index;
 
