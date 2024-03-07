@@ -110,10 +110,8 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
     N_ioni_[parent_track_idx]++;
         
     // Print how many of each type we have
-    if (!(N_ioni_[parent_track_idx]%1000)){
+    if (!(N_ioni_[parent_track_idx]%1000))
       G4cout << "GarfieldVUV: ie-: " << N_ioni_[parent_track_idx] << " for track: " << parent_id << G4endl;
-      
-    }
 
     if (!(N_S2_[parent_track_idx]%1000) and (N_S2_[parent_track_idx]>0)){
       G4cout << "GarfieldVUV: S2: "  << N_S2_[parent_track_idx]   << " for track: " << parent_id << G4endl;
@@ -179,7 +177,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
   if (dm_ && dm_->GetCurrentTrackIndex(trk_id) != -1){
     InsertHits(x0, y0, z0, t0, trk_id, mean_ioni_E);
   }
-  // return;
+  return;
 
   // Print Electric Field
   // PrintElectricField(x0, y0, z0);
