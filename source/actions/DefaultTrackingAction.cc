@@ -78,14 +78,15 @@ void DefaultTrackingAction::PostUserTrackingAction(const G4Track *track)
   if(dm && dm->GetCurrentTrackIndex(track->GetTrackID()) != -1){
     trj->SetFinalPosition(dm->GetTrackEndPoint(track->GetTrackID()));
     trj->SetFinalTime(dm->GetTrackEndTime(track->GetTrackID()));
+    trj->SetTrackLength(dm->GetTrackLength(track->GetTrackID()));
   }
   else {
     trj->SetFinalPosition(track->GetPosition());
     trj->SetFinalTime(track->GetGlobalTime());
+    trj->SetTrackLength(track->GetTrackLength());
   }
 
   // Record final time and position of the track
-  trj->SetTrackLength(track->GetTrackLength());
   trj->SetFinalVolume(track->GetVolume()->GetName());
   trj->SetFinalMomentum(track->GetMomentum());
 

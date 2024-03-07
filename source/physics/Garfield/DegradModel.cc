@@ -49,6 +49,12 @@ G4bool DegradModel::ModelTrigger(const G4FastTrack& fastTrack) {
     // Set the kinetic energy
     fPrimKE = fastTrack.GetPrimaryTrack()->GetKineticEnergy()/eV;
 
+    // Dont simulate anything larger than 4 MeV
+    if (fPrimKE> 4/eV){
+        std::cout << "Primary particle energy larger than chosen Degrad limit, will use G4 generation" << std::endl;
+        return false;
+    }
+
     // Krishan: Degrad handles gammas/X-Rays but not for energies > 2 MeV
     // The photoelectron should be produced though from the >= 2 MeV gammas
     if (fastTrack.GetPrimaryTrack()->GetParticleDefinition()->GetParticleName() == "gamma" && fPrimKE>= 2/eV){
@@ -144,10 +150,12 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     G4int stdout=system(degradString.data());
 
     // Execute degrad
-    std::string degrad_exec = std::string(std::getenv("DEGRAD_HOME")) + "/Degrad < conditions_Degrad.txt";
+    std::string degrad_exec = std::string(std::getenv("DEGRAD_HOME")) + "/Degrad < conditions_Degrad.txt"+ " > degrad_print.txt";
     const char *degrad_exec_str = degrad_exec.c_str();
     G4int returnstatus = stdout=system(degrad_exec_str);
+    stdout=system("cat degrad_print.txt");
     std::cout << "Degrad return status: " << returnstatus << std::endl;
+    AddTrackLength(trk_id);
 
     // Sometimes degrad just fails, so this ensures we get a successful run
     G4int return_status, tries{0};
@@ -160,7 +168,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
             std::cout << "Command failed with return status: " << return_status << std::endl;
         }
         tries++;
-    } while (return_status != 0 && tries < 3);  // Try three times before giving up
+    } while (return_status != 0 && tries < 4);  // Try three times before giving up
 
     
     // Convert file format
@@ -178,16 +186,14 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
     G4int     eventNumber, Nep, Nexc, nline, i, electronNumber, S1Number; // Nep is the number of primary es that corresponds to what biagi calls "ELECTRON CLUSTER SIZE (NCLUS)
     G4double  posX, posY, posZ, time, n;
     G4double  posXDegrad, posYDegrad, posZDegrad, timeDegrad;
-    G4double  posXInitial = degradPos.getX();
-    G4double  posYInitial = degradPos.getY();
-    G4double  posZInitial = degradPos.getZ();
-    G4double  timeInitial = degradTime;
-    G4double  Fluorescence = 0;
-    G4double  PairProd = 0;
-    G4double  Brems = 0;
+    G4double  posXInitial{degradPos.getX()};
+    G4double  posYInitial{degradPos.getY()};
+    G4double  posZInitial{degradPos.getZ()};
+    G4double  timeInitial{degradTime};
+    G4double  Fluorescence{0}, PairProd{0}, Brems{0};
     G4String  line;
     std::vector<G4double> v;
-    
+
     std::ifstream inFile;
     G4String fname= "DEGRAD.OUT";
     inFile.open(fname,std::ifstream::in);
@@ -245,7 +251,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 // std::cout << "DegradModel::DoIt(): xinitial, poxXDegrad [mm]" << posXInitial << ", " << posXDegrad*0.001 << std::endl;
                 
                 G4ThreeVector myPoint(posX, posY, posZ);
-                
+                        
                 // Set the track end position, the 3ns timing is in case there was a brem. May need to adjust
                 if (Fluorescence == 0 && PairProd == 0 && (Brems == 0 || Brems == 1) && time < 3){
                     SetTrackEndPoint(myPoint, time, trk_index);
@@ -342,12 +348,18 @@ G4double DegradModel::GetTrackEndTime(G4int trk_id){
     return end_times_[trk_index];
 }
 
+G4double DegradModel::GetTrackLength(G4int trk_id){
+    G4int trk_index = GetCurrentTrackIndex(trk_id);
+    return trk_len_vec_[trk_index];
+}
+
 void DegradModel::Reset(){
     end_times_.clear();
     track_end_pos_.clear();
     track_ids_.clear();
     ke_vec_.clear();
     N_ioni_.clear();
+    trk_len_vec_.clear();
 
 }
 
@@ -360,6 +372,7 @@ void DegradModel::AddTrack(G4int trk_id){
         track_end_pos_.push_back(G4ThreeVector(0,0,0));
         ke_vec_.push_back(fPrimKE);
         N_ioni_.push_back(0);
+        trk_len_vec_.push_back(0.);
     }
 }
 
@@ -396,5 +409,49 @@ G4int DegradModel::GetTotIonizations(G4int trk_id){
     G4int trk_index = GetCurrentTrackIndex(trk_id);
 
     return N_ioni_[trk_index];
+
+}
+
+void DegradModel::AddTrackLength(G4int trk_id){
+
+    std::cout << "Adding Track Length from Degrad" << std::endl;
+
+    G4int trk_index = GetCurrentTrackIndex(trk_id);
+
+    G4double length = 0;
+
+    // Open the file for reading
+    std::ifstream inputFile("degrad_print.txt");
+    if (!inputFile.is_open()) {
+        std::cerr << "Failed to open the file!" << std::endl;
+        return;
+    }
+
+    // Search for the line containing "AV.MAX. RANGE IN XYZ="
+    G4String line;
+    G4String targetString = "AV.MAX. RANGE IN XYZ=";
+    while (std::getline(inputFile, line)) {
+        
+        size_t pos = line.find(targetString);
+        
+        if (pos != G4String::npos) {
+            // Extract the value after the "=" sign
+            G4String value = line.substr(pos + targetString.length());
+            // Replace "D" with "e"
+            size_t pos = value.find('D');
+            if (pos != G4String::npos) {
+                value.replace(pos, 1, "e");
+            }
+
+            // Convert the modified string to a double
+            length = std::stod(value);
+            break;  // Stop searching after finding the line
+        }
+    }
+
+    trk_len_vec_[trk_index] = length*0.001; // degrad length is in um
+
+    // Close the file
+    inputFile.close();
 
 }
