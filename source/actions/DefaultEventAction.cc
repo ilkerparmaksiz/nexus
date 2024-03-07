@@ -12,8 +12,6 @@
 #include "PersistencyManager.h"
 #include "IonizationHit.h"
 #include "FactoryBase.h"
-#include "GarfieldVUVPhotonModel.h"
-#include "G4GlobalFastSimulationManager.hh"
 
 #include <G4Event.hh>
 #include <G4VVisManager.hh>
@@ -122,10 +120,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
     }
 
-    // Zero out the counters to reset the nexcitations, which is cumulative.
-    GarfieldVUVPhotonModel* gvm = (GarfieldVUVPhotonModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("GarfieldVUVPhotonModel"));
-    if(gvm)
-      gvm->Reset(); 
   }
 
 

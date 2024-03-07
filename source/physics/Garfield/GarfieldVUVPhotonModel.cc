@@ -49,6 +49,8 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     InitialisePhysics();
     BuildThePhysicsTable(theFastIntegralTable_);
     dm_ = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
+    event_id_ = -1;
+    theNavigator_ = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
   
 }
 
@@ -89,6 +91,13 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
     fastStep.SetNumberOfSecondaryTracks(1E3);
 
     fastStep.KillPrimaryTrack(); //KILL NEST/DEGRAD/G4 TRACKS
+
+    // Reset variables if we are on a new event
+    G4int evt =  G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+    if (event_id_ !=  evt){
+        event_id_  = evt;
+        Reset();
+    }
 
     G4int parent_id = fastTrack.GetPrimaryTrack()->GetParentID();
     AddTrack(parent_id);    
@@ -157,8 +166,10 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
   // Check in which Physical volume the point bellongs
   G4ThreeVector myPoint(x0, y0, z0);
-  G4Navigator* theNavigator= G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
-  G4String solidName=theNavigator->LocateGlobalPointAndSetup(myPoint)->GetName();
+
+  //Check in which Physical volume the point bellongs
+  G4VPhysicalVolume* myVolume = theNavigator_->LocateGlobalPointAndSetup(myPoint);
+  G4String solidName = myVolume->GetName();
 
   // Ensure that we only drift electrons in the active volume
   if (solidName != "ACTIVE")

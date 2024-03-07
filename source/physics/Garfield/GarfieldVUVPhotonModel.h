@@ -117,7 +117,7 @@ namespace nexus {
         Garfield::AvalancheMC* fAvalancheMC;
         Garfield::Sensor* fSensor;
 
-        std::vector<uint> counter {0,0,0,0};
+        G4int event_id_;
 
         // Variable to store the EL timing profiles to sample from
         // <event> <photon> <x,y,z,t of photon>
@@ -140,6 +140,7 @@ namespace nexus {
 
         G4PhysicsTable* theFastIntegralTable_;
         G4PhysicsOrderedFreeVector* spectrum_integral;
+        G4Navigator* theNavigator_;
 
         // Define the points in a polygon for drift tube
         std::vector<std::vector<G4double>> polygon_;

@@ -92,7 +92,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     G4ThreeVector degradPos  = fastTrack.GetPrimaryTrack()->GetVertexPosition();
     G4double      degradTime = fastTrack.GetPrimaryTrack()->GetGlobalTime();
     fastStep.SetPrimaryTrackPathLength(0.0);
-    G4cout<<"GLOBAL TIME "<<G4BestUnit(degradTime,"Time")<<" POSITION "<<G4BestUnit(degradPos,"Length")<<G4endl;
+    G4cout << "GLOBAL TIME " << G4BestUnit(degradTime,"Time") << " POSITION " << G4BestUnit(degradPos,"Length") << G4endl;
 
     // Set the scintialltion components based on the xenon
     G4Material* mat = fastTrack.GetPrimaryTrack()->GetMaterial();
@@ -105,7 +105,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     spectrum_integral = (G4PhysicsOrderedFreeVector*)(*theFastIntegralTable_)(mat->GetIndex());
 
     // Input parameters
-    G4int SEED=CLHEP::HepRandom::getTheSeed() + evt;
+    G4int    SEED = CLHEP::HepRandom::getTheSeed() + evt;
     G4String seed = G4UIcommand::ConvertToString(SEED);
 
     // Gamma KE
@@ -146,7 +146,22 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     // Execute degrad
     std::string degrad_exec = std::string(std::getenv("DEGRAD_HOME")) + "/Degrad < conditions_Degrad.txt";
     const char *degrad_exec_str = degrad_exec.c_str();
-    stdout=system(degrad_exec_str);
+    G4int returnstatus = stdout=system(degrad_exec_str);
+    std::cout << "Degrad return status: " << returnstatus << std::endl;
+
+    // Sometimes degrad just fails, so this ensures we get a successful run
+    G4int return_status, tries{0};
+    do {
+        // Execute the command and get the return status
+        return_status = stdout=system(degrad_exec_str);
+
+        // If return status is not zero, print a message
+        if (return_status != 0) {
+            std::cout << "Command failed with return status: " << return_status << std::endl;
+        }
+        tries++;
+    } while (return_status != 0 && tries < 3);  // Try three times before giving up
+
     
     // Convert file format
     std::string conv_path = "python3 " + std::string(std::getenv("NEXUSDIR")) + "/scripts/convertDegradFile.py";
@@ -217,7 +232,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 timeDegrad   = v[i+3];
                 Fluorescence = v[i+4]; // 0 to N where N is the ie- for each N absorbed fluorescence photon in the event
                 PairProd     = v[i+5]; // 0: not from pair prod, 1: produced from electron track,     2: produced from positron track
-                Brems        = v[i+6]; // 0: not from brem,      1: produced from remaining electron, 2: produced from brem gamma
+                Brems        = v[i+6]; // 0: not from brem,      1: produced from remaining electrons, 2: produced from brem gamma
                 
                 // Convert from um to mm in GEANT4
                 // also Y and Z axes are swapped in GEANT4 and Garfield++ relatively to Degrad
@@ -231,26 +246,19 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 
                 G4ThreeVector myPoint(posX, posY, posZ);
                 
-                // Check in which Physical volume the point belongs              
-                G4String solidName = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking()
-                                     ->LocateGlobalPointAndSetup(myPoint)->GetName();
-
-                // Set the track end position
-                if (Fluorescence == 0 && PairProd == 0 && (Brems == 0 || Brems == 1)){
+                // Set the track end position, the 3ns timing is in case there was a brem. May need to adjust
+                if (Fluorescence == 0 && PairProd == 0 && (Brems == 0 || Brems == 1) && time < 3){
                     SetTrackEndPoint(myPoint, time, trk_index);
                 }
+
+                // std::cout << posX << ", " << posY << ", " << posZ << ", " << time << ", " << v[i+4] << ", " << v[i+5] << ", " << v[i+6]   << std::endl;
+
+                electronNumber++;
                 
-                if (G4StrUtil::contains(solidName,"ACTIVE") ){
+                // Create secondary electron
+                G4DynamicParticle electron(IonizationElectron::Definition(),G4RandomDirection(), 1.13*eV);
+                G4Track *newTrack=fastStep.CreateSecondaryTrack(electron, myPoint, time,false);
 
-                    electronNumber++;
-                    
-                    // if (Fluorescence ==0 && PairProd == 0 && (Brems == 0 || Brems == 1))std::cout << posXDegrad << ", " << posZDegrad << ", " << posYDegrad << ", " << time << ", " << v[i+4] << ", " << v[i+5] << ", " << v[i+6]   << std::endl;
-
-                    // Create secondary electron
-                    G4DynamicParticle electron(IonizationElectron::Definition(),G4RandomDirection(), 1.13*eV);
-                    G4Track *newTrack=fastStep.CreateSecondaryTrack(electron, myPoint, time,false);
-
-                }
             }
             v.clear();
         }
@@ -276,31 +284,24 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 
                 G4ThreeVector myPoint(posX, posY, posZ);
                 
-                // Check in which Physical volume the point belongs
-                G4String solidName = G4TransportationManager::GetTransportationManager()
-                                     ->GetNavigatorForTracking()->LocateGlobalPointAndSetup(myPoint)->GetName();
+                S1Number++;
                 
-                if (G4StrUtil::contains(solidName,"ACTIVE")){
+                // Create secondary electron
+                auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
 
-                    S1Number++;
-                    
-                    // Create secondary electron
-                    auto* optphot = G4OpticalPhoton::OpticalPhotonDefinition();
+                G4ThreeVector momentum, polarization;
+                GetPhotonPol(momentum, polarization);
 
-                    G4ThreeVector momentum, polarization;
-                    GetPhotonPol(momentum, polarization);
+                // Get Photon energy
+                G4double sc_max = spectrum_integral->GetMaxValue();
+                G4double sc_value = G4UniformRand()*sc_max;
+                G4double sampled_energy = spectrum_integral->GetEnergy(sc_value);
+                
+                G4DynamicParticle VUVphoton(optphot, momentum, sampled_energy);
 
-                    // Get Photon energy
-                    G4double sc_max = spectrum_integral->GetMaxValue();
-                    G4double sc_value = G4UniformRand()*sc_max;
-                    G4double sampled_energy = spectrum_integral->GetEnergy(sc_value);
-                    
-                    G4DynamicParticle VUVphoton(optphot, momentum, sampled_energy);
+                G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, myPoint, time ,false);
+                newTrack->SetPolarization(polarization);
 
-                    G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, myPoint, time ,false);
-                    newTrack->SetPolarization(polarization);
-
-                }
             }
             v.clear();
             
