@@ -148,6 +148,7 @@ namespace nexus {
         std::vector<G4int> track_ids_;
         std::vector<G4int> N_ioni_;
         std::vector<G4int> N_S2_;
+        G4int N_S1;
 
         DegradModel* dm_;
 

@@ -174,9 +174,6 @@ namespace nexus {
       theNEST2ScintillationProcess->SetDetailedSecondaries(true);
       theNEST2ScintillationProcess->SetStackElectrons(true);
 
-      G4OpBoundaryProcess* fBoundaryProcess = new G4OpBoundaryProcess();
-      G4OpAbsorption* fAbsorptionProcess    = new G4OpAbsorption();
-
        // Also switch on clustering for the G4 generated electrons
       IonizationClustering* clust = new IonizationClustering();
 
@@ -202,12 +199,6 @@ namespace nexus {
               pmanager->AddProcess(theNEST2ScintillationProcess, ordDefault + 1, ordInActive, ordDefault + 1);
           }
 
-          if (particleName == "opticalphoton") {
-            G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
-            pmanager->AddDiscreteProcess(fAbsorptionProcess);
-            pmanager->AddDiscreteProcess(fBoundaryProcess);
-          }
-
           // Clustering
           if (clust->IsApplicable(*particle) && particleName != "alpha") {
             pmanager->AddDiscreteProcess(clust);
@@ -227,8 +218,6 @@ namespace nexus {
         // S1 photons created in NEST
         anInstance = pTable->FindParticle("NESTS1Photon");
         pmanager = anInstance->GetProcessManager();
-        pmanager->AddDiscreteProcess(fAbsorptionProcess);
-        pmanager->AddDiscreteProcess(fBoundaryProcess);
         pmanager->AddDiscreteProcess(wls);
         pmanager->AddDiscreteProcess(fastSimProcess_garfield);
       }

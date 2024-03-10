@@ -50,12 +50,19 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     BuildThePhysicsTable(theFastIntegralTable_);
     dm_ = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
     event_id_ = -1;
+    N_S1 = 0;
     theNavigator_ = G4TransportationManager::GetTransportationManager()->GetNavigatorForTracking();
   
 }
 
 G4bool GarfieldVUVPhotonModel::IsApplicable(const G4ParticleDefinition& particleType) {
   //  std::cout << "GarfieldVUVPhotonModel::IsApplicable() particleType is " << particleType.GetParticleName() << std::endl;
+
+  if (particleType.GetParticleName() == "opticalphoton" || particleType.GetParticleName() == "NESTS1Photon"){
+    N_S1+=1;
+    G4cout << "GarfieldVUV: S1: " << N_S1 << G4endl;
+  }
+
   
   if (particleType.GetParticleName()=="ie-") // || particleType.GetParticleName()=="opticalphoton")
     return true;
@@ -177,7 +184,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
   if (dm_ && dm_->GetCurrentTrackIndex(trk_id) != -1){
     InsertHits(x0, y0, z0, t0, trk_id, mean_ioni_E);
   }
-  return;
+  // return;
 
   // Print Electric Field
   // PrintElectricField(x0, y0, z0);
