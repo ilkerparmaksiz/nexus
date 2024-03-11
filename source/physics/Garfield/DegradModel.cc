@@ -141,7 +141,7 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     G4String xenonP(","+std::to_string(Press));
     
     // Electric field
-    G4int Efield = 500; // V/cm  
+    G4int Efield = GH_.fieldDrift_; // V/cm  
     G4String Efield_str(std::to_string(Efield));
 
     // Create the input card

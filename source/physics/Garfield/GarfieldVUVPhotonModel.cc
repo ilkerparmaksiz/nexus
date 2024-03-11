@@ -324,7 +324,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     fAvalancheMC = new Garfield::AvalancheMC(); // drift, not avalanche, to be fair.
     fAvalancheMC->SetSensor(fSensor);
     fAvalancheMC->SetTimeSteps(0.05);      // nsec, per example
-    fAvalancheMC->SetDistanceSteps(2.e-2); // cm, 10x example
+    fAvalancheMC->SetDistanceSteps(0.2);   // cm, 2 mm seems like a reasonable step size
     fAvalancheMC->EnableDebugging(false);  // way too much information. 
     fAvalancheMC->DisableAttachment();     // Currently getting warning messages about the attachment. You can supress those by switching this on.
     fAvalancheMC->EnableDriftLines();
