@@ -124,6 +124,8 @@ namespace nexus {
         G4double ELPos_; // cm
         G4double FCTop_; // cm
 
+        bool UseOpticks;
+
         /// The sensitive detector to fill hits into
         IonizationSD* fGarfieldSD;
 

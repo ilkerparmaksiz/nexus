@@ -22,9 +22,16 @@
 #include <G4HCtable.hh>
 #include <globals.hh>
 // Krishan Garfield specific code
-#include "DegradModel.h"
-#include "G4GlobalFastSimulationManager.hh"
-
+#include "config.h"
+#ifdef With_Opticks
+    #include "DegradModel.h"
+    #include "G4GlobalFastSimulationManager.hh"
+    #include "SensorSD.h"
+    #  include "SEvt.hh"
+    #  include "NP.hh"
+    #  include "G4CXOpticks.hh"
+namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
+#endif
 
 namespace nexus {
 
@@ -72,10 +79,11 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
     }
 
     // Krishan: Garfield specific code
+#ifdef With_GarField
     DegradModel* dm = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
     if(dm)
         dm->Reset();
-
+#endif
     G4PrimaryVertex* pVtx;
     pVtx = event->GetPrimaryVertex();
     if (pVtx)
@@ -83,6 +91,10 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         G4double PKE = pVtx->GetPrimary(0)->GetKineticEnergy();
         dm->SetPrimaryKE(PKE/eV);
       }
+
+#ifdef With_Opticks
+      G4CXOpticks::Get()->SensitiveDetector_Initialize(event->GetEventID());
+#endif
 
   }
 
@@ -92,9 +104,40 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
   {
     nevt_++;
 
+
     // Determine whether total energy deposit in ionization sensitive
     // detectors is above threshold
     if (energy_min_ >= 0.) {
+
+        #ifdef With_Opticks
+
+            G4cout<<" Opticks End of Event Action" <<G4endl;
+            G4AutoLock lock(&opticks_mt);
+            G4CXOpticks * g4cx=G4CXOpticks::Get();
+
+            G4int eventID=event->GetEventID();
+            G4int ngenstep=SEvt::GetNumGenstepFromGenstep(0);
+            G4int nphotons=SEvt::GetNumPhotonCollected(0);
+
+
+
+            // Simulate the photons
+            if(nphotons>0 and ngenstep>0){
+                std::cout<<g4cx->desc()<<std::endl;
+                std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
+                g4cx->simulate(eventID,0); // For Simulation
+                cudaDeviceSynchronize();
+                //g4cx->render();  // For Rendering
+
+            }
+
+            SensorSD* PMT = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/PMT_R7378A/Pmt");
+            SensorSD* Camera = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/CRAB0/Camera");
+
+        G4CXOpticks::Get()->SensitiveDetector_EndOfEvent(eventID);
+
+
+        #endif
 
       // Get the trajectories stored for this event and loop through them
       // to calculate the total energy deposit
@@ -133,6 +176,8 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       } else {
         pm->StoreCurrentEvent(false);
       }
+
+
 
     }
   }

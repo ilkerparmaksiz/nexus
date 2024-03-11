@@ -34,7 +34,13 @@
 #include <sstream>
 #include <iostream>
 #include <string>
-
+#include "config.h"
+#ifdef With_Opticks
+#include "SEvt.hh"
+#include "G4CXOpticks.hh"
+#include "OpticksPhoton.hh"
+#include "OpticksGenstep.h"
+#endif
 using namespace nexus;
 
 
@@ -134,7 +140,9 @@ G4bool PersistencyManager::Store(const G4Event* event)
 
   TrajectoryMap::Clear();
   StoreCurrentEvent(true);
-
+#ifdef With_Opticks
+  StoreOpticksHits();
+#endif
   return true;
 }
 
@@ -427,4 +435,34 @@ void PersistencyManager::SaveConfigurationInfo(G4String file_name)
   }
 
   history.close();
+}
+void PersistencyManager::StoreOpticksHits() {
+#ifdef With_Opticks
+
+
+    SEvt* sev             = SEvt::Get_EGPU();
+
+    unsigned int num_hits = sev->GetNumHit(0);
+    if(num_hits<0) return;
+    auto run= G4RunManager::GetRunManager();
+    G4int eventID=run->GetCurrentEvent()->GetEventID();
+    G4int ngenstep=SEvt::GetNumGenstepFromGenstep(0);
+    G4int nphotons=SEvt::GetNumPhotonCollected(0);
+
+    std::cout << "Saving the hits " << num_hits <<std::endl;
+    G4cout << "Number of Steps Generated " <<ngenstep << G4endl;
+    G4cout << "Number of Photons Generated " <<nphotons << G4endl;
+    G4cout << "Number of Hits Opticks  " <<SEvt::GetNumHit(0)<< G4endl;
+    for(int idx = 0; idx < int(num_hits); idx++)
+    {
+        sphoton hit;
+
+        sev->getHit(hit, idx);
+        //std::cout << " OID " <<hit.orient_idx  << " GID "<< idx<< " x " <<hit.pos.x << " y "<< hit.pos.y <<" z " << hit.pos.z << " time "<<hit.time << " Boundary "<<hit.boundary() <<std::endl;
+
+        if(OpticksPhoton::IsSurfaceDetectFlag(hit.flag())) h5writer_->WriteOpticksHitInfo(eventID,hit.idx(),(hit.pos.x),(hit.pos.y),(hit.pos.z),(hit.time),(hit.boundary()));
+    }
+    if(num_hits>0) G4CXOpticks::Get()->reset(eventID);
+
+#endif
 }

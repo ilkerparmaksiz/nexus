@@ -23,11 +23,14 @@ find_package(GSL REQUIRED)
 find_package(HDF5 REQUIRED)
 
 option (With_Opticks OFF)
-if(With_Opticks)
 
+if(With_Opticks)
   message(STATUS "WITH_OPTICKS is set ON")
   list(APPEND CMAKE_MODULE_PATH "$ENV{OPTICKS_HOME}/cmake/Modules")
   #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
+  set(OPTICKS_PREFIX "$ENV{OPTICKS_PREFIX}")
+  ### we need to Make sure this OPTICKS_PREFIX matches with the one on OpticksBuildOptions
+  message(STATUS "OPTICKS_PREFIX : $ENV{OPTICKS_PREFIX} ")
   include(OpticksBuildOptions)
   message(STATUS "---- OPTICKS ----")
   message(STATUS "CMAKE_MODULE_PATH --> ${CMAKE_MODULE_PATH}")
@@ -37,8 +40,7 @@ if(With_Opticks)
   ## These are needed for opticks
   find_package(G4CX REQUIRED CONFIG)
   find_package(U4 REQUIRED CONFIG)
-  find_package(ExtG4 REQUIRED CONFIG)
-  find_package(CSG_GGeo REQUIRED CONFIG)
+
 
 endif ()
 
@@ -133,8 +135,8 @@ if(With_GarField)
   endif ()
 endif ()
 if (With_Opticks)
-  target_include_directories(lib PRIVATE ${ROOT_eINCLUDE_DIRS})
-  target_link_libraries(lib PUBLIC ROOT::RIO ROOT::Net  Opticks::G4CX Opticks::U4 Opticks::ExtG4 Opticks::CSG_GGeo)
+  target_link_libraries(lib PUBLIC Opticks::G4CX Opticks::U4)
+  include_directories(${CMAKE_CURRENT_BINARY_DIR})
 endif ()
 
 target_include_directories(lib PRIVATE ${Geant4_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${HDF5_INCLUDE_DIRS})
@@ -146,16 +148,16 @@ set_target_properties(exe PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_sources(exe PRIVATE ${CMAKE_SOURCE_DIR}/source/nexus.cc)
 target_link_libraries(exe PRIVATE lib)
 
-add_executable(test)
-set_target_properties(test PROPERTIES OUTPUT_NAME ${PROJECT_NAME}-test)
+add_executable(Test)
+set_target_properties(Test PROPERTIES OUTPUT_NAME ${PROJECT_NAME}-test)
 
 file(GLOB TESTS ${CMAKE_SOURCE_DIR}/source/tests/*/*.cc)
-target_sources(test PRIVATE ${TESTS} ${CMAKE_SOURCE_DIR}/source/nexus-test.cc)
-target_include_directories(test PRIVATE ${CMAKE_SOURCE_DIR}/source/tests)
-target_link_libraries(test PRIVATE lib)
+target_sources(Test PRIVATE ${TESTS} ${CMAKE_SOURCE_DIR}/source/nexus-test.cc)
+target_include_directories(Test PRIVATE ${CMAKE_SOURCE_DIR}/source/tests)
+target_link_libraries(Test PRIVATE lib)
 
 
-install(TARGETS lib exe test
+install(TARGETS lib exe Test
         RUNTIME DESTINATION bin  
         LIBRARY DESTINATION lib)
 

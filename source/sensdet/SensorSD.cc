@@ -59,13 +59,14 @@ namespace nexus {
 
   G4bool SensorSD::ProcessHits(G4Step* step, G4TouchableHistory*)
   {
+
     // Check whether the track is an optical photon
     G4ParticleDefinition* pdef = step->GetTrack()->GetDefinition();
-    if (pdef != G4OpticalPhoton::Definition() && pdef != NESTS1Photon::Definition()) return false;
+    //if (pdef != G4OpticalPhoton::Definition() && pdef != NESTS1Photon::Definition()) return false;
 
     const G4VTouchable* touchable =
       step->GetPostStepPoint()->GetTouchable();
-
+    std::cout << "ProcessHits --> "<<pdef->GetParticleName()<<std::endl;
     G4int pmt_id = FindPmtID(touchable);
 
     SensorHit* hit = 0;

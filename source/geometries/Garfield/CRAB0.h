@@ -64,9 +64,6 @@ namespace nexus{
         inline G4double GetGasPressure(){return gas_pressure_;};
         inline G4double GetTemperature(){return temperature;};
 
-        void GenerateGeometryFromFile(G4LogicalVolume *lab_logic_volume, G4OpticalSurface *OpSteelSurf);
-        void GenerateGeometryFromSolid(G4LogicalVolume *lab_logic_volume, G4VPhysicalVolume *gas_phys, G4OpticalSurface *OpSteelSurf, G4RotationMatrix *rotateMesh);
-
 
      private:
         G4bool checkOverlaps; // Check overlaps in the detector geometry if true

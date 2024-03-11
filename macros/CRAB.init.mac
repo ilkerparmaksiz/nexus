@@ -23,5 +23,6 @@
 /nexus/RegisterEventAction DefaultEventAction
 /nexus/RegisterTrackingAction DefaultTrackingAction
 /nexus/RegisterStackingAction GarfieldStackingAction
+#/nexus/RegisterSteppingAction OpticksSteppingAction
 
 /nexus/RegisterMacro macros/CRAB.config.mac

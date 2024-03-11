@@ -15,6 +15,14 @@
 #include <G4LogicalVolume.hh>
 #include <G4VisAttributes.hh>
 #include <G4PVPlacement.hh>
+#include "config.h"
+#include "OpticalMaterialProperties.h"
+#include "Visibilities.h"
+#ifdef With_Opticks
+#include "G4CXOpticks.hh"
+#include <cuda_runtime.h>
+#include "SEventConfig.hh"
+#endif
 
 
 using namespace nexus;
@@ -55,6 +63,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   G4Material* vacuum =
   G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
+  vacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
 
   G4LogicalVolume* world_logic =
   new G4LogicalVolume(world_solid, vacuum, "WORLD", 0, 0, 0, true);
@@ -68,10 +77,16 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   G4LogicalVolume* geometry_logic = geometry_->GetLogicalVolume();
 
-  new G4PVPlacement(0, G4ThreeVector(0,0,0),
-		    geometry_logic, geometry_logic->GetName(), world_logic, false, 0);
+  new G4PVPlacement(0, G4ThreeVector(0,0,0),geometry_logic, geometry_logic->GetName(), world_logic, false, 0);
 
-  return world_physi;
+#ifdef With_Opticks
+    std::cout <<"Setting our detector geometry with opticks" <<std::endl;
+        G4CXOpticks::SetGeometry(world_physi);
+        cudaDeviceSynchronize();
+        std::cout << SEventConfig::Desc() <<std::endl;
+#endif
+
+    return world_physi;
 }
 
 

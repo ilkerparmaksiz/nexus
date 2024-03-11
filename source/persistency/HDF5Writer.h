@@ -44,6 +44,8 @@ namespace nexus {
                    float initial_x, float initial_y, float initial_z,
                    float   final_x, float   final_y, float   final_z,
                    float time);
+    void WriteOpticksHitInfo(int64_t evt_number,int32_t hit_indx, float hit_position_x, float hit_position_y, float hit_position_z, float hit_time,unsigned int boundary);
+
 
   private:
     size_t file_; ///< HDF5 file
@@ -55,6 +57,7 @@ namespace nexus {
     size_t runTable_;
     size_t snsDataTable_;
     size_t hitInfoTable_;
+    size_t OpticksHitInfoTable_;
     size_t particleInfoTable_;
     size_t snsPosTable_;
     size_t stepTable_;
@@ -65,6 +68,7 @@ namespace nexus {
     size_t memtypeParticleInfo_;
     size_t memtypeSnsPos_;
     size_t memtypeStep_;
+    size_t memtypeOptickInfo_;
 
     size_t irun_; ///< counter for configuration parameters
     size_t ismp_; ///< counter for written waveform samples
@@ -72,6 +76,7 @@ namespace nexus {
     size_t ipart_; ///< counter for particle information
     size_t ipos_; ///< counter for sensor positions
     size_t istep_; ///< counter for steps
+    size_t iophit_; ///< counter for Opticks hits
 
   };
 

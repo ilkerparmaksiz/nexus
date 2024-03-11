@@ -600,8 +600,10 @@ namespace opticalprops {
       sc_energy.push_back(6.20625 * eV + 0.01 * i * eV);
     }
     std::vector<G4double> intensity;
+    std::vector<G4double> REmisProb;
     for (G4int i=0; i<sc_entries; i++) {
       intensity.push_back(GXeScintillation(sc_energy[i], pressure));
+      REmisProb.push_back(0);
     }
     //for (int i=0; i<sc_entries; i++) {
     //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV
@@ -610,7 +612,9 @@ namespace opticalprops {
     mpt->AddProperty("SCINTILLATIONCOMPONENT1", sc_energy, intensity);
     mpt->AddProperty("SCINTILLATIONCOMPONENT2", sc_energy, intensity);
     mpt->AddProperty("ELSPECTRUM"             , sc_energy, intensity, 1);
-
+    mpt->AddProperty("FASTCOMPONENT", sc_energy, intensity,1);
+    mpt->AddProperty("SLOWCOMPONENT", sc_energy, intensity,1);
+    mpt->AddProperty("REEMISSIONPROB", sc_energy, REmisProb,1);
     // CONST PROPERTIES
     mpt->AddConstProperty("SCINTILLATIONYIELD", sc_yield);
     mpt->AddConstProperty("RESOLUTIONSCALE",    1.0);
@@ -1734,7 +1738,7 @@ namespace opticalprops {
       std::vector<G4double> ENERGIES = {
               optPhotMinE_, 7.29 * eV,  optPhotMaxE_
       };
-      std::vector<G4double> REFLECTIVITY = { 0.20,0.20,0.20};
+      std::vector<G4double> REFLECTIVITY = { 0.2,0.2,0.2};
       // std::vector<G4double> REFLECTIVITY = { 0.00,0.00,0.00};
 
       // REFLEXION BEHAVIOR
@@ -1755,21 +1759,27 @@ namespace opticalprops {
       mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
       return mpt;
   }
-
   G4MaterialPropertiesTable * PerfectDetector(){
-    G4MaterialPropertiesTable* mpt = new G4MaterialPropertiesTable();
+        G4MaterialPropertiesTable* mpt = new G4MaterialPropertiesTable();
 
-    // REFLECTIVITY
-    std::vector<G4double> ENERGIES = {
-            optPhotMinE_,7.20*eV, 7.29 * eV,  optPhotMaxE_
-    };
-    std::vector<G4double> REFLECTIVITY = { 0,0,0,0};
-    std::vector<G4double> EFFICIENCY = { 1,1,1,1};
+        // REFLECTIVITY
+        const G4int ri_entries = 100;
+        G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
+        std::vector<G4double> REFLECTIVITY;
+        std::vector<G4double> EFFICIENCY ;
+        std::vector<G4double> ri_energy;
+        for (int i=0; i<ri_entries; i++)
+        {
+            ri_energy.push_back(optPhotMinE_ + i * eWidth);
+            REFLECTIVITY.push_back(1);
+            EFFICIENCY.push_back(1);
+        }
 
-    mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
-    mpt->AddProperty("EFFICIENCY", ENERGIES, EFFICIENCY);
-    return mpt;
-}
+
+        mpt->AddProperty("REFLECTIVITY", ri_energy, REFLECTIVITY);
+        mpt->AddProperty("EFFICIENCY", ri_energy, EFFICIENCY);
+        return mpt;
+    }
 
 
 }

@@ -92,12 +92,23 @@
     float        time;
   } step_info_t;
 
+  typedef struct{
+      int64_t event_id;
+      int32_t hit_id;
+      float x;
+      float y;
+      float z;
+      float time;
+      unsigned int boundary;
+  } hit_opticks_t;
+
   hsize_t createRunType();
   hsize_t createSensorDataType();
   hsize_t createHitInfoType();
   hsize_t createParticleInfoType();
   hsize_t createSensorPosType();
   hsize_t createStepType();
+  hsize_t createHitOpticksType();
 
   hid_t createTable(hid_t group, std::string& table_name, hsize_t memtype);
   hid_t createGroup(hid_t file, std::string& groupName);
@@ -108,6 +119,8 @@
   void writeParticle(particle_info_t* particleInfo, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeSnsPos(sns_pos_t* snsPos, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeStep(step_info_t* step, hid_t dataset, hid_t memtype, hsize_t counter);
+  void writeOpticksHit(hit_opticks_t* hitInfo, hid_t dataset, hid_t memtype, hsize_t counter);
+
 
 
 #endif

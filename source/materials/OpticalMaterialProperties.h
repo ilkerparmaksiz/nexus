@@ -90,6 +90,7 @@ namespace opticalprops {
   G4MaterialPropertiesTable * PerfectDetector();
 
 
+
   constexpr G4double optPhotMinE_ =  0.2  * eV;
   constexpr G4double optPhotMaxE_ = 11.5  * eV;
   constexpr G4double noAbsLength_ = 1.e8  * m;

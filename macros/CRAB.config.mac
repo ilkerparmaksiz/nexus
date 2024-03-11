@@ -29,13 +29,12 @@
 /Geometry/CRAB0/fieldEL 11400.0
 
 ##### GENERATOR #####
-/Generator/SingleParticle/particle e-
-/Generator/SingleParticle/min_energy 500 keV
-/Generator/SingleParticle/min_energy 500 keV
-#/Generator/SingleParticle/region CENTER
+/Generator/SingleParticle/particle alpha
+/Generator/SingleParticle/min_energy 0.7 MeV
+/Generator/SingleParticle/region CENTER
 
 
-/Generator/SingleParticle/region AD_HOC
+#/Generator/SingleParticle/region AD_HOC
 /Geometry/CRAB0/specific_vertex 0 0 0 mm
 
 ##### ACTIONS #####
@@ -50,6 +49,6 @@
 /PhysicsList/Nexus/fastsim true
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file CRAB.next
+/nexus/persistency/output_file CRAB2.next
 ## eventType options: bb0nu, bb2nu, background
-/nexus/persistency/event_type background
+/nexus/persistency/event_type data

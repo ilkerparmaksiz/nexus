@@ -13,7 +13,11 @@
 #include <G4VisExecutive.hh>
 
 #include <getopt.h>
-
+#include "config.h"
+#ifdef With_Opticks
+#include "SEventConfig.hh"
+#include "OPTICKS_LOG.hh"
+#endif
 using namespace nexus;
 
 
@@ -31,7 +35,18 @@ void PrintUsage()
 
 G4int main(int argc, char** argv)
 {
-  ////////////////////////////////////////////////////////////////////
+
+// Opticks Initialization
+#ifdef With_Opticks
+    // Line one bellow is temporary
+   OPTICKS_LOG(argc,argv); // This is needed
+   SEventConfig::SetMaxPhoton(10000000);
+   SEventConfig::SetRGModeSimulate();
+   SEventConfig::SetIntegrationMode(3);
+   std::cout<< SEventConfig::Desc() << std::endl;
+#endif
+
+    ////////////////////////////////////////////////////////////////////
   // PARSE COMMAND-LINE OPTIONS
 
   // Abort if no command-line argument is provided. The user must

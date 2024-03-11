@@ -15,13 +15,17 @@
 
 #include <stdint.h>
 #include <iostream>
-
+#include "config.h"
+#ifdef With_Opticks
+#include "G4CXOpticks.hh"
+#include "SEvt.hh"
+#endif
 using namespace nexus;
 
 
 HDF5Writer::HDF5Writer():
   file_(0), irun_(0), ismp_(0), ihit_(0),
-  ipart_(0), ipos_(0), istep_(0)
+  ipart_(0), ipos_(0), istep_(0),iophit_(0)
 {
 }
 
@@ -51,13 +55,23 @@ void HDF5Writer::Open(std::string fileName, bool debug)
   memtypeHitInfo_ = createHitInfoType();
   hitInfoTable_ = createTable(group, hit_info_table_name, memtypeHitInfo_);
 
-  std::string particle_info_table_name = "particles";
+
+
+
+
+    std::string particle_info_table_name = "particles";
   memtypeParticleInfo_ = createParticleInfoType();
   particleInfoTable_ = createTable(group, particle_info_table_name, memtypeParticleInfo_);
 
   std::string sns_pos_table_name = "sns_positions";
   memtypeSnsPos_ = createSensorPosType();
   snsPosTable_ = createTable(group, sns_pos_table_name, memtypeSnsPos_);
+
+#ifdef With_Opticks
+    std::string optickshit_table_name = "Opticks_Hits";
+    memtypeOptickInfo_ = createHitOpticksType();
+    OpticksHitInfoTable_ = createTable(group, optickshit_table_name, memtypeOptickInfo_);
+#endif
 
   if (debug) {
     std::string debug_group_name = "/DEBUG";
@@ -179,29 +193,47 @@ void HDF5Writer::WriteStep(int64_t evt_number,
                            const char*      proc_name,
                            float initial_x, float initial_y, float initial_z,
                            float   final_x, float   final_y, float   final_z,
-                           float time)
-{
-  step_info_t step;
-  step.event_id    = evt_number;
-  step.particle_id = particle_id;
-  memset(step.particle_name , 0,  STRLEN);
-  strcpy(step.particle_name ,  particle_name);
-  step.step_id    = step_id;
-  memset(step.initial_volume, 0, STRLEN);
-  strcpy(step.initial_volume, initial_volume);
-  memset(step.  final_volume, 0, STRLEN);
-  strcpy(step.  final_volume,   final_volume);
-  memset(step.     proc_name, 0, STRLEN);
-  strcpy(step.     proc_name,      proc_name);
-  step.initial_x   = initial_x;
-  step.initial_y   = initial_y;
-  step.initial_z   = initial_z;
-  step.  final_x   =   final_x;
-  step.  final_y   =   final_y;
-  step.  final_z   =   final_z;
-  step.time        =      time;
+                           float time) {
+    step_info_t step;
+    step.event_id = evt_number;
+    step.particle_id = particle_id;
+    memset(step.particle_name, 0, STRLEN);
+    strcpy(step.particle_name, particle_name);
+    step.step_id = step_id;
+    memset(step.initial_volume, 0, STRLEN);
+    strcpy(step.initial_volume, initial_volume);
+    memset(step.final_volume, 0, STRLEN);
+    strcpy(step.final_volume, final_volume);
+    memset(step.proc_name, 0, STRLEN);
+    strcpy(step.proc_name, proc_name);
+    step.initial_x = initial_x;
+    step.initial_y = initial_y;
+    step.initial_z = initial_z;
+    step.final_x = final_x;
+    step.final_y = final_y;
+    step.final_z = final_z;
+    step.time = time;
 
-  writeStep(&step, stepTable_, memtypeStep_, istep_);
+    writeStep(&step, stepTable_, memtypeStep_, istep_);
 
-  istep_++;
+    istep_++;
+
 }
+void HDF5Writer::WriteOpticksHitInfo(int64_t evt_number,int32_t hit_indx, float hit_position_x, float hit_position_y, float hit_position_z, float hit_time,unsigned int boundary)
+{
+
+#ifdef With_Opticks
+    hit_opticks_t OptickHitInfo;
+    OptickHitInfo.event_id = evt_number;
+    OptickHitInfo.hit_id = hit_indx;
+    OptickHitInfo.x = hit_position_x;
+    OptickHitInfo.y = hit_position_y;
+    OptickHitInfo.z = hit_position_z;
+    OptickHitInfo.time = hit_time;
+    OptickHitInfo.boundary = boundary;
+
+    writeOpticksHit(&OptickHitInfo,  OpticksHitInfoTable_, memtypeOptickInfo_, iophit_);
+    iophit_++;
+#endif
+}
+

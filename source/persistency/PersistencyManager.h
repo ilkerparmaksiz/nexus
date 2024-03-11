@@ -66,6 +66,7 @@ namespace nexus {
     void StoreIonizationHits(G4VHitsCollection*);
     void StoreSensorHits(G4VHitsCollection*);
     void StoreSteps();
+    void StoreOpticksHits();
 
     void SaveConfigurationInfo(G4String history);
 
