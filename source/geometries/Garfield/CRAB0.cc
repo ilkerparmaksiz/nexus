@@ -533,15 +533,13 @@ namespace nexus {
         G4Tubs *Mesh_Disk = new G4Tubs("Mesh_Disk", 0., EL_OD / 2.0, EL_mesh_thick / 2., 0.,
                                        twopi); // Use OD so mesh stays within the logical
 
-        HexagonMeshTools::HexagonMeshTools *HexCreator; // Hexagonal Mesh Tool
-
         // Define a hexagonal prism
-        G4ExtrudedSolid *HexPrism = HexCreator->CreateHexagon(EL_mesh_thick, hex_circumR);
+        G4ExtrudedSolid* HexPrism = CreateHexagon(EL_mesh_thick/2.0, hex_circumR);
 
         G4LogicalVolume *ELP_Disk_logic     = new G4LogicalVolume(Mesh_Disk, Steel, "ELP_Mesh_Logic");
         G4LogicalVolume *ELPP_Disk_logic    = new G4LogicalVolume(Mesh_Disk, Steel, "ELPP_Mesh_Logic");
         G4LogicalVolume *Cathode_Disk_logic = new G4LogicalVolume(Mesh_Disk, Steel, "Cathode_Mesh_Logic");
-        G4LogicalVolume *EL_Hex_logic       = new G4LogicalVolume(HexPrism,  gxe,   "Mesh_Hex");
+        G4LogicalVolume *EL_Hex_logic       = new G4LogicalVolume(HexPrism,  gxe,   "MESH_HEX_GAS");
 
         //  ----------------------- Field Cage --------------------------------
         
@@ -677,7 +675,7 @@ namespace nexus {
                                                                                            EL_thick / 2.0),
                                                                  ELP_Disk_logic, ELP_Disk_logic->GetName(), gas_logic,
                                                                  0, 0, false);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELP_Disk_logic, EL_Hex_logic);
+        PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELP_Disk_logic, EL_Hex_logic, EL_ID);
 
         anode_zpos = EL_thick / 2.0 - FR_thick - 4 * (FR_thick + PEEK_Rod_thick) - 2.5 * cm - EL_thick - ElGap_ - EL_thick;
         G4VPhysicalVolume *EL_Ring_Plus_plus = new G4PVPlacement(0, G4ThreeVector(0., 0., anode_zpos), EL_ring_logic,
@@ -690,7 +688,7 @@ namespace nexus {
                                                                                      EL_thick + EL_thick / 2.0),
                                                             ELPP_Disk_logic, ELPP_Disk_logic->GetName(), gas_logic, 0,
                                                             0, false);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELPP_Disk_logic, EL_Hex_logic);
+        PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELPP_Disk_logic, EL_Hex_logic, EL_ID);
 
 
         // Cathode
@@ -706,7 +704,8 @@ namespace nexus {
                                                                                          EL_thick / 2.0),
                                                                Cathode_Disk_logic, Cathode_Disk_logic->GetName(),
                                                                gas_logic, 0, 0, false);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, Cathode_Disk_logic, EL_Hex_logic);
+
+        PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, Cathode_Disk_logic, EL_Hex_logic, EL_ID);
 
         // --- Optical ---
         new G4LogicalSkinSurface("SteelSurfaceFR", FR_logic, OpSteelSurf);
