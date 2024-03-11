@@ -376,7 +376,7 @@ void Next100FieldCage::BuildActive()
   }
 
   // Garfield stuff
-  GarfieldHelper GH(ring_ext_diam_/2.0/cm, teflon_total_length_/cm, active_diam_/2.0/cm ,active_length_/cm, 1188.1/cm, -0.1/cm, n_panels_,
+  GarfieldHelper GH(ring_ext_diam_/2.0/cm, teflon_drift_length_/cm, active_diam_/2.0/cm ,active_length_/cm, 1188.1/cm, -0.1/cm, n_panels_,
   pressure_, el_gap_length_/cm, G4ThreeVector(0., 0., active_zpos_/cm), 500, ELelectric_field_/(kilovolt/cm), 0.874 * mm/microsecond, 2.5 * mm/microsecond, 1000*ms, 0, 0, 1, "NEXT100");
 
   //These commands generate the four gas models and connect it to the GasRegion
