@@ -57,3 +57,5 @@
 /nexus/persistency/output_file CRAB.next
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type background
+/nexus/random_seed 10
+/nexus/persistency/start_id 10
