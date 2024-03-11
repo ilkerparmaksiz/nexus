@@ -345,7 +345,7 @@ void Next100FieldCage::BuildActive()
   G4double global_active_zpos = active_zpos_ - GetCoordOrigin().z();
   field->SetCathodePosition(global_active_zpos + active_length_/2.);
   field->SetAnodePosition(global_active_zpos - active_length_/2.);
-  field->SetDriftVelocity(1. * mm/microsecond);
+  field->SetDriftVelocity(0.874 * mm/microsecond);
   field->SetTransverseDiffusion(drift_transv_diff_);
   field->SetLongitudinalDiffusion(drift_long_diff_);
   field->SetLifetime(e_lifetime_);
@@ -377,7 +377,7 @@ void Next100FieldCage::BuildActive()
 
   // Garfield stuff
   GarfieldHelper GH(ring_ext_diam_/2.0/cm, teflon_total_length_/cm, active_diam_/2.0/cm ,active_length_/cm, 1188.1/cm, -0.1/cm, n_panels_,
-  pressure_, el_gap_length_/cm, G4ThreeVector(0., 0., active_zpos_/cm), 500, ELelectric_field_/(kilovolt/cm), 1 * mm/microsecond, 2.5 * mm/microsecond, 1000*ms, 0, 0, 1, "NEXT100");
+  pressure_, el_gap_length_/cm, G4ThreeVector(0., 0., active_zpos_/cm), 500, ELelectric_field_/(kilovolt/cm), 0.874 * mm/microsecond, 2.5 * mm/microsecond, 1000*ms, 0, 0, 1, "NEXT100");
 
   //These commands generate the four gas models and connect it to the GasRegion
   new DegradModel("DegradModel",drift_region, GH);
