@@ -152,12 +152,9 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
     // Execute degrad
     std::string degrad_exec = std::string(std::getenv("DEGRAD_HOME")) + "/Degrad < conditions_Degrad.txt"+ " > degrad_print.txt";
     const char *degrad_exec_str = degrad_exec.c_str();
-    G4int returnstatus = stdout=system(degrad_exec_str);
-    stdout=system("cat degrad_print.txt");
-    std::cout << "Degrad return status: " << returnstatus << std::endl;
-    AddTrackLength(trk_id);
 
-    // Sometimes degrad just fails, so this ensures we get a successful run
+    // Sometimes degrad just fails, so try running a couple times if it does
+    // Usually 2 times is enough
     G4int return_status, tries{0};
     do {
         // Execute the command and get the return status
@@ -169,6 +166,10 @@ void DegradModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fastStep) {
         }
         tries++;
     } while (return_status != 0 && tries < 4);  // Try three times before giving up
+
+    std::cout << "Degrad return status: " << return_status << " number of tries: "<< tries << std::endl;
+    stdout=system("cat degrad_print.txt");
+    AddTrackLength(trk_id);
 
     
     // Convert file format
@@ -413,6 +414,9 @@ G4int DegradModel::GetTotIonizations(G4int trk_id){
 }
 
 void DegradModel::AddTrackLength(G4int trk_id){
+
+    // Please note, it appears the track length in degrad is actually the dist
+    // to the track end point from start rather than the prim length. 
 
     std::cout << "Adding Track Length from Degrad" << std::endl;
 

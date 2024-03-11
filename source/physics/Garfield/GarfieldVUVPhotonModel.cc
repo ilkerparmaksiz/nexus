@@ -58,9 +58,10 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
 G4bool GarfieldVUVPhotonModel::IsApplicable(const G4ParticleDefinition& particleType) {
   //  std::cout << "GarfieldVUVPhotonModel::IsApplicable() particleType is " << particleType.GetParticleName() << std::endl;
 
-  if (particleType.GetParticleName() == "opticalphoton" || particleType.GetParticleName() == "NESTS1Photon"){
+  if (particleType.GetParticleName() == "NESTS1Photon"){
     N_S1+=1;
-    G4cout << "GarfieldVUV: S1: " << N_S1 << G4endl;
+    if (!(N_S1%1000))
+      G4cout << "GarfieldVUV: NEST S1: " << N_S1 << G4endl;
   }
 
   
@@ -524,12 +525,6 @@ void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4dou
 G4double GarfieldVUVPhotonModel::GetScintTime(){
 
   G4double scint_time = 0;
-
-  // Define decay constants and probabilities
-  const G4double decayConstant1  = 4.5;   // ns
-  const G4double probability1    = 0.1;   // 10%
-  const G4double decayConstant2  = 100.0; // ns
-  const G4double probability2    = 0.9;   // 90%
 
   // Generate a random number to determine which distribution to sample from
   double randomNumber = G4UniformRand();
