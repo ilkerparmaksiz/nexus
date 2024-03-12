@@ -1742,51 +1742,5 @@ namespace opticalprops {
     return mpt;
   }
 
-  // Stainles Steel Optical Properties Table
-  G4MaterialPropertiesTable * STEEL()
-  {
-      G4MaterialPropertiesTable* mpt = new G4MaterialPropertiesTable();
-
-      // REFLECTIVITY
-      std::vector<G4double> ENERGIES = {
-              optPhotMinE_, 7.29 * eV,  optPhotMaxE_
-      };
-      std::vector<G4double> REFLECTIVITY = { 0.20,0.20,0.20};
-      // std::vector<G4double> REFLECTIVITY = { 0.00,0.00,0.00};
-
-      // REFLEXION BEHAVIOR
-      std::vector<G4double> ENERGIES_2    = {optPhotMinE_, optPhotMaxE_};
-      // Specular reflection about the normal to a microfacet.
-      // Such a vector is chosen according to a gaussian distribution with
-      // sigma = SigmaAlhpa (in rad) and centered in the average normal.
-      std::vector<G4double> specularlobe  = {0., 0.};
-      // specular reflection about the average normal
-      std::vector<G4double> specularspike = {0., 0.};
-      // 180 degrees reflection.
-      std::vector<G4double> backscatter   = {0., 0.};
-      // 1 - the sum of these three last parameters is the percentage of Lambertian reflection
-
-      mpt->AddProperty("SPECULARLOBECONSTANT", ENERGIES_2, specularlobe);
-      mpt->AddProperty("SPECULARSPIKECONSTANT",ENERGIES_2, specularspike);
-      mpt->AddProperty("BACKSCATTERCONSTANT",  ENERGIES_2, backscatter);
-      mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
-      return mpt;
-  }
-
-  G4MaterialPropertiesTable * PerfectDetector(){
-    G4MaterialPropertiesTable* mpt = new G4MaterialPropertiesTable();
-
-    // REFLECTIVITY
-    std::vector<G4double> ENERGIES = {
-            optPhotMinE_,7.20*eV, 7.29 * eV,  optPhotMaxE_
-    };
-    std::vector<G4double> REFLECTIVITY = { 0,0,0,0};
-    std::vector<G4double> EFFICIENCY = { 1,1,1,1};
-
-    mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
-    mpt->AddProperty("EFFICIENCY", ENERGIES, EFFICIENCY);
-    return mpt;
-}
-
 
 }

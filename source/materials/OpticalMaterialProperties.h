@@ -91,11 +91,6 @@ namespace opticalprops {
 
   G4MaterialPropertiesTable* XXX();
 
-  G4MaterialPropertiesTable* STEEL();
-
-  G4MaterialPropertiesTable * PerfectDetector();
-
-
   constexpr G4double optPhotMinE_ =  0.2  * eV;
   constexpr G4double optPhotMaxE_ = 11.5  * eV;
   constexpr G4double optPhotFusedSilicaMaxE_ = 10.7  * eV; // formulas for fused silica are valid up to this energy

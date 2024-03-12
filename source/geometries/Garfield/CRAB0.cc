@@ -158,7 +158,7 @@ namespace nexus {
         OpSteelSurf->SetModel(unified);
         OpSteelSurf->SetFinish(ground);
         // gas_mesh_opsur->SetSigmaAlpha(0.0);
-        OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
+        OpSteelSurf->SetMaterialPropertiesTable(opticalprops::Steel());
 
         //  ----------------------- Lab Space ---------------------------------
         G4String lab_name = "LAB";
