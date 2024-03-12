@@ -15,9 +15,6 @@
 #include "WavelengthShifting.h"
 #include "OpPhotoelectricEffect.h"
 
-// Krishan: this needs cleaning up
-#include "G4OpAbsorption.hh"
-#include "G4OpBoundaryProcess.hh"
 #include "gasNESTdet.h"
 #include "NEST/G4/NESTProc.hh"
 #include "NEST/G4/NESTS1Photon.hh"
@@ -29,8 +26,7 @@
 #include <G4StepLimiter.hh>
 #include <G4FastSimulationManagerProcess.hh>
 #include <G4PhysicsConstructorFactory.hh>
-
-#include "G4FastSimulationPhysics.hh"
+#include <G4FastSimulationPhysics.hh>
 namespace nexus {
 
   /// Macro that allows the use of this physics constructor
