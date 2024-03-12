@@ -24,6 +24,7 @@
 #include <G4VUserDetectorConstruction.hh>
 
 #include <CLHEP/Units/SystemOfUnits.h>
+
 using namespace nexus;
 using namespace CLHEP;
 

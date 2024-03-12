@@ -60,14 +60,13 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
 
 
-  void DefaultEventAction::BeginOfEventAction(const G4Event* event)
+  void DefaultEventAction::BeginOfEventAction(const G4Event* /*event*/)
   {
     // Print out event number info
     if ((nevt_ % nupdate_) == 0) {
       G4cout << " >> Event no. " << nevt_  << G4endl;
       if (nevt_  == (10 * nupdate_)) nupdate_ *= 10;
     }
-
   }
 
 
@@ -119,7 +118,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       }
 
     }
-
   }
 
 

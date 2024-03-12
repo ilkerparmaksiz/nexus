@@ -18,6 +18,7 @@
 #include <G4OpticalPhoton.hh>
 #include <G4OpBoundaryProcess.hh>
 #include <G4VPhysicalVolume.hh>
+
 using namespace nexus;
 
 REGISTER_CLASS(AnalysisSteppingAction, G4UserSteppingAction)
