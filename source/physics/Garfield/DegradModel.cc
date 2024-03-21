@@ -287,7 +287,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 posX=posXDegrad*0.001+posXInitial;
                 posY=posZDegrad*0.001+posYInitial;
                 posZ=posYDegrad*0.001+posZInitial;
-                time=timeDegrad*0.001+timeInitial; // Convert ps to ns
+                time=timeDegrad*0.001+timeInitial +  GetScintTime(); // Convert ps to ns, add delay due to scintillation timing
                 
                 G4ThreeVector myPoint(posX, posY, posZ);
                 
@@ -458,4 +458,22 @@ void DegradModel::AddTrackLength(G4int trk_id){
     // Close the file
     inputFile.close();
 
+}
+
+G4double DegradModel::GetScintTime(){
+
+  G4double scint_time = 0;
+
+  // Generate a random number to determine which distribution to sample from
+  double randomNumber = G4UniformRand();
+
+  // Fast Component - 4.5 ns
+  if (randomNumber < slow_prob_) {
+      scint_time = G4RandExponential::shoot(slow_comp_);
+  // Slow Component - 100 ns
+  } else {
+      scint_time = G4RandExponential::shoot(fast_comp_);
+  }
+
+  return scint_time;
 }
