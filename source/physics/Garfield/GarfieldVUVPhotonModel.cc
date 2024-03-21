@@ -45,7 +45,7 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     GH_ = GH;
     GH_.DumpParams();
     ionMobFile = "IonMobility_Xe+_P12_Xe.txt";
-    gasFile = "Xenon_10Bar.gas";
+    gasFile = "Xenon_5Bar.gas";
     InitialisePhysics();
     BuildThePhysicsTable(theFastIntegralTable_);
     dm_ = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));
@@ -504,11 +504,17 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
 void GarfieldVUVPhotonModel::PrintElectricField(G4double x,G4double y, G4double z){
     std::array<G4double, 3> ef{0,0,0};
     std::array<G4double, 3> bf{0,0,0};
-    std::vector<G4double> vf{0,0,0};
+    std::array<G4double, 3> pos{x,y,z};
+    std::array<G4double, 3> vf{0,0,0};
     Garfield::Medium* medium = nullptr;
     G4int status(0);
     fSensor->ElectricField(x, y, z, ef[0], ef[1], ef[2], medium, status);
     std::cout << "GVUVPM: E field in medium " << medium << " at " << x<<","<<y<<","<<z << " is: " << ef[0]<<","<<ef[1]<<","<<ef[2] << std::endl;
+
+    medium->ElectronVelocity(ef[0], ef[1], ef[2], bf[0], bf[1], bf[2],
+                                  vf[0], vf[1], vf[2]);
+    std::cout << "GVUVPM: Drift vel in medium " << medium << " at " << x<<","<<y<<","<<z << " is: " << vf[0]<<","<<vf[1]<<","<<vf[2]*1e4 << std::endl;
+
 }
 
 void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t, G4int trk_id, G4double mean_ioni_E){

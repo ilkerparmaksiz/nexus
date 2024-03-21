@@ -41,6 +41,7 @@ namespace nexus{
         void SetTrackEndPoint(G4ThreeVector pos, G4double time, G4int trk_index);
         void SetNioni(G4int Ne, G4int trk_index); // Set the number of ionization particles
         void AddTrackLength(G4int trk_id); // Get track length
+        G4double GetScintTime(); // Get timing delay from scintillaiton
 
         G4double fPrimKE; // Primary kinetic energy of the particle
 
