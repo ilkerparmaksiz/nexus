@@ -76,19 +76,20 @@ namespace nexus {
     G4Material* tpb_;       /// tpb
     G4Material* quartz_;    /// FusedSilica()
     G4Material* ito_;       /// ITO
+    G4Material* steel_;     /// Steel
 
 
     // Dimensions
     const G4double gate_cathode_centre_dist_;
-    const G4double grid_thickn_, gate_transparency_, anode_transparency_;
+    G4double grid_thickn_, gate_transparency_, anode_transparency_;
     const G4double cathode_transparency_;
     const G4double buffer_length_;
-    const G4double el_gap_length_plate_, el_gap_length_mesh_;
-    const G4double elgap_ring_diam_;
+    G4double el_gap_length_;
+    G4double el_ID_, el_OD_, el_ring_thickness_, el_mesh_rot_;
     const G4double light_tube_drift_start_z_, light_tube_drift_end_z_;
     const G4double light_tube_thickn_;
     const G4double light_tube_buff_start_z_, light_tube_buff_end_z_;
-    const G4double anode_length_, anode_diam_;
+    const G4double plate_length_, plate_diam_;
     const G4double tpb_thickn_;
     const G4double ito_thickness_;
     const G4double active_diam_;

@@ -16,23 +16,34 @@
 
 
 # GEOMETRY
-/Geometry/NextDemo/config run5
+/Geometry/NextDemo/config run10
 /Geometry/NextDemo/elfield true
-/Geometry/NextDemo/pressure 8.5 bar
+/Geometry/NextDemo/pressure 10 bar
 /Geometry/NextDemo/max_step_size 1. mm
-/Geometry/NextDemo/EL_field_intensity 10 kV/cm
+/Geometry/NextDemo/EL_field_intensity 15 kV/cm
 /Geometry/NextDemo/max_step_size 1. mm
-/Geometry/PmtR11410/time_binning 100. nanosecond
+/Geometry/PmtR11410/time_binning 25. nanosecond
 #/Geometry/SiPMSensl/time_binning 1. microsecond
+
+/Geometry/NextDemo/field_cage_vis false
+
+##### PHYSICS #####
+## No full simulation
+/PhysicsList/Nexus/clustering          false
+/PhysicsList/Nexus/drift               false
+/PhysicsList/Nexus/electroluminescence false
+/PhysicsList/Nexus/fastsim true
+/PhysicsList/Nexus/nest true
 
 /process/optical/processActivation Cerenkov false
 
 
 # GENERATION
-/Generator/Kr83mGenerator/region  ACTIVE
+/Generator/Kr83mGenerator/region  AD_HOC
+/Geometry/NextDemo/specific_vertex -18.7 7.7 3 mm
 
 
 # PERSISTENCY
-/nexus/persistency/output_file out_Kr83.sim
+/nexus/persistency/output_file DEMOpp_Kr
 
 /nexus/random_seed 14562

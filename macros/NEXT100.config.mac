@@ -19,12 +19,21 @@
 /Geometry/Next100/max_step_size 0.1 mm
 /Geometry/Next100/pressure 5 bar
 /Geometry/Next100/EL_field 10 kilovolt/cm
+/Geometry/Next100/drift_transv_diff 1.44 mm/sqrt(cm)
+/Geometry/Next100/drift_long_diff 0.408 mm/sqrt(cm)
+
+/Geometry/PmtR11410/time_binning 25. nanosecond
+/Geometry/Next100/sipm_time_binning  1. microsecond
 
 ##### GENERATOR #####
 /Generator/SingleParticle/particle e-
-/Generator/SingleParticle/min_energy 40 keV
-/Generator/SingleParticle/max_energy 40 keV
+/Generator/SingleParticle/min_energy 2.5 MeV
+/Generator/SingleParticle/max_energy 2.5 MeV
 /Generator/SingleParticle/region CENTER
+
+#/Generator/Decay0Interface/region CENTER
+#/Generator/Decay0Interface/Xe136DecayMode 1
+#/Generator/Decay0Interface/Ba136FinalState 0
 
 ##### ACTIONS #####
 /Actions/DefaultEventAction/min_energy 10.0 keV
@@ -36,10 +45,10 @@
 /PhysicsList/Nexus/drift               false
 /PhysicsList/Nexus/electroluminescence false
 /PhysicsList/Nexus/fastsim true
-/PhysicsList/Nexus/nest false
+/PhysicsList/Nexus/nest true
 
 ##### PERSISTENCY #####
 /nexus/persistency/output_file Next100.next
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type background
-/nexus/random_seed 4455
+/nexus/random_seed 4456

@@ -12,11 +12,12 @@
 /PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
 /PhysicsList/RegisterPhysics NexusPhysics
 /PhysicsList/RegisterPhysics G4StepLimiterPhysics
-#/PhysicsList/RegisterPhysics G4OpticalPhysics
+/PhysicsList/RegisterPhysics G4OpticalPhysics
 
 /nexus/RegisterGeometry Next100
 
 /nexus/RegisterGenerator SingleParticleGenerator
+#/nexus/RegisterGenerator Decay0Interface
 
 /nexus/RegisterPersistencyManager PersistencyManager
 

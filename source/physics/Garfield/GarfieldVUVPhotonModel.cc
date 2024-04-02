@@ -45,7 +45,7 @@ GarfieldVUVPhotonModel::GarfieldVUVPhotonModel(G4String modelName,G4Region* enve
     GH_ = GH;
     GH_.DumpParams();
     ionMobFile = "IonMobility_Xe+_P12_Xe.txt";
-    gasFile = "Xenon_5Bar.gas";
+    gasFile = "Xenon_10Bar.gas";
     InitialisePhysics();
     BuildThePhysicsTable(theFastIntegralTable_);
     dm_ = (DegradModel*)(G4GlobalFastSimulationManager::GetInstance()->GetFastSimulationModel("DegradModel"));

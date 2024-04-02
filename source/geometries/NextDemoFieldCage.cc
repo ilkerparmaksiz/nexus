@@ -15,6 +15,7 @@
 #include "XenonProperties.h"
 #include "CylinderPointSampler.h"
 #include "Visibilities.h"
+#include "HexagonMeshTools.h"
 
 #include <G4GenericMessenger.hh>
 #include <G4PVPlacement.hh>
@@ -35,6 +36,10 @@
 #include <G4UnitsTable.hh>
 #include <G4TransportationManager.hh>
 
+#include "GarfieldHelper.h"
+#include "DegradModel.h"
+#include "GarfieldVUVPhotonModel.h"
+
 
 namespace nexus {
 
@@ -46,21 +51,23 @@ namespace nexus {
     mother_logic_(nullptr),
     mother_phys_(nullptr),
     gate_cathode_centre_dist_ (309.6 * mm), // distance between gate and the centre of cathode grid
-    grid_thickn_ (0.1 * mm),
-    gate_transparency_    (0.83),
-    anode_transparency_   (0.83),
+    grid_thickn_ (0.13 * mm),
+    gate_transparency_    (0.9),
+    anode_transparency_   (0.9),
     cathode_transparency_ (0.98),
     buffer_length_ (117.85 * mm),
-    el_gap_length_plate_ (9.8 * mm), // when there's the plate (run 5)
-    el_gap_length_mesh_ (5. * mm),   // when there's the mesh  (run 7)
-    elgap_ring_diam_ (232. * mm),
+    el_gap_length_ (10 * mm),
+    el_ID_ (191. * mm),
+    el_OD_ (246. * mm),
+    el_ring_thickness_(13.5 * mm),
+    el_mesh_rot_(15*deg),
     light_tube_drift_start_z_ (16. * mm),
     light_tube_drift_end_z_ (304. * mm),
     light_tube_thickn_ ( 8.0 * mm),
     light_tube_buff_start_z_ (317.6 * mm),
     light_tube_buff_end_z_ (420.6 * mm),
-    anode_length_ (3.2 * mm),
-    anode_diam_ (256.3 * mm),
+    plate_length_ (3.2 * mm), // Quartz plate
+    plate_diam_ (256.3 * mm), // Quartz plate
     tpb_thickn_ (3 * micrometer),
     ito_thickness_ (15. * nanometer),
     active_diam_ (194.2 * mm),
@@ -82,8 +89,8 @@ namespace nexus {
     max_step_size_(1.*mm),
     drift_transv_diff_ (1. * mm/sqrt(cm)),
     drift_long_diff_ (.3 * mm/sqrt(cm)),
-    ELtransv_diff_ (1. * mm / sqrt(cm)),
-    ELlong_diff_ (0.5 * mm / sqrt(cm)),
+    ELtransv_diff_ (0.89 * mm / sqrt(cm)), // 500 V/cm at 10 bar
+    ELlong_diff_ (0.35 * mm / sqrt(cm)),  // 500 V/cm at 10 bar
     elfield_(0),
     ELelectric_field_ (23.2857 * kilovolt / cm),
     // EL gap generation disk parameters
@@ -205,6 +212,15 @@ namespace nexus {
       G4cout << G4endl;
     }
 
+    // If run 5 set values
+    if (config_ == "run5"){
+      grid_thickn_         = 0.1 * mm;
+      gate_transparency_   = 0.84;
+      anode_transparency_  = 0.84;
+      el_gap_length_       = 9.8 * mm;
+      el_ID_               = 232 * mm;
+    }
+
     /// Define materials to be used
     DefineMaterials();
 
@@ -245,6 +261,13 @@ namespace nexus {
     //ITO coating
     ito_ = materials::ITO();
     ito_->SetMaterialPropertiesTable(opticalprops::ITO());
+
+    /// Steel
+    steel_ = materials::Steel316Ti();
+    // In Geant4 11.0.0, a bug in treating the OpBoundaryProcess produced in the
+    // surface makes the code fail. This is avoided by setting
+    // an empty G4MaterialPropertiesTable of the G4Material.
+    steel_->SetMaterialPropertiesTable(new G4MaterialPropertiesTable());
   }
 
 
@@ -277,7 +300,7 @@ namespace nexus {
     G4double global_active_zpos = active_zpos_ - GetELzCoord();
     field->SetCathodePosition(global_active_zpos + active_length_/2.);
     field->SetAnodePosition(global_active_zpos - active_length_/2.);
-    field->SetDriftVelocity(1.*mm/microsecond);
+    field->SetDriftVelocity(0.966*mm/microsecond);
     field->SetTransverseDiffusion(drift_transv_diff_);
     field->SetLongitudinalDiffusion(drift_long_diff_);
     field->SetLifetime(e_lifetime_);
@@ -291,6 +314,15 @@ namespace nexus {
                                G4ThreeVector(0., 0., active_zpos_));
 
     active_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+
+    // Garfield stuff
+    GarfieldHelper GH(ring_diam_/2.0/cm, active_length_/cm, active_diam_/2.0/cm ,active_length_/cm, gate_cathode_centre_dist_/cm, -0.13/cm, 10,
+    pressure_, el_gap_length_/cm, G4ThreeVector(0., 0., -1*active_zpos_/cm), 500, ELelectric_field_/(kilovolt/cm), 0.966 * mm/microsecond, 3.32 * mm/microsecond, 1000*ms, 0, 1, 1, "DEMOpp");
+
+    //These commands generate the four gas models and connect it to the GasRegion
+    new DegradModel("DegradModel",drift_region, GH);
+    new GarfieldVUVPhotonModel("GarfieldVUVPhotonModel",drift_region, GH, ionisd);
+
   }
 
 
@@ -363,86 +395,68 @@ namespace nexus {
 
   void NextDemoFieldCage::BuildELRegion()
   {
-    G4double el_gap_length = 0. * mm;
-    if (config_ == "run5") {
-      el_gap_length = el_gap_length_plate_;
-    }
-    else {
-      el_gap_length = el_gap_length_mesh_;
-    }
 
-    G4Tubs* elgap_solid = new G4Tubs("EL_GAP", 0., elgap_ring_diam_/2.,
-                                     el_gap_length/2., 0, twopi);
-    G4LogicalVolume* elgap_logic =
-      new G4LogicalVolume(elgap_solid, gas_, "EL_GAP");
-
-    G4double el_gap_zpos = GetELzCoord() - el_gap_length/2.;
-    new G4PVPlacement(0, G4ThreeVector(0., 0., el_gap_zpos),
-                      elgap_logic, "EL_GAP", mother_logic_, false, 0, false);
-
-    if (elfield_) {
-      UniformElectricDriftField* el_field = new UniformElectricDriftField();
-      G4double global_el_gap_zpos = el_gap_zpos - GetELzCoord();
-      el_field->SetCathodePosition(global_el_gap_zpos + el_gap_length/2.);
-      el_field->SetAnodePosition(global_el_gap_zpos - el_gap_length/2.);
-      el_field->SetDriftVelocity(2.5*mm/microsecond);
-      el_field->SetTransverseDiffusion(ELtransv_diff_);
-      el_field->SetLongitudinalDiffusion(ELlong_diff_);
-      el_field->SetLightYield(XenonELLightYield(ELelectric_field_, pressure_));
-      G4Region* el_region = new G4Region("EL_REGION");
-      el_region->SetUserInformation(el_field);
-      el_region->AddRootLogicalVolume(elgap_logic);
-    }
+    G4double el_gap_zpos = GetELzCoord() - el_gap_length_/2.; // Center of the EL region
+    G4Tubs* elgap_solid;
+    G4LogicalVolume* elgap_logic;
 
     // Building the GATE
-    G4Material* gate_mat = materials::FakeDielectric(gas_, "gate_mat");
-    gate_mat->SetMaterialPropertiesTable(opticalprops::FakeGrid(pressure_,
-                                                                temperature_,
-                                                                gate_transparency_,
-                                                                grid_thickn_,
-                                                                sc_yield_,
-                                                                1000*ms));
+    // Run 5 - Fake Grid as gate + quartz plate as anode
+    if (config_ == "run5"){
 
-    G4Tubs* gate_grid_solid =
-      new G4Tubs("GATE_GRID", 0., elgap_ring_diam_/2., grid_thickn_/2.,
-                 0, twopi);
+      // EL Gap
+      elgap_solid = new G4Tubs("EL_GAP", 0., el_ID_/2.,
+                                     (el_gap_length_+2*grid_thickn_)/2., 0, twopi);
+      elgap_logic = new G4LogicalVolume(elgap_solid, gas_, "EL_GAP");
 
-    G4LogicalVolume* gate_grid_logic =
-      new G4LogicalVolume(gate_grid_solid, gate_mat, "GATE_GRID");
+      G4Material* gate_mat = materials::FakeDielectric(gas_, "gate_mat");
+      gate_mat->SetMaterialPropertiesTable(opticalprops::FakeGrid(pressure_,
+                                                                  temperature_,
+                                                                  gate_transparency_,
+                                                                  grid_thickn_,
+                                                                  sc_yield_,
+                                                                  1000*ms));
 
-    G4double grid_zpos = el_gap_length/2. - grid_thickn_/2.;
-    new G4PVPlacement(0, G4ThreeVector(0., 0., grid_zpos), gate_grid_logic,
-                      "GATE_GRID", elgap_logic, false, 0, false);
+      G4Tubs* gate_grid_solid =
+        new G4Tubs("GATE_GRID", 0., el_ID_/2., grid_thickn_/2.,
+                  0, twopi);
 
-    /// Visibilities
-    if (visibility_) {
-      elgap_logic->SetVisAttributes(nexus::LightBlue());
-      gate_grid_logic->SetVisAttributes(nexus::LightGrey());
-    } else {
-      elgap_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
-      gate_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
-    }
+      G4LogicalVolume* gate_grid_logic =
+        new G4LogicalVolume(gate_grid_solid, gate_mat, "GATE_GRID");
+
+      G4double grid_zpos = el_gap_length_/2. - grid_thickn_/2.;
+      new G4PVPlacement(0, G4ThreeVector(0., 0., grid_zpos), gate_grid_logic,
+                        "GATE_GRID", elgap_logic, false, 0, false);
 
 
-    // Building the ANODE plate corresponding to "run5" configuration
-    if (config_ == "run5") {
+      /// Visibilities
+      if (visibility_) {
+        elgap_logic->SetVisAttributes(nexus::LightBlue());
+        gate_grid_logic->SetVisAttributes(nexus::LightGrey());
+      } else {
+        elgap_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+        gate_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+      }
+
+
+      /// ANODE Plate
       G4Tubs* quartz_anode_solid =
-        new G4Tubs("ANODE_PLATE", 0., anode_diam_/2., anode_length_/2.,
+        new G4Tubs("ANODE_PLATE", 0., plate_diam_/2., plate_length_/2.,
                    0, twopi);
       G4LogicalVolume* quartz_anode_logic =
         new G4LogicalVolume(quartz_anode_solid, quartz_, "ANODE_PLATE");
 
       // A tiny offset is needed because EL is produced only if the PostStepVolume is GAS material.
-      G4double anode_zpos = GetELzCoord() - el_gap_length - anode_length_/2. - 0.1*mm;
+      G4double anode_zpos = GetELzCoord() - el_gap_length_ - plate_length_/2. - 0.1*mm;
       new G4PVPlacement(0, G4ThreeVector(0., 0., anode_zpos), quartz_anode_logic,
                         "ANODE_PLATE", mother_logic_, false, 0, false);
 
       // Add TPB
       G4Tubs* tpb_anode_solid =
-        new G4Tubs("TPB_ANODE", 0., anode_diam_/2., tpb_thickn_/2., 0, twopi);
+        new G4Tubs("TPB_ANODE", 0., plate_diam_/2., tpb_thickn_/2., 0, twopi);
       G4LogicalVolume* tpb_anode_logic =
         new G4LogicalVolume(tpb_anode_solid, tpb_, "TPB_ANODE");
-      new G4PVPlacement(nullptr, G4ThreeVector(0., 0., anode_length_/2.-tpb_thickn_/2.),
+      new G4PVPlacement(nullptr, G4ThreeVector(0., 0., plate_length_/2.-tpb_thickn_/2.),
                         tpb_anode_logic, "TPB_ANODE", quartz_anode_logic, false, 0, false);
 
       // Optical surface around TPB
@@ -453,10 +467,10 @@ namespace nexus {
 
       // Add ITO
       G4Tubs* ito_anode_solid =
-        new G4Tubs("ITO_ANODE", 0., anode_diam_/2., ito_thickness_/2., 0, twopi);
+        new G4Tubs("ITO_ANODE", 0., plate_diam_/2., ito_thickness_/2., 0, twopi);
       G4LogicalVolume* ito_anode_logic =
         new G4LogicalVolume(ito_anode_solid, ito_, "ITO_ANODE");
-      new G4PVPlacement(nullptr, G4ThreeVector(0., 0., anode_length_/2.-tpb_thickn_-ito_thickness_/2.),
+      new G4PVPlacement(nullptr, G4ThreeVector(0., 0., plate_length_/2.-tpb_thickn_-ito_thickness_/2.),
                         ito_anode_logic, "ITO_ANODE", quartz_anode_logic, false, 0, false);
 
       // Run5 Visibilities
@@ -464,30 +478,107 @@ namespace nexus {
       ito_anode_logic   ->SetVisAttributes(G4VisAttributes::GetInvisible());
       if (visibility_) quartz_anode_logic->SetVisAttributes(nexus::Yellow());
       else             quartz_anode_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+
     }
-
-    // Building the ANODE grid corresponding to "run7" and "run8" configuration
+    // Build a metal ring + hexagonal mesh
     else {
-      G4Material* anode_mat = materials::FakeDielectric(gas_, "anode_mat");
-      anode_mat->SetMaterialPropertiesTable(opticalprops::FakeGrid(pressure_,
-                                                                   temperature_,
-                                                                   anode_transparency_,
-                                                                   grid_thickn_,
-                                                                   sc_yield_,
-                                                                   1000*ms));
-      G4Tubs* anode_grid_solid =
-        new G4Tubs("ANODE_GRID", 0., elgap_ring_diam_/2., grid_thickn_/2., 0, twopi);
 
-      G4LogicalVolume* anode_grid_logic =
-        new G4LogicalVolume(anode_grid_solid, anode_mat, "ANODE_GRID");
+      // EL Gap
+      elgap_solid = new G4Tubs("EL_GAP", 0., el_OD_/2.,
+                                     (el_gap_length_+2*grid_thickn_)/2., 0, twopi);
+      elgap_logic = new G4LogicalVolume(elgap_solid, gas_, "EL_GAP");
 
-      new G4PVPlacement(0, G4ThreeVector(0., 0., -grid_zpos), anode_grid_logic,
-                        "ANODE_GRID", elgap_logic, false, 0, false);
+      // GATE ring.
+      G4Tubs* el_ring_solid = new G4Tubs("EL_RING", el_ID_/2., el_OD_/2.,
+                el_ring_thickness_/2.- grid_thickn_/2., 0, twopi);
+
+      G4LogicalVolume* gate_logic = new G4LogicalVolume(el_ring_solid, steel_, "GATE_RING");
+
+      // Shift in the +z direction by half-mesh thickness and reduce thickness
+      // by the grid thickness. The grid thickness makes up the remaining ring thickness
+      new G4PVPlacement(0, G4ThreeVector(0., 0., el_gap_zpos + el_gap_length_/2. + el_ring_thickness_/2.0),
+                      gate_logic, "GATE_RING", mother_logic_, false, 0, false);
+
+      // Anode rings
+      G4LogicalVolume* anode_logic = new G4LogicalVolume(el_ring_solid, steel_, "ANODE_RING");
+
+      // Same shifting procedure as gate
+      new G4PVPlacement(0, G4ThreeVector(0., 0.,  el_gap_zpos - el_gap_length_/2. - 2*grid_thickn_/2. - el_ring_thickness_/2.0),
+                      anode_logic, "ANODE_RING", mother_logic_, false, 0, false);
+
+
+      // Meshes
+      G4double el_hex_diam = 2.5*mm; // hexagon size
+
+      // Dist from centre of hex to hex vertex, excluding the land width (circumradius)
+      G4double hex_circumradius = el_hex_diam/std::sqrt(3)*mm;
+
+      // Total number of hexagons that would fit side-by-side along the diameter
+      G4int n_hex = (G4int) ((el_ID_/2.0) / hex_circumradius);
+
+      // Define the disk to punch hexagon holes through for the mesh
+      G4Tubs* gate_grid_solid = new G4Tubs("EL_GRID", 0., el_OD_/2.0 , grid_thickn_/2., 0., twopi);
+      G4LogicalVolume* gate_grid_logic = new G4LogicalVolume(gate_grid_solid, steel_, "EL_GRID");
+
+      // Define a hexagonal prism
+      G4ExtrudedSolid* hex_prism = CreateHexagon(grid_thickn_/2.0, hex_circumradius);
+      G4LogicalVolume* el_hex_logic  = new G4LogicalVolume(hex_prism, gas_, "MESH_HEX_GAS");
+
+      // Place GXe hexagons in the disk to make the mesh
+      PlaceHexagons(n_hex, el_hex_diam, grid_thickn_, gate_grid_logic, el_hex_logic, el_ID_);
+
+      // Add optical surface -- reflections off the mesh surface
+      G4OpticalSurface* gas_mesh_opsur = new G4OpticalSurface("GAS_EL_MESH_OPSURF");
+      gas_mesh_opsur->SetType(dielectric_metal);
+      gas_mesh_opsur->SetModel(unified);
+      gas_mesh_opsur->SetFinish(ground);
+      gas_mesh_opsur->SetSigmaAlpha(0.0);
+      gas_mesh_opsur->SetMaterialPropertiesTable(opticalprops::Steel());
+      new G4LogicalSkinSurface("GAS_EL_MESH_OPSURF",
+                              gate_grid_logic, gas_mesh_opsur);
+
+
+      // Create a rotation vector to change the orientation of the EL mesh
+      CLHEP::HepRotationZ Roty(el_mesh_rot_);
+      G4RotationMatrix* pRot = new G4RotationMatrix();
+      pRot->set(Roty);
+
+      new G4PVPlacement(0, G4ThreeVector(0., 0., el_gap_length_/2. + grid_thickn_/2.), gate_grid_logic,
+                        "EL_GRID_GATE", elgap_logic, false, 0, false);
+
+      new G4PVPlacement(pRot, G4ThreeVector(0., 0., -el_gap_length_/2. - grid_thickn_/2.), gate_grid_logic,
+                        "EL_GRID_ANODE", elgap_logic, false, 1, false);
 
       // Run7-Run8 Visibilities
-      if (visibility_) anode_grid_logic->SetVisAttributes(nexus::LightGrey());
-      else             anode_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+      if (visibility_) gate_grid_logic->SetVisAttributes(nexus::LightGrey());
+      else             gate_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+
+      G4VisAttributes grey = nexus::DarkGrey();
+      grey.SetForceSolid(true);
+      gate_logic->SetVisAttributes(grey);
+      anode_logic->SetVisAttributes(grey);
+      gate_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+
     }
+
+    // Place the EL gap
+    new G4PVPlacement(0, G4ThreeVector(0., 0., el_gap_zpos),
+                      elgap_logic, "EL_GAP", mother_logic_, false, 0, false);
+
+    if (elfield_) {
+      UniformElectricDriftField* el_field = new UniformElectricDriftField();
+      G4double global_el_gap_zpos = el_gap_zpos - GetELzCoord();
+      el_field->SetCathodePosition(global_el_gap_zpos + el_gap_length_/2.);
+      el_field->SetAnodePosition(global_el_gap_zpos - el_gap_length_/2.);
+      el_field->SetDriftVelocity(3.32*mm/microsecond);
+      el_field->SetTransverseDiffusion(ELtransv_diff_);
+      el_field->SetLongitudinalDiffusion(ELlong_diff_);
+      el_field->SetLightYield(XenonELLightYield(ELelectric_field_, pressure_));
+      G4Region* el_region = new G4Region("EL_REGION");
+      el_region->SetUserInformation(el_field);
+      el_region->AddRootLogicalVolume(elgap_logic);
+    }
+
 
     // Vertex generator
     if (el_gap_gen_disk_zmin_ > el_gap_gen_disk_zmax_)
@@ -495,10 +586,10 @@ namespace nexus {
                   "Error in configuration of EL gap generator: zmax < zmin");
 
     G4double el_gap_gen_disk_thickn =
-      el_gap_length * (el_gap_gen_disk_zmax_ - el_gap_gen_disk_zmin_);
+      el_gap_length_ * (el_gap_gen_disk_zmax_ - el_gap_gen_disk_zmin_);
 
-    G4double el_gap_gen_disk_z = el_gap_zpos + el_gap_length/2.
-      - el_gap_length * el_gap_gen_disk_zmin_ - el_gap_gen_disk_thickn/2.;
+    G4double el_gap_gen_disk_z = el_gap_zpos + el_gap_length_/2.
+      - el_gap_length_ * el_gap_gen_disk_zmin_ - el_gap_gen_disk_thickn/2.;
 
     G4ThreeVector el_gap_gen_pos(el_gap_gen_disk_x_,
                                  el_gap_gen_disk_y_,

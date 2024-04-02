@@ -89,6 +89,7 @@ void NextDemoTrackingPlane::Construct()
   G4String sipm_type       = "";
   G4bool   hole_coated     = false;
   G4double sipm_coat_thickn = 0.;
+  G4double sipm_board_shift = 0.;
 
   if (config_ == "run5") {
     if(verbosity_) G4cout << "run5 ..." << G4endl;
@@ -147,6 +148,7 @@ void NextDemoTrackingPlane::Construct()
     sipm_type       = "next100";
     hole_coated     = true;
     sipm_coat_thickn= 2.0 * micrometer;
+    sipm_board_shift = -13.905*mm; // Shift the SiPM board due to clash with EL metal ring
   }
 
   /// Make sure the pointer to the mother volume is actually defined
@@ -180,7 +182,7 @@ void NextDemoTrackingPlane::Construct()
   G4double kapton_thickn       = sipm_board_->GetKaptonThickness();
 
   // Placing the boards
-  G4double board_posz      = GetELzCoord() - gate_board_dist + board_size_.z()/2. - kapton_thickn;
+  G4double board_posz      = GetELzCoord() - gate_board_dist + board_size_.z()/2. - kapton_thickn + sipm_board_shift;
   GenerateBoardPositions(board_posz);
   for (G4int i=0; i<num_boards_; i++)
     new G4PVPlacement(nullptr, board_pos_[i], board_logic, board_name,
