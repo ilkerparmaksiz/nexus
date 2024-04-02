@@ -24,13 +24,14 @@
 /Geometry/CRAB0/DetChamberL 43.18 cm
 /Geometry/CRAB0/DetActiveD 8.6 cm
 /Geometry/CRAB0/DetActiveL 21.26 cm
-/Geometry/CRAB0/GasPressure 10 bar
+/Geometry/CRAB0/GasPressure 5.89 bar
 /Geometry/CRAB0/fieldDrift 438.0
 /Geometry/CRAB0/fieldEL 11400.0
+/Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/Xe98.8_Argon0.57_CH4_0.58_5.89bar.gas
 
 ##### GENERATOR #####
 /Generator/SingleParticle/particle alpha
-/Generator/SingleParticle/min_energy 0.7 MeV
+/Generator/SingleParticle/min_energy 5.4 MeV
 /Generator/SingleParticle/region CENTER
 
 

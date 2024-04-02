@@ -1,4 +1,3 @@
-#include "G4Electron.hh"
 #include "G4SystemOfUnits.hh"
 #include "GarfieldVUVPhotonModel.h"
 #include "G4Region.hh"
@@ -44,6 +43,7 @@
 #include "NESTProc.hh"
 #include "SensorSD.h"
 #include "G4SDManager.hh"
+#include "PersistencyManager.h"
 #endif
 namespace nexus{
 
@@ -112,13 +112,13 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
     counter[1]++;
     
     // Print how many of each type we have
-    if (!(counter[1]%1000))
+    if (!(counter[1]%5000))
       G4cout << "GarfieldVUV: ie-: " << counter[1] << G4endl;
 
-    if (!(counter[2]%1000) && counter[2] >0)
+    if (!(counter[2]%5000) && counter[2] >0)
       G4cout << "GarfieldVUV: S1: " << counter[2] << G4endl;
 
-    if (!(counter[3]%1000) and (counter[3]>0))
+    if (!(counter[3]%5000) and (counter[3]>0))
         G4cout << "GarfieldVUV: S2: " << counter[3] << G4endl;
 
     // Add the energy deposited to the trajectory so the event gets stored
@@ -209,8 +209,10 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
       
       std::cout << "Loaded gasfile." << std::endl;
     }
+    // Using this so we can pass gas files using the macros
+    if(GH_.GetGasFile()) gasFile=GH_.GetGasFile();
+    else gasFile = "data/Xenon_10Bar.gas";
 
-    gasFile = "data/Xenon_10Bar.gas";
     G4cout << gasFile << G4endl;
     fMediumMagboltz->LoadGasFile(gasFile.c_str());
     std::cout << "Finished Loading in the gas file" << std::endl;
@@ -228,7 +230,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
 
     fSensor = new Garfield::Sensor();
 
-    G4bool use_COMSOL = false;
+    G4bool use_COMSOL = true;
 
     if (!use_COMSOL){
         Garfield::ComponentUser* componentDriftLEM = CreateSimpleGeometry();
@@ -241,15 +243,17 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     else {
         std::cout << "Initialising Garfiled with a COMSOL geometry" << std::endl;
 
-        G4String home = "./data/Garfield/";
+        //G4String home = "./data/Garfield/";
+        G4String home = "/home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/17k_8k_7k/";
         std::string meshfile   = "CRAB_Mesh.mphtxt";
         std::string fieldfile  = "CRAB_Data.txt";
         std::string fileconfig = "CRABMaterialProperties.txt";
 
         // Setup the electric potential map
         Garfield::ComponentComsol* fm = new Garfield::ComponentComsol(); // Field Map
-        fm->Initialise(home + meshfile ,home + fileconfig, home + fieldfile, "cm");
-        
+        //fm->Initialise(home + meshfile ,home + fileconfig, home + fieldfile, "cm");
+        fm->Initialise(home + meshfile ,home + fileconfig, home + fieldfile, "mm");
+
         // Print some information about the cell dimensions.
         fm->PrintRange();
 
@@ -354,10 +358,10 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
     // Now loop over and make the photons
     G4int colHitsEntries = EL_profile.size();
     // std::cout <<  colHitsEntries<< std::endl;
-    colHitsEntries=1 ;
+    //colHitsEntries=1 ;
 
     G4double tig4(0.);
-    
+#ifndef With_Opticks
     for (G4int i=0;i<colHitsEntries;i++){
       
         // std::cout << xi << ", " <<  EL_profile[i][0]  << std::endl;
@@ -387,6 +391,82 @@ void GarfieldVUVPhotonModel::MakeELPhotonsFromFile( G4FastStep& fastStep, G4doub
       }
       counter[3]++;
     }
+#else
+    //G4cout << "sending photons to opticks" <<G4endl;
+    G4Material * Material= fastStep.GetCurrentTrack()->GetMaterial();
+    //std::cout <<Material->GetName()<<std::endl;
+    G4double vd ;
+
+    G4ThreeVector initalPos ( (xi+ EL_profile[0][0])*10., (yi+ EL_profile[0][1])*10., (zi+ EL_profile[0][2])*10. );
+    G4ThreeVector finalPos ( (xi+ EL_profile[colHitsEntries-1][0])*10., (yi+ EL_profile[colHitsEntries][1])*10., (zi+ EL_profile[colHitsEntries-1][2])*10. );
+    // Create a new step for ionization electrons so that opticks can obtain time position and material info
+    tig4=EL_profile[colHitsEntries-1][3];
+    vd=(finalPos[2]-initalPos[2])/(tig4-(EL_profile[0][3]+ti));
+    G4Step * newStep = new G4Step();
+    G4StepPoint *PoststepPoint= new G4StepPoint();
+    PoststepPoint->SetPosition(finalPos);
+    PoststepPoint->SetGlobalTime(fastStep.GetCurrentTrack()->GetProperTime()+tig4);
+    PoststepPoint->SetVelocity(vd);
+    PoststepPoint->SetMaterial(Material);
+
+    tig4=ti+EL_profile[0][3];
+    G4StepPoint *PrestepPoint= new G4StepPoint();
+    PrestepPoint->SetPosition(initalPos);
+    PrestepPoint->SetMaterial(Material);
+    PrestepPoint->SetGlobalTime(fastStep.GetCurrentTrack()->GetGlobalTime()+ti);
+    PrestepPoint->SetVelocity(vd);
+    newStep->SetPreStepPoint(PrestepPoint);
+    newStep->SetPostStepPoint(PoststepPoint);
+
+    auto* thermal = NEST::NESTThermalElectron::Definition();
+    G4DynamicParticle Thermalelectron(thermal,G4RandomDirection(), 1.3*eV);
+    tig4 = fastStep.GetCurrentTrack()->GetGlobalTime() + ti ;
+    G4Track *neweTrack=fastStep.CreateSecondaryTrack(Thermalelectron, initalPos, tig4 ,false);
+    neweTrack->SetPolarization(G4ThreeVector (0,0,1));
+    neweTrack->SetStep(newStep);
+
+    G4RunManager * runmng=G4RunManager::GetRunManager();
+    const int eventID=runmng->GetCurrentEvent()->GetEventID();
+    // Add condition that if this is a thermal electron and has any secondaries
+
+    G4MaterialPropertiesTable *MPT=Material->GetMaterialPropertiesTable();
+    G4double t1,t2=0;
+    G4int singlets,triplets=0;
+    t1=MPT->GetConstProperty(kSCINTILLATIONTIMECONSTANT1);
+    t2=MPT->GetConstProperty(kSCINTILLATIONTIMECONSTANT2);
+
+    singlets= floor(MPT->GetConstProperty(kSCINTILLATIONYIELD1)*colHitsEntries);
+    triplets= ceil(MPT->GetConstProperty(kSCINTILLATIONYIELD2)*colHitsEntries);
+
+
+    if(singlets>0)
+        U4::CollectGenstep_DsG4Scintillation_r4695(neweTrack,newStep,singlets,0,t1);
+    if(triplets>0)
+        U4::CollectGenstep_DsG4Scintillation_r4695(neweTrack,newStep,triplets,1,t2);
+
+    int CollectedPhotons=SEvt::GetNumPhotonCollected(0);
+    int maxPhoton=SEventConfig::MaxPhoton();
+
+    counter[3]+=colHitsEntries;
+
+    if(CollectedPhotons>(maxPhoton-colHitsEntries)){
+        // Get Persistance Manager
+        PersistencyManager *pManger= dynamic_cast<PersistencyManager *>(PersistencyManager::GetPersistencyManager());
+
+        std::cout<<"Simulating Photons in GPU and Saving the hits to file .." <<std::endl;
+        G4CXOpticks * g4xc=G4CXOpticks::Get();
+        g4xc->simulate(eventID,0);
+        cudaDeviceSynchronize();
+
+        if(SEvt::GetNumHit(0)>0){
+            pManger->StoreOpticksHits();
+        }
+        G4CXOpticks::Get()->reset(eventID);
+    }
+
+    neweTrack->SetTrackStatus(fStopAndKill);
+
+#endif
 }
 
 
@@ -442,9 +522,7 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
         }
 
 #else
-            //G4cout << "sending photons to opticks" <<G4endl;
-            G4Material * Material= fastStep.GetCurrentTrack()->GetMaterial();
-
+            G4Material * Material= fastStep.GetCurrentTrack()->GetMaterial(); // Get the material of the medium
 
             G4ThreeVector fakepos (xi*10,yi*10.,zi*10); /// ignoring diffusion in small LEM gap, EC 17-June-2022.
 
@@ -470,7 +548,9 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
             G4DynamicParticle Thermalelectron(thermal,G4RandomDirection(), 1.3*eV);
             tig4 = fastStep.GetCurrentTrack()->GetGlobalTime() + ti ;
             G4Track *neweTrack=fastStep.CreateSecondaryTrack(Thermalelectron, fakepos, tig4 ,false);
+            neweTrack->SetPolarization(G4ThreeVector (0,0,1));
             neweTrack->SetStep(newStep);
+
             G4RunManager * runmng=G4RunManager::GetRunManager();
             const int eventID=runmng->GetCurrentEvent()->GetEventID();
             // Add condition that if this is a thermal electron and has any secondaries
@@ -484,9 +564,6 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
             singlets= floor(MPT->GetConstProperty(kSCINTILLATIONYIELD1)*colHitsEntries);
             triplets= ceil(MPT->GetConstProperty(kSCINTILLATIONYIELD2)*colHitsEntries);
 
-            //std::cout << "Scintilation "<< colHitsEntries <<" Amount of Singlets " <<singlets <<" " <<t1 <<" Triplets " << triplets <<" " <<t2<<std::endl;
-            //std::cout <<"GLobal "<<PoststepPoint->GetGlobalTime()<< " Pre " << PrestepPoint->GetGlobalTime()<<std::endl;
-            //std::cout <<"Proper "<<PoststepPoint->GetProperTime()<< " Pre " << PrestepPoint->GetProperTime()<<std::endl;
             if(singlets>0)
               U4::CollectGenstep_DsG4Scintillation_r4695(neweTrack,newStep,singlets,0,t1);
             if(triplets>0)
@@ -494,22 +571,24 @@ void GarfieldVUVPhotonModel::MakeELPhotonsSimple(G4FastStep& fastStep, G4double 
             int CollectedPhotons=SEvt::GetNumPhotonCollected(0);
             int maxPhoton=SEventConfig::MaxPhoton();
             counter[3]+=colHitsEntries;
-            //std::cout<<colHitsEntries<<std::endl;
-            /* if(CollectedPhotons>(maxPhoton-colHitsEntries)){
-              std::cout<<"Initiating the simulation ..." <<std::endl;
-              G4CXOpticks * g4xc=G4CXOpticks::Get();
-              g4xc->simulate(eventID,0);
-              cudaDeviceSynchronize();
 
-              SensorSD* PMT = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/PMT_R7378A/S1");
-              SensorSD* Camera = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/Sensor/Camera");
-              if(SEvt::GetNumHit(0)>0){
-                  //PMT->OpticksHits();
-                  //Camera->OpticksHits();
-                  std::cout<< "There are hits" <<std::endl;
-              }
-            }*/
+            // Amount of the Photons produced may exceed max photon limit for opticks
+            // To prevent any crash, we simulate photons and save the hits right before reaching to this limit
 
+            if(CollectedPhotons>(maxPhoton-colHitsEntries)){
+                // Get Persistance Manager
+                PersistencyManager *pManger= dynamic_cast<PersistencyManager *>(PersistencyManager::GetPersistencyManager());
+
+                std::cout<<"Simulating Photons in GPU and Saving the hits to file .." <<std::endl;
+                G4CXOpticks * g4xc=G4CXOpticks::Get();
+                g4xc->simulate(eventID,0);
+                cudaDeviceSynchronize();
+
+                if(SEvt::GetNumHit(0)>0){
+                    pManger->StoreOpticksHits();
+                }
+                G4CXOpticks::Get()->reset(eventID);
+            }
             neweTrack->SetTrackStatus(fStopAndKill);
 #endif
 

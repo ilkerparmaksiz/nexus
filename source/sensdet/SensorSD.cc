@@ -66,7 +66,6 @@ namespace nexus {
 
     const G4VTouchable* touchable =
       step->GetPostStepPoint()->GetTouchable();
-    std::cout << "ProcessHits --> "<<pdef->GetParticleName()<<std::endl;
     G4int pmt_id = FindPmtID(touchable);
 
     SensorHit* hit = 0;

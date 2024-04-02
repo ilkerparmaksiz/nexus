@@ -7,7 +7,7 @@
 /control/verbose 2
 /control/saveHistory
 /run/verbose 2
-/tracking/verbose 2
+/tracking/verbose 0
 
 ### Create an empty scene and a scene handles (OpenGL)
 /vis/scene/create

@@ -111,11 +111,13 @@ namespace nexus{
 
         // Messenger for the definition of control commands
         G4GenericMessenger* msg_;
+        G4String GasFile_;
 
         // Specific vertex for AD_HOC region
         G4ThreeVector specific_vertex_;
 
         std::shared_ptr<SampleFromSurface>Sampler;
+
 
 
         G4Material *gxe   ;

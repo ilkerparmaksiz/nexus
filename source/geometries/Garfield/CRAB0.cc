@@ -34,15 +34,17 @@
 #include "G4BooleanSolid.hh"
 #include "config.h"
 
-
-
+#ifdef With_Opticks
+#include "G4CXOpticks.hh"
+#include "U4SensitiveDetector.hh"
+#endif
 
 namespace nexus {
     
     REGISTER_CLASS(CRAB0,GeometryBase)
     
     CRAB0::CRAB0() :
-            checkOverlaps(1),
+            checkOverlaps(0),
             temperature(300 * kelvin), // temperature
             Lab_size(1 * m),
             chamber_diam(16.4 * cm),
@@ -69,7 +71,9 @@ namespace nexus {
             HideCollimator_(true),
             specific_vertex_{},
             fOffset(-0.8*cm),
-            useCAD_(false) {
+            GasFile_("data/Xenon_10Bar.gas"),
+            useCAD_(false)
+           {
 
             // Messenger
             msg_ = new G4GenericMessenger(this, "/Geometry/CRAB0/","Control commands of geometry of CRAB0.");
@@ -111,7 +115,10 @@ namespace nexus {
 
             msg_->DeclareProperty("useCAD", useCAD_, "Use CAD geometry or G4 bools");
 
-            Sampler=std::make_shared<SampleFromSurface>(SampleFromSurface("Needles"));
+            msg_->DeclareProperty("GasFile", GasFile_, "Use CAD geometry or G4 bools");
+
+
+        Sampler=std::make_shared<SampleFromSurface>(SampleFromSurface("Needles"));
 
         }
 
@@ -128,40 +135,30 @@ namespace nexus {
         vacuum = G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
         teflon = G4NistManager::Instance()->FindOrBuildMaterial("G4_TEFLON");
         G4Material *Air=G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
-        Air->SetMaterialPropertiesTable(opticalprops::Vacuum());
 
 
 
         //  ------------------- Optical Properties ----------------------------
-        MgF2  ->SetMaterialPropertiesTable(opticalprops::MgF2());
-        vacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
-        gxe   ->SetMaterialPropertiesTable(opticalprops::GXe(gas_pressure_, 68, sc_yield_, e_lifetime_));
+        MgF2->SetMaterialPropertiesTable(opticalprops::MgF2());
+        Air->SetMaterialPropertiesTable(opticalprops::Vacuum());
+        gxe->SetMaterialPropertiesTable(opticalprops::GXe(gas_pressure_, 68, sc_yield_, e_lifetime_));
         Steel->SetMaterialPropertiesTable(opticalprops::STEEL());
-        teflon->SetMaterialPropertiesTable(opticalprops::STEEL());
-        PEEK->SetMaterialPropertiesTable(opticalprops::STEEL());
+        vacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
+        //teflon->SetMaterialPropertiesTable(opticalprops::STEEL());
+        //PEEK->SetMaterialPropertiesTable(opticalprops::STEEL());
 
-        // OpticalSurface
 
-
-        // Add optical surface
-        G4OpticalSurface* OpSteelSurf = new G4OpticalSurface("OPSURF");
-        OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
-        OpSteelSurf->SetType(dielectric_metal);
-        OpSteelSurf->SetModel(unified);
-        OpSteelSurf->SetFinish(ground);
-        // gas_mesh_opsur->SetSigmaAlpha(0.0);
 
 
         //  ----------------------- Lab Space ---------------------------------
         G4String lab_name = "LAB";
         G4Box *lab_solid_volume = new G4Box(lab_name, Lab_size / 2, Lab_size / 2, Lab_size / 2);
-        G4LogicalVolume *lab_logic_volume = new G4LogicalVolume(lab_solid_volume,vacuum, lab_name);
-
+        G4LogicalVolume *lab_logic_volume = new G4LogicalVolume(lab_solid_volume,Air, lab_name);
 
 
 
         // Xenon Gas
-        G4Tubs *gas_solid = new G4Tubs("GAS", 0., chamber_diam / 2., chamber_length / 2. + chamber_thickn, 0., twopi);
+        G4Tubs *gas_solid = new G4Tubs("GAS", 0., chamber_diam / 2.+ chamber_thickn, chamber_length / 2. + chamber_thickn, 0., twopi);
 
 
 
@@ -173,14 +170,10 @@ namespace nexus {
         G4RotationMatrix *rotateMesh = new G4RotationMatrix();
         rotateMesh->rotateZ(30. * deg);
 
-        // --- Placement ---
-        //G4VPhysicalVolume *labPhysical=new G4PVPlacement(0, G4ThreeVector(), lab_logic_volume, lab_logic_volume->GetName(), 0,false, 0, false);
 
-        /*
-        // Xenon Gas in Active Area and Non-Active Area
-        G4VPhysicalVolume *gas_phys = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), gas_logic, gas_solid->GetName(),
-                                                        lab_logic_volume, false, 0, false);
-        */
+
+
+
 
         //  ------------------------ Vessel -----------------------------------
         // Steel end caps with holes
@@ -200,25 +193,37 @@ namespace nexus {
 
         gas_logic = new G4LogicalVolume(gas_solid, gxe, "GAS");
 
-        G4VPhysicalVolume *gas_phys = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), gas_logic, gas_solid->GetName(),lab_logic_volume, false, 0, false);
 
+        // Xenon Gas in Active Area and Non-Active Area
+        G4VPhysicalVolume *gas_phys = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), gas_logic, gas_solid->GetName(),
+                                                        lab_logic_volume, false, 0, false);
         // --- Placement ---
 
         // Flanges on the Chamber, place in the gas logic so we include the aperature region
         G4VPhysicalVolume *Left_Flange_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, chamber_length / 2 +
                                                                                        chamber_thickn / 2.0),
                                                                 chamber_flange_logic, chamber_flange_solid->GetName(),
-                                                                lab_logic_volume, true, 0, checkOverlaps);
+                                                                gas_logic, true, 0, checkOverlaps);
 
         G4VPhysicalVolume *Right_Flange_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, -chamber_length / 2 -
                                                                                         chamber_thickn / 2.0),
                                                                  chamber_flange_logic, chamber_flange_solid->GetName(),
-                                                                 lab_logic_volume, true, 1, checkOverlaps);
+                                                                 gas_logic, true, 1, checkOverlaps);
 
 
-        G4VPhysicalVolume *chamber_phys = new G4PVPlacement(0, G4ThreeVector(0., 0., 0), chamber_logic,chamber_solid->GetName(), lab_logic_volume, false, 0,checkOverlaps);
+        G4VPhysicalVolume *chamber_phys = new G4PVPlacement(0, G4ThreeVector(0., 0., 0), chamber_logic,chamber_solid->GetName(), gas_logic, false, 0,checkOverlaps);
 
 
+        // OpticalSurface
+
+
+        // Add optical surface
+        G4OpticalSurface* OpSteelSurf = new G4OpticalSurface("OPSURF");
+        OpSteelSurf->SetMaterialPropertiesTable(opticalprops::STEEL());
+        OpSteelSurf->SetType(dielectric_metal);
+        OpSteelSurf->SetModel(unified);
+        OpSteelSurf->SetFinish(polished);
+        // gas_mesh_opsur->SetSigmaAlpha(0.0);
         // --- Optical ---
         new G4LogicalBorderSurface("SteelSurface_Chamber",gas_phys,chamber_phys, OpSteelSurf);
         new G4LogicalBorderSurface("SteelSurface_Flange_Right", gas_phys,Right_Flange_phys, OpSteelSurf);
@@ -304,7 +309,7 @@ namespace nexus {
         // FieldCage -- needs to be updated to rings and PEEK rods
         G4Tubs *FieldCage_Solid = new G4Tubs("ACTIVE", 0., Active_diam / 2., FielCageGap / 2, 0., twopi);
         G4LogicalVolume *FieldCage_Logic = new G4LogicalVolume(FieldCage_Solid, gxe, "ACTIVE");
-        //G4VPhysicalVolume * FieldCage_Phys=new G4PVPlacement(0,G4ThreeVector(0,0,0),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,checkOverlaps);
+       // new G4PVPlacement(0,G4ThreeVector(0,0,0),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,checkOverlaps);
 
         // Field Rings
         G4double FR_ID = 8.6 * cm; // Field Ring Inner Diameter
@@ -386,23 +391,23 @@ namespace nexus {
         // Loop rotations
         for (G4int j = 0; j <=2; j++) {
             // The PEEK rods at the end
-            //new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1 * cm / 2.0 + 5 * (FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 0, 0, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1 * cm / 2.0 + 5 * (FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 1, j, checkOverlaps);
 
             // The other FC PEEK rods
             for (G4int i = 4; i >= -4; i--) {
-                //new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + i * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, checkOverlaps);
+                new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + i * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+4, checkOverlaps);
             }
 
             // PEEK EL
-            //new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1.1 * cm / 2.0       + EL_PEEK_ROD_SHIFT), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 0, 0, checkOverlaps);
-            //new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + EL_PEEK_ROD_SHIFT - 1 * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, checkOverlaps);
-            //new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + EL_PEEK_ROD_SHIFT - 2 * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 0, 0, checkOverlaps);
-            //new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 3.37 * cm / 2.0      + EL_PEEK_ROD_SHIFT - 2 * (FR_thick + PEEK_Rod_thick) - FR_thick - 3.37 * cm), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 0, 0, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1.1 * cm / 2.0       + EL_PEEK_ROD_SHIFT), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 1, 0, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + EL_PEEK_ROD_SHIFT - 1 * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+1, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + EL_PEEK_ROD_SHIFT - 2 * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+2, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 3.37 * cm / 2.0      + EL_PEEK_ROD_SHIFT - 2 * (FR_thick + PEEK_Rod_thick) - FR_thick - 3.37 * cm), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 1, j+3, checkOverlaps);
         }
 
 
         // EL_Gap
-        // new G4PVPlacement(0, G4ThreeVector(0., 0., EL_pos), EL_logic, EL_solid->GetName(), gas_logic, 0, 0, checkOverlaps);
+         //new G4PVPlacement(0, G4ThreeVector(0., 0., EL_pos), EL_logic, EL_solid->GetName(), gas_logic, 0, 0, checkOverlaps);
 
         G4VPhysicalVolume *EL_Ring_Plus = new G4PVPlacement(0, G4ThreeVector(0., 0., EL_thick / 2.0 - FR_thick -
                                                                                      4 * (FR_thick + PEEK_Rod_thick) -
@@ -472,23 +477,7 @@ namespace nexus {
         // Source
 
 
-        /// Needle Source
-        G4double NeedleyepRMin = 0;
-        G4double NeedleyepRMax = (0.42) * mm;
-        G4double NeedleyepDz = (2 / 2) * mm;
-        G4double NeedleHalfLength = (2.56 / 2) * cm;
-        G4double NeedleTailDiam = (0.6 / 2) * mm;
-        G4double NeedleOffset = 1 * mm;
 
-        G4Tubs *NeedleEye = new G4Tubs("NeedleEye", NeedleyepRMin, NeedleyepRMax, NeedleyepDz, 0., twopi);
-        G4Tubs *NeedleTail = new G4Tubs("NeedleTail", NeedleyepRMin, NeedleTailDiam, NeedleHalfLength, 0., twopi);
-
-
-        // Combining them to create the Needle
-        G4VSolid *Needle = new G4UnionSolid("Needle", NeedleEye, NeedleTail, 0, G4ThreeVector(0, 0, NeedleHalfLength));
-
-
-        G4LogicalVolume *Needle_Logic = new G4LogicalVolume(Needle, Steel, "Needle");
 
 
         // --- Placement ---
@@ -496,7 +485,23 @@ namespace nexus {
         // Source Holder
         G4VPhysicalVolume *Needle_Phys;
         if (!HideSourceHolder_) {
+            /// Needle Source
+            G4double NeedleyepRMin = 0;
+            G4double NeedleyepRMax = (0.42) * mm;
+            G4double NeedleyepDz = (2 / 2) * mm;
+            G4double NeedleHalfLength = (2.56 / 2) * cm;
+            G4double NeedleTailDiam = (0.6 / 2) * mm;
+            G4double NeedleOffset = 1 * mm;
 
+            G4Tubs *NeedleEye = new G4Tubs("NeedleEye", NeedleyepRMin, NeedleyepRMax, NeedleyepDz, 0., twopi);
+            G4Tubs *NeedleTail = new G4Tubs("NeedleTail", NeedleyepRMin, NeedleTailDiam, NeedleHalfLength, 0., twopi);
+
+
+            // Combining them to create the Needle
+            G4VSolid *Needle = new G4UnionSolid("Needle", NeedleEye, NeedleTail, 0, G4ThreeVector(0, 0, NeedleHalfLength));
+
+
+            G4LogicalVolume *Needle_Logic = new G4LogicalVolume(Needle, Steel, "Needle");
             // Needle Solid
             G4RotationMatrix *NeedleRotate = new G4RotationMatrix();
             NeedleRotate->rotateY(90. * deg);
@@ -537,20 +542,13 @@ namespace nexus {
 
         //  --------------------------- PMT -----------------------------------
         //Adding the PMTs in here
-        // Krishan: Nexus complaining about PMTs being created twice, so commented out
         pmt1_ = new PmtR7378A();
-        //pmt2_ = new PmtR7378A();
-        // pmt1_->SetPMTName("S2");
-        // pmt2_->SetPMTName("S1");
         pmt1_->Construct();
-        // pmt2_->Construct();
 
 
         // Adding Logical Volumes for PMTs
         G4LogicalVolume *pmt1_logic = pmt1_->GetLogicalVolume();
 
-
-        // PMT1 and PMT3
 
         // // PMTs
         G4double PMT_offset = 0.2 * cm;
@@ -637,12 +635,11 @@ namespace nexus {
 
         // PMTs
         // new G4PVPlacement(pmt1rotate,G4ThreeVector (0,0,((PMT3_Pos_)-pmt1_->Length()/2-PMT_Tube_Length1/2-MgF2_window_thickness_/2)),pmt1_logic,pmt1_->GetPMTName(),InsideThePMT_Tube_Logic0,true,0,checkOverlaps);
-        new G4PVPlacement(0, G4ThreeVector(0, 0., (PMT1_Pos_ - pmt1_->Length() / 2 - MgF2_window_thickness_ / 2)),
-                          pmt1_logic, "S1", InsideThePMT_Tube_Logic1, false, 0, checkOverlaps);
+       G4VPhysicalVolume *pmt1_phys =new G4PVPlacement(0, G4ThreeVector(0, 0., (PMT1_Pos_ - pmt1_->Length() / 2 - MgF2_window_thickness_ / 2)),pmt1_logic, "S1", InsideThePMT_Tube_Logic1, false, 0, checkOverlaps);
 
 
         // --- Optical ---
-        new G4LogicalBorderSurface("SteelSurface_PMT_Enclosing",PMT_Tube_Vacuum_Phys0 ,PMT_Tube_Phys0, OpSteelSurf);
+        new G4LogicalBorderSurface("SteelSurface_Camera_Enclosing",PMT_Tube_Vacuum_Phys0 ,PMT_Tube_Phys0, OpSteelSurf);
         new G4LogicalBorderSurface("SteelSurface_PMT_Enclosing",PMT_Tube_Vacuum_Phys1,PMT_Tube_Phys1, OpSteelSurf);
 
 
@@ -652,26 +649,26 @@ namespace nexus {
         G4double camHalfLength = 0.5 * mm;
         G4double camRadius = 12.7 * mm;
         G4VSolid *camSolid = new G4Tubs("camWindow", 0., camRadius, camHalfLength, 0., twopi);
-        G4LogicalVolume *camLogical = new G4LogicalVolume(camSolid, vacuum, "camLogical");
+        G4LogicalVolume *camLogical = new G4LogicalVolume(camSolid, MgF2, "camLogical");
 
 
         // --- Placement ---
         G4double ImageDist = 7.945 * cm; // Got from trial and error
-        G4VPhysicalVolume *camPhysical = new G4PVPlacement(0, G4ThreeVector(0, 0, (chamber_length / 2 + chamber_thickn +ImageDist) - PMT_pos -LongPMTTubeOffset), camLogical,"camPhysical", InsideThePMT_Tube_Logic0, false, 0, checkOverlaps);
+        G4VPhysicalVolume *camPhysical = new G4PVPlacement(0, G4ThreeVector(0, 0, (chamber_length / 2 + chamber_thickn +ImageDist) - PMT_pos -LongPMTTubeOffset), camLogical,"camWindow", InsideThePMT_Tube_Logic0, false, 0, checkOverlaps);
 
 
 
 
 
         //  ------------------------ EL Brackets ------------------------------
-        /*
+
         G4Box *bracket_body = new G4Box("Box_body", 26 * mm / 2.0, 26 * mm / 2.0, 51 * mm / 2.0);
         G4Box *bracket_subtract = new G4Box("Box_subtract", 27 * mm / 2.0, 26 * mm / 2.0, 33 * mm / 2.0);
 
         G4SubtractionSolid *bracket_solid = new G4SubtractionSolid("Bracket", bracket_body, bracket_subtract, 0,
                                                                    G4ThreeVector(0, 3 * mm, 0));
         G4LogicalVolume *bracket_logical = new G4LogicalVolume(bracket_solid, teflon, "bracketLogical");
-        */
+
 
         // Define a rotation matrix to orient all detector pieces along y direction
         G4RotationMatrix *rotateZ_120 = new G4RotationMatrix();
@@ -685,36 +682,40 @@ namespace nexus {
         y_rot_2 = -5.7 * std::cos(-120 * deg) * cm;
 
         // --- Placement ---
-        /*
+
         G4VPhysicalVolume *bracketPhysical1 = new G4PVPlacement(0, G4ThreeVector(0, (-5.7) * cm, EL_pos),
-                                                                bracket_logical, "bracketPhysical", gas_logic, false, 0,
+                                                                bracket_logical, "bracketPhysical", gas_logic, true, 0,
                                                                 checkOverlaps);
         G4VPhysicalVolume *bracketPhysical2 = new G4PVPlacement(rotateZ_120, G4ThreeVector(x_rot_2, y_rot_2, EL_pos),
-                                                                bracket_logical, "bracketPhysical", gas_logic, false, 0,
+                                                                bracket_logical, "bracketPhysical", gas_logic, true, 1,
                                                                 checkOverlaps);
         G4VPhysicalVolume *bracketPhysical3 = new G4PVPlacement(rotateZ_m120, G4ThreeVector(x_rot_3, y_rot_3, EL_pos),
-                                                                bracket_logical, "bracketPhysical", gas_logic, false, 0,
-                                                            checkOverlaps);
-        */
+                                                                bracket_logical, "bracketPhysical", gas_logic, true, 2,checkOverlaps);
+
+
+
+        // Add the camera as a sensitive detector
+        SensorSD* camerasd = new SensorSD("/CRAB0/camWindow");
+        camerasd->SetDetectorVolumeDepth(2);
+        camerasd->SetTimeBinning(100*ns);
+        G4SDManager::GetSDMpointer()->AddNewDetector(camerasd);
+        camLogical->SetSensitiveDetector(camerasd);
 
 
         // Camera
         G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("CamSurfaceBorder");
         opXenon_Glass->SetMaterialPropertiesTable(opticalprops::PerfectDetector());
         opXenon_Glass->SetModel(unified);                  // SetModel
-        opXenon_Glass->SetType(dielectric_metal);   // SetType
+        opXenon_Glass->SetType(dielectric_dielectric);   // SetType
         opXenon_Glass->SetFinish(polished);                 // SetFinish
-        new G4LogicalBorderSurface("CamSurfaceBorder",PMT_Tube_Vacuum_Phys0,camPhysical,opXenon_Glass);
+        //new G4LogicalBorderSurface("CamSurfaceBorder",PMT_Tube_Vacuum_Phys0,camPhysical,opXenon_Glass);
+        new G4LogicalSkinSurface("CamSurfaceBorder",camLogical,opXenon_Glass);
 
 
 
 
-        // Add the camera as a sensitive detector
-        SensorSD* camerasd = new SensorSD("/CRAB0/Camera");
-        camerasd->SetDetectorVolumeDepth(2);
-        camerasd->SetTimeBinning(100*ns);
-        G4SDManager::GetSDMpointer()->AddNewDetector(camerasd);
-        camLogical->SetSensitiveDetector(camerasd);
+
+
 
 
 
@@ -733,7 +734,7 @@ namespace nexus {
         regionGas->AddRootLogicalVolume(gas_logic);
 
         GarfieldHelper GH(chamber_diam/2.0/cm, chamber_length/cm, Active_diam/2.0/cm , FielCageGap/cm, gas_pressure_, ElGap_, fieldDrift_, fieldEL_);
-
+        GH.SetGasFile(GasFile_);
         // Visuals
         AssignVisuals();
 
@@ -762,7 +763,7 @@ namespace nexus {
         G4LogicalVolume *Chamber = lvStore->GetVolume("CHAMBER");
         G4VisAttributes *ChamberVa = new G4VisAttributes(G4Colour(1, 1, 1));
         ChamberVa->SetForceSolid(true);
-        Chamber->SetVisAttributes(G4VisAttributes::GetInvisible());
+        Chamber->SetVisAttributes(ChamberVa);
 
 
         //GAS

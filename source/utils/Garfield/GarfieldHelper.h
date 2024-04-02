@@ -25,7 +25,8 @@ namespace nexus {
     GarfieldHelper(G4double DetChamberR ,G4double DetChamberL_,G4double DetActiveR ,G4double DetActiveL ,G4double GasPressure ,G4double gap_EL ,G4double fieldDrift ,G4double fieldEL);
 
     void DumpParams();
-
+    void SetGasFile(G4String g);
+    G4String GetGasFile();
     /// Destructor
     ~GarfieldHelper();
 
@@ -38,7 +39,8 @@ namespace nexus {
 
     G4double gap_EL_;      // cm
     G4double fieldDrift_;  // V/cm
-    G4double fieldEL_;     // V/cm 
+    G4double fieldEL_;     // V/cm
+    G4String GasFile_;
 
     G4double thermalE_{1.3*eV}; // eV
 
@@ -48,7 +50,8 @@ namespace nexus {
   // inline methods ..................................................
 
   inline GarfieldHelper::~GarfieldHelper() { }
-
+  inline void GarfieldHelper::SetGasFile(G4String g) {GasFile_=g;}
+  inline G4String GarfieldHelper::GetGasFile() { return GasFile_;}
 } // namespace nexus
 
 #endif

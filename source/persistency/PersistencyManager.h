@@ -46,7 +46,7 @@ namespace nexus {
     void StoreSteps(G4bool);
     void SaveNumbOfInteractingEvents(G4bool);
 
-    ///
+      ///
     virtual G4bool Store(const G4Event*);
     virtual G4bool Store(const G4Run*);
     virtual G4bool Store(const G4VPhysicalVolume*);
@@ -56,6 +56,7 @@ namespace nexus {
     virtual G4bool Retrieve(G4VPhysicalVolume*&);
 
   public:
+    void StoreOpticksHits();
     void OpenFile();
     void CloseFile();
 
@@ -66,7 +67,7 @@ namespace nexus {
     void StoreIonizationHits(G4VHitsCollection*);
     void StoreSensorHits(G4VHitsCollection*);
     void StoreSteps();
-    void StoreOpticksHits();
+
 
     void SaveConfigurationInfo(G4String history);
 

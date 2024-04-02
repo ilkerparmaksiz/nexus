@@ -63,7 +63,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
   G4Material* vacuum =
   G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
-  vacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
 
   G4LogicalVolume* world_logic =
   new G4LogicalVolume(world_solid, vacuum, "WORLD", 0, 0, 0, true);
@@ -81,9 +80,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 #ifdef With_Opticks
     std::cout <<"Setting our detector geometry with opticks" <<std::endl;
-        G4CXOpticks::SetGeometry(world_physi);
-        cudaDeviceSynchronize();
-        std::cout << SEventConfig::Desc() <<std::endl;
+    G4CXOpticks::SetGeometry(world_physi);
+    std::cout << SEventConfig::Desc() <<std::endl;
 #endif
 
     return world_physi;

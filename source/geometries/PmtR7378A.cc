@@ -164,7 +164,9 @@ namespace nexus {
       new G4OpticalSurface("PHOTOCATHODE", unified, polished, dielectric_metal);
     phcath_opsur->SetMaterialPropertiesTable(phcath_mpt);
 
-    new G4LogicalSkinSurface("PHOTOCATHODE", phcath_logic, phcath_opsur);
+
+
+    new G4LogicalSkinSurface("PHOTOCATHODE" ,phcath_logic, phcath_opsur);
   }
 
 

@@ -40,9 +40,6 @@ G4int main(int argc, char** argv)
 #ifdef With_Opticks
     // Line one bellow is temporary
    OPTICKS_LOG(argc,argv); // This is needed
-   SEventConfig::SetMaxPhoton(10000000);
-   SEventConfig::SetRGModeSimulate();
-   SEventConfig::SetIntegrationMode(3);
    std::cout<< SEventConfig::Desc() << std::endl;
 #endif
 

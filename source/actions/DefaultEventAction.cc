@@ -93,7 +93,7 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       }
 
 #ifdef With_Opticks
-      G4CXOpticks::Get()->SensitiveDetector_Initialize(event->GetEventID());
+      //G4CXOpticks::Get()->SensitiveDetector_Initialize(event->GetEventID());
 #endif
 
   }
@@ -126,15 +126,15 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
                 std::cout<<g4cx->desc()<<std::endl;
                 std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
                 g4cx->simulate(eventID,0); // For Simulation
-                cudaDeviceSynchronize();
+
                 //g4cx->render();  // For Rendering
 
             }
 
-            SensorSD* PMT = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/PMT_R7378A/Pmt");
-            SensorSD* Camera = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/CRAB0/Camera");
+            //SensorSD* PMT = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/PMT_R7378A/Pmt");
+            //SensorSD* Camera = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/CRAB0/Camera");
 
-        G4CXOpticks::Get()->SensitiveDetector_EndOfEvent(eventID);
+        //G4CXOpticks::Get()->SensitiveDetector_EndOfEvent(eventID);
 
 
         #endif

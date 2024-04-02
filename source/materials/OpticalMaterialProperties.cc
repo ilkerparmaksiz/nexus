@@ -1771,7 +1771,7 @@ namespace opticalprops {
         for (int i=0; i<ri_entries; i++)
         {
             ri_energy.push_back(optPhotMinE_ + i * eWidth);
-            REFLECTIVITY.push_back(1);
+            REFLECTIVITY.push_back(0);
             EFFICIENCY.push_back(1);
         }
 
