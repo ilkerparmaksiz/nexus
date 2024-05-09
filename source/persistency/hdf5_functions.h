@@ -38,6 +38,7 @@
         int label;
         int particle_id;
         int hit_id;
+        int brem_id;
   } hit_info_t;
 
   typedef struct{

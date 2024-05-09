@@ -183,9 +183,10 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
   // Insert hits
   if (dm_ && dm_->GetCurrentTrackIndex(trk_id) != -1){
-    InsertHits(x0, y0, z0, t0, trk_id, mean_ioni_E);
+    G4int parent_track_idx = GetCurrentTrackIndex(trk_id);
+    InsertHits(x0, y0, z0, t0, trk_id, mean_ioni_E, dm_->GetBremID(trk_id,N_ioni_[parent_track_idx]-1));
   }
-  // return;
+  return;
 
   // Print Electric Field
   // PrintElectricField(x0, y0, z0);
@@ -517,13 +518,14 @@ void GarfieldVUVPhotonModel::PrintElectricField(G4double x,G4double y, G4double 
 
 }
 
-void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t, G4int trk_id, G4double mean_ioni_E){
+void GarfieldVUVPhotonModel::InsertHits(G4double x,G4double y, G4double z, G4double t, G4int trk_id, G4double mean_ioni_E, G4int brem_id){
   G4ThreeVector ie_pos(x*cm,y*cm,z*cm);
   IonizationHit* ie_hit = new IonizationHit();
   ie_hit->SetTrackID(trk_id);
   ie_hit->SetTime(t);
   ie_hit->SetEnergyDeposit(mean_ioni_E);
   ie_hit->SetPosition(ie_pos);
+  ie_hit->SetBremID(brem_id);
   fGarfieldSD->InsertIonizationHit(ie_hit);
 
 }

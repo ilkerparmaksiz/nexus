@@ -52,11 +52,15 @@ namespace nexus {
     G4ThreeVector GetPosition();
     void SetPosition(G4ThreeVector);
 
+    G4int GetBremID();
+    void SetBremID(G4int);
+
   private:
     G4int track_id_;
     G4double time_;
     G4double energy_dep_;
     G4ThreeVector position_;
+    G4int brem_id_;
   };
 
 
@@ -85,6 +89,10 @@ namespace nexus {
   inline G4ThreeVector IonizationHit::GetPosition() { return position_; }
   inline void IonizationHit::SetPosition(G4ThreeVector xyz)
   { position_ = xyz; }
+
+  inline G4int IonizationHit::GetBremID() { return brem_id_; }
+  inline void IonizationHit::SetBremID(G4int brem_id)
+  { brem_id_ = brem_id; }
 
 
 } // end namespace nexus

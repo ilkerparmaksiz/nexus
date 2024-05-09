@@ -27,6 +27,7 @@ namespace nexus{
         G4double GetAvgIoniEnergy(G4int trk_id);
         G4int GetTotIonizations(G4int trk_id);
         G4double GetTrackLength(G4int trk_id);
+        G4int GetBremID(G4int trk_id, G4int hit_id);
         ~DegradModel();
 
 
@@ -41,6 +42,7 @@ namespace nexus{
         void SetTrackEndPoint(G4ThreeVector pos, G4double time, G4int trk_index);
         void SetNioni(G4int Ne, G4int trk_index); // Set the number of ionization particles
         void AddTrackLength(G4int trk_id); // Get track length
+        void AddBremID(G4int trk_index, G4int brem_id); // Add the brem id to a vector
         G4double GetScintTime(); // Get timing delay from scintillaiton
 
         G4double fPrimKE; // Primary kinetic energy of the particle
@@ -53,6 +55,7 @@ namespace nexus{
         std::vector<G4double>      ke_vec_;
         std::vector<G4double>      trk_len_vec_;
         std::vector<G4ThreeVector> track_end_pos_;
+        std::vector<std::vector<G4int>> brem_id_vec_;
         G4bool degrad_status_; // Checks if degrad has been run
 
         std::vector<G4int> track_ids_;

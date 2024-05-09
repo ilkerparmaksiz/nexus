@@ -83,7 +83,7 @@ namespace nexus {
         void PrintElectricField(G4double x0,G4double y0, G4double z);
 
         // Function to add hits to the sensitive detector
-        void InsertHits(G4double x, G4double y, G4double z, G4double t, G4int trk_id, G4double mean_ioni_E);
+        void InsertHits(G4double x, G4double y, G4double z, G4double t, G4int trk_id, G4double mean_ioni_E, G4int brem_id);
 
         // Get a scintillation timing delay based on the constants
         G4double GetScintTime();

@@ -191,7 +191,7 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
     G4double  posYInitial{degradPos.getY()};
     G4double  posZInitial{degradPos.getZ()};
     G4double  timeInitial{degradTime};
-    G4double  Fluorescence{0}, PairProd{0}, Brems{0};
+    G4int  Fluorescence{0}, PairProd{0}, Brems{0};
     G4String  line;
     std::vector<G4double> v;
 
@@ -240,6 +240,8 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 Fluorescence = v[i+4]; // 0 to N where N is the ie- for each N absorbed fluorescence photon in the event
                 PairProd     = v[i+5]; // 0: not from pair prod, 1: produced from electron track,     2: produced from positron track
                 Brems        = v[i+6]; // 0: not from brem,      1: produced from remaining electrons, 2: produced from brem gamma
+
+                AddBremID(trk_index, Brems);
                 
                 // Convert from um to mm in GEANT4
                 // also Y and Z axes are swapped in GEANT4 and Garfield++ relatively to Degrad
@@ -306,8 +308,8 @@ void DegradModel::GetElectronsFromDegrad(G4FastStep& fastStep,G4ThreeVector degr
                 
                 G4DynamicParticle VUVphoton(optphot, momentum, sampled_energy);
 
-                G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, myPoint, time ,false);
-                newTrack->SetPolarization(polarization);
+                // G4Track *newTrack=fastStep.CreateSecondaryTrack(VUVphoton, myPoint, time ,false);
+                // newTrack->SetPolarization(polarization);
 
             }
             v.clear();
@@ -361,7 +363,7 @@ void DegradModel::Reset(){
     ke_vec_.clear();
     N_ioni_.clear();
     trk_len_vec_.clear();
-
+    brem_id_vec_.clear();
 }
 
 void DegradModel::AddTrack(G4int trk_id){
@@ -374,6 +376,8 @@ void DegradModel::AddTrack(G4int trk_id){
         ke_vec_.push_back(fPrimKE);
         N_ioni_.push_back(0);
         trk_len_vec_.push_back(0.);
+        std::vector<G4int> empty_vec;
+        brem_id_vec_.push_back(empty_vec);
     }
 }
 
@@ -476,4 +480,19 @@ G4double DegradModel::GetScintTime(){
   }
 
   return scint_time;
+
+}
+
+void DegradModel::AddBremID(G4int trk_index, G4int brem_id){
+
+    brem_id_vec_[trk_index].push_back(brem_id);
+}
+
+
+G4int DegradModel::GetBremID(G4int trk_id, G4int hit_id){
+
+    G4int trk_index = GetCurrentTrackIndex(trk_id);
+
+    return brem_id_vec_[trk_index][hit_id];
+
 }

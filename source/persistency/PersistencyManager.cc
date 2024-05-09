@@ -267,6 +267,7 @@ void PersistencyManager::StoreIonizationHits(G4VHitsCollection* hc)
     if (!hit) continue;
 
     G4int trackid = hit->GetTrackID();
+    G4int brem_id = hit->GetBremID();
 
     std::map<G4int, std::vector<G4int>* >::iterator it = hit_map_.find(trackid);
     if (it != hit_map_.end()) {
@@ -282,7 +283,7 @@ void PersistencyManager::StoreIonizationHits(G4VHitsCollection* hc)
     h5writer_->WriteHitInfo(save_str_, nevt_, trackid,  ihits_->size() - 1,
 			    xyz[0], xyz[1], xyz[2],
 			    hit->GetTime(), hit->GetEnergyDeposit(),
-                            sdname.c_str(), sdname_id);
+                            sdname.c_str(), sdname_id, brem_id);
   }
 }
 

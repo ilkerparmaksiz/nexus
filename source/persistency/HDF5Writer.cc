@@ -107,7 +107,7 @@ void HDF5Writer::WriteSensorDataInfo(int64_t evt_number, unsigned int sensor_id,
   ismp_++;
 }
 
-void HDF5Writer::WriteHitInfo(bool str, int64_t evt_number, int particle_indx, int hit_indx, float hit_position_x, float hit_position_y, float hit_position_z, float hit_time, float hit_energy, const char* label_str, int label)
+void HDF5Writer::WriteHitInfo(bool str, int64_t evt_number, int particle_indx, int hit_indx, float hit_position_x, float hit_position_y, float hit_position_z, float hit_time, float hit_energy, const char* label_str, int label, int brem_id)
 {
   hit_info_t trueInfo;
   trueInfo.event_id = evt_number;
@@ -124,6 +124,7 @@ void HDF5Writer::WriteHitInfo(bool str, int64_t evt_number, int particle_indx, i
   }
   trueInfo.particle_id = particle_indx;
   trueInfo.hit_id = hit_indx;
+  trueInfo.brem_id = brem_id;
   writeHit(&trueInfo,  hitInfoTable_, memtypeHitInfo_, ihit_);
 
   ihit_++;
