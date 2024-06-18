@@ -11,7 +11,9 @@
 #define DEFAULT_RUN_ACTION_H
 
 #include <G4UserRunAction.hh>
-
+#include "DefaultRunAction.h"
+#include "chrono"
+#include "vector"
 
 namespace nexus {
 
@@ -25,6 +27,12 @@ namespace nexus {
 
     virtual void BeginOfRunAction(const G4Run*);
     virtual void EndOfRunAction(const G4Run*);
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+    std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
+    std::vector<double>* EventCompletionTime;
+    std::vector<double>* NumberofPhotonsPerEvent;
+    double Runtime;
+
   };
 
 }

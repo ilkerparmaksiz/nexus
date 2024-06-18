@@ -12,6 +12,7 @@
 /PhysicsList/RegisterPhysics G4DecayPhysics
 /PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
 /PhysicsList/RegisterPhysics G4StepLimiterPhysics
+/PhysicsList/RegisterPhysics G4OpticalPhysics
 
 /nexus/RegisterGeometry CRAB0
 
@@ -22,7 +23,9 @@
 /nexus/RegisterRunAction DefaultRunAction
 /nexus/RegisterEventAction DefaultEventAction
 /nexus/RegisterTrackingAction DefaultTrackingAction
+#/nexus/RegisterTrackingAction OpticalTrackingAction
 /nexus/RegisterStackingAction GarfieldStackingAction
-#/nexus/RegisterSteppingAction OpticksSteppingAction
+/nexus/RegisterSteppingAction OpticksSteppingAction
+
 
 /nexus/RegisterMacro macros/CRAB.config.mac

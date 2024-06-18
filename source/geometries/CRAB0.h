@@ -94,7 +94,8 @@ namespace nexus{
         G4double fOffset;
 
         G4double MgF2_window_thickness_;
-        G4double MgF2_window_diam_;
+        G4double Anode_window_diam_;
+        G4double Cathode_window_diam_;
         G4double pmt_hole_length_ ;
         G4bool  HideCollimator_;
 

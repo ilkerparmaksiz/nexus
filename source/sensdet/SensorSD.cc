@@ -15,8 +15,9 @@
 #include <G4OpBoundaryProcess.hh>
 #include <G4RunManager.hh>
 #include <G4RunManager.hh>
-#include "NEST/G4/NESTS1Photon.hh"
-
+#ifdef With_GarField
+    #include "NEST/G4/NESTS1Photon.hh"
+#endif
 
 namespace nexus {
 
@@ -62,12 +63,15 @@ namespace nexus {
 
     // Check whether the track is an optical photon
     G4ParticleDefinition* pdef = step->GetTrack()->GetDefinition();
-    //if (pdef != G4OpticalPhoton::Definition() && pdef != NESTS1Photon::Definition()) return false;
+#ifdef With_Garfield
+    if (pdef != G4OpticalPhoton::Definition() or pdef != NESTS1Photon::Definition()) return false;
+#else
+      if (pdef != G4OpticalPhoton::Definition()) return false;
 
+#endif
     const G4VTouchable* touchable =
       step->GetPostStepPoint()->GetTouchable();
     G4int pmt_id = FindPmtID(touchable);
-
     SensorHit* hit = 0;
     for (size_t i=0; i<HC_->entries(); i++) {
       if ((*HC_)[i]->GetPmtID() == pmt_id) {
@@ -111,7 +115,6 @@ namespace nexus {
     //    GetCollectionID(this->GetCollectionName(0));
     //  // }
     // HCE->AddHitsCollection(HCID, HC_);
-
 
   }
 

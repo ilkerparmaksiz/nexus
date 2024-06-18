@@ -26,9 +26,9 @@
 #include <G4UserTrackingAction.hh>
 #include <G4UserSteppingAction.hh>
 #include <G4UserStackingAction.hh>
-
-#include "GarfieldStackingAction.h"
-
+#ifdef With_GarField
+    #include "GarfieldStackingAction.h"
+#endif
 using namespace nexus;
 using std::make_unique;
 using std::unique_ptr;
@@ -131,8 +131,10 @@ NexusApp::NexusApp(G4String init_macro): G4RunManager(), gen_name_(""),
     // NEST. Since we dont use this in nexus I have left this till we can fix properly
     // auto stkact = ObjFactory<G4UserStackingAction>::Instance().CreateObject(stkact_name_);
     // this->SetUserAction(stkact.release());
+#ifdef With_GarField
     auto stackingAction = make_unique<GarfieldStackingAction>();
     this->SetUserAction(stackingAction.release());
+#endif
   }
 
   if (!trkact_name_.empty()) {

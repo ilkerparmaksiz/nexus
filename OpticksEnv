@@ -1,10 +1,10 @@
 #!/bin/bash -l 
 ## Export these
 #export CRABPATH=/home/argon/Projects/Ilker/gxsim/CRAB/
-export GEOM=NEXUS_CRAB  # Geometry name
+export GEOM=NEXUS_CRAB_Perf  # Geometry name
 
 ## Opticks settings
-export OPTICKS_MAX_PHOTON=100000000 # Max Amount of photons
+export OPTICKS_MAX_PHOTON=170000000 # Max Amount of photons
 export OPTICKS_INTEGRATION_MODE=3  # Running both GPU and CPU simulation
 ## default setting of the opticks
 #export OPTICKS_RG_MODE="simulate" # Simulate or Render
@@ -14,6 +14,10 @@ export U4SensorIdentifierDefault__GLOBAL_SENSOR_BOUNDARY_LIST=$(cat << EOL
  G4_Galactic/CamSurfaceBorder//MgF2
  G4_SILICON_DIOXIDE/PHOTOCATHODE//G4_Al
  G4_Galactic/CamSurfaceBorder/CamSurfaceBorder/MgF2
+ G4_Galactic/PMTSurfaceBorder//MgF2
+ G4_Galactic/PMTSurfaceBorder/PMTSurfaceBorder/MgF2
+
+
 EOL
 )
 
@@ -32,11 +36,11 @@ EOL
 #export SSim__stree_level=1
 #export GBndLib=INFO
 #export ShimG4OpAbsorption=INFO
-#export G4CXOpticks__simulate_saveEvent=1
+#export G4CXOpticks__simulate_saveEvent=0
 #export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
-#export G4CXOpticks__saveGeometry_saveGGeo=1
+#export G4CXOpticks__saveGeometry_saveGGeo=0
 #export GGeo__postDirectTranslation_save=1
-#export OPTICKS_EVENT_MODE=Default
+export OPTICKS_EVENT_MODE=Hit
 #export IDPath=$G4CXOpticks__setGeometry_saveGeometry
 #export PIDX=100
 #export CFBASE=$HOME/.opticks/GEOM/$GEOM

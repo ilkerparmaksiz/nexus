@@ -16,16 +16,13 @@
 #include <stdint.h>
 #include <iostream>
 #include "config.h"
-#ifdef With_Opticks
-#include "G4CXOpticks.hh"
-#include "SEvt.hh"
-#endif
+
 using namespace nexus;
 
 
 HDF5Writer::HDF5Writer():
   file_(0), irun_(0), ismp_(0), ihit_(0),
-  ipart_(0), ipos_(0), istep_(0),iophit_(0)
+  ipart_(0), ipos_(0), istep_(0),iophit_(0),iopticalhit_(0),itiming_(0)
 {
 }
 
@@ -67,11 +64,24 @@ void HDF5Writer::Open(std::string fileName, bool debug)
   memtypeSnsPos_ = createSensorPosType();
   snsPosTable_ = createTable(group, sns_pos_table_name, memtypeSnsPos_);
 
+    // These are for Performance Studies
+    std::string Timing_Table = "Timing";
+    memtypeTimingInfo_ = createTimingType();
+    TimingInfoTable_ = createTable(group, Timing_Table, memtypeTimingInfo_);
+
 #ifdef With_Opticks
     std::string optickshit_table_name = "Opticks_Hits";
     memtypeOptickInfo_ = createHitOpticksType();
     OpticksHitInfoTable_ = createTable(group, optickshit_table_name, memtypeOptickInfo_);
 #endif
+    // These are for Performance Studies
+#ifndef With_Opticks
+
+    std::string opticalkshit_table_name = "GEANT4_Optical_Hits";
+    memtypeOpticalInfo_ = createHitOpticalType();
+    OpticalHitsInfoTable_ = createTable(group, opticalkshit_table_name, memtypeOpticalInfo_);
+#endif
+
 
   if (debug) {
     std::string debug_group_name = "/DEBUG";
@@ -219,10 +229,19 @@ void HDF5Writer::WriteStep(int64_t evt_number,
     istep_++;
 
 }
+void HDF5Writer::WriteTimingInfo(int64_t evt_number,int64_t TotalPhotons, double completionTime)
+{
+
+    timing_t TimingInfo;
+    TimingInfo.event_id = evt_number;
+    TimingInfo.photons = TotalPhotons;
+    TimingInfo.time = completionTime;
+    writeTimingInfo(&TimingInfo,  TimingInfoTable_, memtypeTimingInfo_, itiming_);
+    itiming_++;
+}
 void HDF5Writer::WriteOpticksHitInfo(int64_t evt_number,int32_t hit_indx, float hit_position_x, float hit_position_y, float hit_position_z, float hit_time,unsigned int boundary)
 {
 
-#ifdef With_Opticks
     hit_opticks_t OptickHitInfo;
     OptickHitInfo.event_id = evt_number;
     OptickHitInfo.hit_id = hit_indx;
@@ -234,6 +253,23 @@ void HDF5Writer::WriteOpticksHitInfo(int64_t evt_number,int32_t hit_indx, float 
 
     writeOpticksHit(&OptickHitInfo,  OpticksHitInfoTable_, memtypeOptickInfo_, iophit_);
     iophit_++;
-#endif
+
+}
+
+
+void HDF5Writer::WriteAllOpticalHitInfo(int64_t evt_number,const char* name,int32_t hit_indx, float hit_position_x, float hit_position_y, float hit_position_z, float hit_time)
+{
+    hit_optical_t OpticalHitInfo;
+    OpticalHitInfo.event_id = evt_number;
+    memset(OpticalHitInfo.name, 0, STRLEN);
+    strcpy(OpticalHitInfo.name, name);
+    OpticalHitInfo.hit_id = hit_indx;
+    OpticalHitInfo.x = hit_position_x;
+    OpticalHitInfo.y = hit_position_y;
+    OpticalHitInfo.z = hit_position_z;
+    OpticalHitInfo.time = hit_time;
+
+    writeOpticalHit(&OpticalHitInfo,  OpticalHitsInfoTable_, memtypeOpticalInfo_, iopticalhit_);
+    iopticalhit_++;
 }
 

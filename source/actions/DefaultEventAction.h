@@ -32,12 +32,15 @@ namespace nexus {
     void BeginOfEventAction(const G4Event*);
     /// Hook at the end of the event loop
     void EndOfEventAction(const G4Event*);
-
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+    std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
   private:
     G4GenericMessenger* msg_;
     G4int nevt_, nupdate_;
     G4double energy_min_;
     G4double energy_max_;
+
+
   };
 
 } // namespace nexus

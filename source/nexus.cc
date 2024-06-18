@@ -40,7 +40,7 @@ G4int main(int argc, char** argv)
 #ifdef With_Opticks
     // Line one bellow is temporary
    OPTICKS_LOG(argc,argv); // This is needed
-   std::cout<< SEventConfig::Desc() << std::endl;
+   //std::cout<< SEventConfig::Desc() << std::endl;
 #endif
 
     ////////////////////////////////////////////////////////////////////

@@ -384,8 +384,8 @@ namespace nexus {
 
     void SaveToTextFile(std::string file, std::string labels, G4String data) {
         std::string val;
-        std::fstream fstfile = std::fstream (file);
-        if(!fstfile.is_open()) fstfile=std::fstream (file.c_str(),std::fstream::in | std::fstream::out | std::fstream::app);
+        std::fstream fstfile ;
+        if(!fstfile.is_open()) fstfile=std::fstream (file.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
 
         if (!fstfile.is_open()) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Couldnt open the file!");
 
@@ -414,9 +414,10 @@ namespace nexus {
 
 
         if (data.size()==0) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Data array is empty!");
+
         fstfile << data <<"\n";
 
-        G4cout<<data << " is written to "<< file <<G4endl;
+        //G4cout<<data << " is written to "<< file <<G4endl;
         fstfile.close();
     }
 
@@ -427,6 +428,53 @@ namespace nexus {
     bool FileCheck(std::string file) {
         struct stat buffer;
         return (stat (file.c_str(), &buffer) == 0);
+    }
+    std::fstream * OpenFile(std::fstream *fstream,G4String file){
+
+        if(!fstream) fstream=new std::fstream (file.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
+        if (!fstream->is_open()){
+            G4Exception("IOUtils","[OpenFile]",FatalException,"Couldnt open the file!");
+        }
+        return fstream;
+  }
+    void CloseFile(std::fstream *fstream){
+        if(fstream->is_open()) fstream->close();
+    }
+
+    void SaveToTextFile(std::fstream *Fstream,std::string labels, G4String data) {
+        std::string val;
+        if (!Fstream->is_open()) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Couldnt open the file!");
+
+
+        std::stringstream sline(labels);
+        G4int counter=0;
+
+        // Checking to see if File is Empty
+        if(Fstream->peek()==EOF and Fstream->tellg()==0) {
+
+            // These are needed to point to the begining of the empty page
+            Fstream->seekp(std::ios::beg);
+            Fstream->seekg(std::ios::beg);
+
+            //////////////////////////////////////////////////////////////////////////
+
+
+            // Just a Warning
+            G4Exception("FileHandling","[SaveToTextFile]",JustWarning,"Empty File!");
+
+            // If the labels are not present,  just add them
+            if(!labels.empty()){
+                *Fstream << labels +"\n";
+            }
+        }
+
+
+        if (data.size()==0) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Data array is empty!");
+
+        *Fstream << data <<"\n";
+
+        G4cout<<data << " is written" <<G4endl;
+        //Fstream->close();
     }
 
 

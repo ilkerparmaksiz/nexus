@@ -15,7 +15,8 @@
 #include <G4VPersistencyManager.hh>
 #include <map>
 #include <vector>
-
+#include "fstream"
+#include "G4ThreeVector.hh"
 
 class G4GenericMessenger;
 class G4TrajectoryContainer;
@@ -29,6 +30,11 @@ namespace nexus {
 
 namespace nexus {
 
+    struct OpticalHit{
+        G4String name;
+        G4double time;
+        G4ThreeVector position;
+    };
   class PersistencyManager: public PersistencyManagerBase
   {
   public:
@@ -45,7 +51,7 @@ namespace nexus {
     void InteractingEvent(G4bool);
     void StoreSteps(G4bool);
     void SaveNumbOfInteractingEvents(G4bool);
-
+    void SaveTimeInfo();
       ///
     virtual G4bool Store(const G4Event*);
     virtual G4bool Store(const G4Run*);
@@ -61,12 +67,23 @@ namespace nexus {
     void CloseFile();
 
 
+    void SetCompletionTime(G4double);
+    void AddPhotons(int64_t);
+    void SetFstream(std::fstream *fstream);
+    std::fstream *GetFstream();
+
+      void AddOpticalHit(G4String name,G4ThreeVector position,G4double time);
+
+
   private:
     void StoreTrajectories(G4TrajectoryContainer*);
     void StoreHits(G4HCofThisEvent*);
     void StoreIonizationHits(G4VHitsCollection*);
     void StoreSensorHits(G4VHitsCollection*);
     void StoreSteps();
+    void StoreOpticalHits();
+
+
 
 
     void SaveConfigurationInfo(G4String history);
@@ -101,6 +118,14 @@ namespace nexus {
     std::vector<G4int> sns_posvec_;
 
     std::map<G4String, G4double> sensdet_bin_;
+
+    // Studying timing
+    G4double EventCompletionTime;
+    int64_t photonCount;
+    std::fstream *fstream_;
+
+
+      std::vector<OpticalHit*> AllOpticalHits;
   };
 
 
@@ -122,6 +147,27 @@ namespace nexus {
   { return false; }
   inline G4bool PersistencyManager::Retrieve(G4VPhysicalVolume*&)
   { return false; }
+  inline void PersistencyManager::SetFstream(std::fstream *fstream) {
+      fstream_=fstream;
+  }
+  inline std::fstream * PersistencyManager::GetFstream(){
+    return fstream_;
+  }
+
+
+    inline void PersistencyManager::AddPhotons(int64_t  ph) {
+        photonCount+=ph;
+    }
+    inline void PersistencyManager::SetCompletionTime(G4double t) {
+        EventCompletionTime=t;
+    }
+    inline void PersistencyManager::AddOpticalHit(G4String name,G4ThreeVector position,G4double time){
+        OpticalHit * ahit= new OpticalHit();
+        ahit->name=name;
+        ahit->time=time;
+        ahit->position=position;
+        AllOpticalHits.push_back(ahit);
+  }
 
 } // namespace nexus
 

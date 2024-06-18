@@ -45,6 +45,9 @@ namespace nexus {
                    float   final_x, float   final_y, float   final_z,
                    float time);
     void WriteOpticksHitInfo(int64_t evt_number,int32_t hit_indx, float hit_position_x, float hit_position_y, float hit_position_z, float hit_time,unsigned int boundary);
+    void WriteAllOpticalHitInfo(int64_t evt_number,const char *name,int32_t hit_indx, float hit_position_x, float hit_position_y, float hit_position_z, float hit_time);
+
+    void WriteTimingInfo(int64_t evt_number,int64_t TotalPhotons, double completionTime);
 
 
   private:
@@ -61,22 +64,31 @@ namespace nexus {
     size_t particleInfoTable_;
     size_t snsPosTable_;
     size_t stepTable_;
+    size_t OpticalHitsInfoTable_;
+    size_t TimingInfoTable_;
 
-    size_t memtypeRun_;
+
+
+      size_t memtypeRun_;
     size_t memtypeSnsData_;
     size_t memtypeHitInfo_;
     size_t memtypeParticleInfo_;
     size_t memtypeSnsPos_;
     size_t memtypeStep_;
     size_t memtypeOptickInfo_;
+    size_t memtypeOpticalInfo_;
+    size_t memtypeTimingInfo_;
 
-    size_t irun_; ///< counter for configuration parameters
+
+      size_t irun_; ///< counter for configuration parameters
     size_t ismp_; ///< counter for written waveform samples
     size_t ihit_; ///< counter for true information
     size_t ipart_; ///< counter for particle information
     size_t ipos_; ///< counter for sensor positions
     size_t istep_; ///< counter for steps
     size_t iophit_; ///< counter for Opticks hits
+    size_t iopticalhit_; ///< counter for opticalHits GEANT4 hits
+    size_t itiming_; ///< counter for Performance Comparison for GEANT4 vs Opticks hits
 
   };
 

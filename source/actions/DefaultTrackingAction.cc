@@ -15,13 +15,15 @@
 #include "TrajectoryMap.h"
 #include "IonizationElectron.h"
 #include "FactoryBase.h"
-#include "NEST/G4/NESTS1Photon.hh"
-
+#ifdef With_Garfield
+    #include "NEST/G4/NESTS1Photon.hh"
+#endif
 #include <G4Track.hh>
 #include <G4TrackingManager.hh>
 #include <G4Trajectory.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4OpticalPhoton.hh>
+#include "PersistencyManager.h"
 using namespace nexus;
 
 REGISTER_CLASS(DefaultTrackingAction, G4UserTrackingAction)
@@ -36,14 +38,27 @@ DefaultTrackingAction::~DefaultTrackingAction()
 
 void DefaultTrackingAction::PreUserTrackingAction(const G4Track *track)
 {
+
   // Do nothing if the track is an optical photon or an ionization electron
   if (track->GetDefinition() == G4OpticalPhoton::Definition() ||
-      track->GetDefinition() == IonizationElectron::Definition() ||
-      track->GetDefinition() == NESTS1Photon::Definition())
+      track->GetDefinition() == IonizationElectron::Definition())
   {
     fpTrackingManager->SetStoreTrajectory(false);
+
+
+
+    #ifdef With_Opticks
+    if(track->GetDefinition() == G4OpticalPhoton::Definition() ) track->SetTrackStatus(fStopAndKill);
+    #endif
     return;
   }
+
+#ifdef With_Garfield
+    if ( track->GetDefinition() == NESTS1Photon::Definition()){
+       fpTrackingManager->SetStoreTrajectory(false);
+       return;
+  }
+#endif
 
   // Create a new trajectory associated to the track.
   // N.B. If the processesing of a track is interrupted to be resumed
@@ -59,11 +74,17 @@ void DefaultTrackingAction::PreUserTrackingAction(const G4Track *track)
 
 void DefaultTrackingAction::PostUserTrackingAction(const G4Track *track)
 {
+#ifdef With_Opticks
+    if(track->GetDefinition() == G4OpticalPhoton::Definition() ) track->SetTrackStatus(fStopAndKill);
+#endif
   // Do nothing if the track is an optical photon or an ionization electron
   if (track->GetDefinition() == G4OpticalPhoton::Definition() ||
-      track->GetDefinition() == IonizationElectron::Definition() ||
-      track->GetDefinition() == NESTS1Photon::Definition())
+      track->GetDefinition() == IonizationElectron::Definition()){
+#ifdef With_Garfield
+      if ( track->GetDefinition() == NESTS1Photon::Definition()) return;
+#endif
     return;
+  }
 
   Trajectory *trj = (Trajectory *)TrajectoryMap::Get(track->GetTrackID());
 

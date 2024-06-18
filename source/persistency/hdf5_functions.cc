@@ -52,6 +52,18 @@ hsize_t createHitInfoType()
   return memtype;
 }
 
+hsize_t createTimingType()
+{
+    hid_t strtype = H5Tcopy(H5T_C_S1);
+    H5Tset_size (strtype, STRLEN);
+    hsize_t memtype = H5Tcreate (H5T_COMPOUND, sizeof (timing_t));
+    H5Tinsert (memtype, "event_id", HOFFSET (timing_t , event_id), H5T_NATIVE_INT64);
+    H5Tinsert (memtype, "photons", HOFFSET (timing_t , photons), H5T_NATIVE_INT64);
+    H5Tinsert (memtype, "time", HOFFSET (timing_t , time), H5T_NATIVE_DOUBLE);
+    return memtype;
+
+}
+
 hsize_t createHitOpticksType(){
 #ifdef With_Opticks
     hid_t strtype = H5Tcopy(H5T_C_S1);
@@ -67,6 +79,22 @@ hsize_t createHitOpticksType(){
     return memtype;
 #endif
 }
+hsize_t createHitOpticalType(){
+#ifndef With_Opticks
+    hid_t strtype = H5Tcopy(H5T_C_S1);
+    H5Tset_size (strtype, STRLEN);
+    hsize_t memtype = H5Tcreate (H5T_COMPOUND, sizeof (hit_optical_t));
+    H5Tinsert (memtype, "event_id", HOFFSET (hit_optical_t , event_id), H5T_NATIVE_INT64);
+    H5Tinsert (memtype, "name", HOFFSET (hit_optical_t , name), strtype);
+    H5Tinsert (memtype, "hit_id", HOFFSET (hit_optical_t , hit_id), H5T_NATIVE_INT);
+    H5Tinsert (memtype, "x", HOFFSET (hit_optical_t , x), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "y", HOFFSET (hit_optical_t , y), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "z", HOFFSET (hit_optical_t , z), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "time", HOFFSET (hit_optical_t , time), H5T_NATIVE_FLOAT);
+    return memtype;
+#endif
+}
+
 
 
 hsize_t createParticleInfoType()
@@ -313,6 +341,8 @@ void writeStep(step_info_t* step, hid_t dataset, hid_t memtype, hsize_t counter)
 
 void writeOpticksHit(hit_opticks_t* OptickshitInfo, hid_t dataset, hid_t memtype, hsize_t counter)
 {
+#ifdef With_Opticks
+
     hid_t memspace, file_space;
 
     const hsize_t n_dims = 1;
@@ -327,6 +357,50 @@ void writeOpticksHit(hit_opticks_t* OptickshitInfo, hid_t dataset, hid_t memtype
     hsize_t count[1] = {1};
     H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
     H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, OptickshitInfo);
+    H5Sclose(file_space);
+    H5Sclose(memspace);
+#endif
+}
+
+void writeOpticalHit(hit_optical_t * OpticalshitInfo, hid_t dataset, hid_t memtype, hsize_t counter)
+{
+#ifndef With_Opticks
+    hid_t memspace, file_space;
+
+    const hsize_t n_dims = 1;
+    hsize_t dims[n_dims] = {1};
+    memspace = H5Screate_simple(n_dims, dims, NULL);
+
+    dims[0] = counter+1;
+    H5Dset_extent(dataset, dims);
+
+    file_space = H5Dget_space(dataset);
+    hsize_t start[1] = {counter};
+    hsize_t count[1] = {1};
+    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
+    H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, OpticalshitInfo);
+    H5Sclose(file_space);
+    H5Sclose(memspace);
+#endif
+
+}
+
+void writeTimingInfo(timing_t * timinginfo, hid_t dataset, hid_t memtype, hsize_t counter)
+{
+    hid_t memspace, file_space;
+
+    const hsize_t n_dims = 1;
+    hsize_t dims[n_dims] = {1};
+    memspace = H5Screate_simple(n_dims, dims, NULL);
+
+    dims[0] = counter+1;
+    H5Dset_extent(dataset, dims);
+
+    file_space = H5Dget_space(dataset);
+    hsize_t start[1] = {counter};
+    hsize_t count[1] = {1};
+    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
+    H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, timinginfo);
     H5Sclose(file_space);
     H5Sclose(memspace);
 }

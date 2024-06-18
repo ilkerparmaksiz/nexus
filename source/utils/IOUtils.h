@@ -47,6 +47,11 @@ namespace nexus {
     void SaveToTextFile(std::string file,std::string labels,char del, std::vector<G4ThreeVector>data);
     
     bool FileCheck(std::string file);
+    std::fstream *  OpenFile(std::fstream*,G4String);
+    void CloseFile(std::fstream*);
+    void SaveToTextFile(std::fstream *Fstream,std::string labels, G4String data);
+
+
 
 }
 

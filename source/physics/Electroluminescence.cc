@@ -17,9 +17,25 @@
 #include <Randomize.hh>
 #include <G4Poisson.hh>
 #include <G4GenericMessenger.hh>
-
+#include "config.h"
 #include <CLHEP/Units/PhysicalConstants.h>
+#ifdef With_GarField
+#include "NEST.hh"
+#include "NESTProc.hh"
+#endif
 
+#include "PersistencyManager.h"
+#include "G4RunManager.hh"
+
+#ifdef With_Opticks
+#include "G4CXOpticks.hh"
+#include "U4.hh"
+#include "SEvt.hh"
+#include "SEventConfig.hh"
+#include "OpticalMaterialProperties.h"
+#include "SensorSD.h"
+#include "G4SDManager.hh"
+#endif
 using namespace nexus;
 using namespace CLHEP;
 
@@ -66,12 +82,13 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
 {
   // Initialize particle change with current track values
   ParticleChange_->Initialize(track);
-
   // Get the current region and its associated drift field.
   // If no drift field is defined, kill the track and leave
   G4Region* region = track.GetVolume()->GetLogicalVolume()->GetRegion();
   BaseDriftField* field =
     dynamic_cast<BaseDriftField*>(region->GetUserInformation());
+
+
   if (!field) {
     ParticleChange_->ProposeTrackStatus(fStopAndKill);
     return G4VDiscreteProcess::PostStepDoIt(track, step);
@@ -80,13 +97,11 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
   // Get the light yield from the field
   const G4double yield = field->LightYield();
   G4double step_length = field->GetTotalDriftLength();
-
   if (yield <= 0.)
     return G4VDiscreteProcess::PostStepDoIt(track, step);
 
   // Generate a random number of photons around mean 'yield'
   G4double mean = yield * step_length;
-
   G4int num_photons;
 
   if (yield < 10.) { // Poissonian regime
@@ -130,7 +145,52 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
 
 
   G4double sc_max = spectrum_integral->GetMaxValue();
+    PersistencyManager *pManger= dynamic_cast<PersistencyManager *>(PersistencyManager::GetPersistencyManager());
 
+
+
+    G4RunManager * runmng=G4RunManager::GetRunManager();
+
+    const int eventID=runmng->GetCurrentEvent()->GetEventID();
+    G4double t1,t2=0;
+    G4int singlets,triplets=0;
+    t1=mpt->GetConstProperty(kSCINTILLATIONTIMECONSTANT1);
+    t2=mpt->GetConstProperty(kSCINTILLATIONTIMECONSTANT2);
+
+    singlets= floor(mpt->GetConstProperty(kSCINTILLATIONYIELD1)*num_photons);
+    triplets= ceil(mpt->GetConstProperty(kSCINTILLATIONYIELD2)*num_photons);
+    pManger->AddPhotons((singlets+triplets));
+
+#ifdef With_Opticks
+
+            if(singlets>0)
+              U4::CollectGenstep_DsG4Scintillation_r4695(&track,&step,singlets,0,t1);
+            if(triplets>0)
+              U4::CollectGenstep_DsG4Scintillation_r4695(&track,&step,triplets,1,t2);
+            int CollectedPhotons=SEvt::GetNumPhotonCollected(0);
+            int maxPhoton=SEventConfig::MaxPhoton();
+
+            // Amount of the Photons produced may exceed max photon limit for opticks
+            // To prevent any crash, we simulate photons and save the hits right before reaching to this limit
+            if(CollectedPhotons>(maxPhoton*0.97)){
+                // Get Persistance Manager
+
+
+                //std::cout<<"Event " << eventID<<" Simulating Photons in GPU and Saving the hits to file .." <<std::endl;
+
+
+                G4CXOpticks * g4xc=G4CXOpticks::Get();
+                g4xc->simulate(eventID,0);
+                cudaDeviceSynchronize();
+
+                if(SEvt::GetNumHit(0)>0){
+
+                     pManger->StoreOpticksHits();
+                }
+
+                if(SEvt::GetNumPhotonCollected(0)>0) G4CXOpticks::Get()->reset(eventID);
+            }
+#else
   for (G4int i=0; i<num_photons; i++) {
     // Generate a random direction for the photon
     // (EL is supposed isotropic)
@@ -163,11 +223,9 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
     polarization = polarization.unit();
 
     // Generate a new photon and set properties
-    G4DynamicParticle* photon =
-      new G4DynamicParticle(G4OpticalPhoton::Definition(), momentum);
+    G4DynamicParticle* photon = new G4DynamicParticle(G4OpticalPhoton::Definition(), momentum);
 
-    photon->
-      SetPolarization(polarization.x(), polarization.y(), polarization.z());
+    photon->SetPolarization(polarization.x(), polarization.y(), polarization.z());
 
     // Determine photon energy
     G4double sc_value = G4UniformRand()*sc_max;
@@ -183,7 +241,7 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
     ParticleChange_->AddSecondary(secondary);
 
   }
-
+#endif
   return G4VDiscreteProcess::PostStepDoIt(track, step);
 }
 

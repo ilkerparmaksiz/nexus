@@ -18,9 +18,12 @@
 // Krishan: this needs cleaning up
 #include "G4OpAbsorption.hh"
 #include "G4OpBoundaryProcess.hh"
+#ifdef With_GarField
 #include "gasNESTdet.h"
 #include "NEST/G4/NESTProc.hh"
 #include "NEST/G4/NESTS1Photon.hh"
+
+#endif
 
 #include <G4GenericMessenger.hh>
 #include <G4OpticalPhoton.hh>
@@ -77,7 +80,9 @@ namespace nexus {
     IonizationElectron::Definition();
     G4OpticalPhoton::Definition();
     // G4OpticalPhoton::OpticalPhotonDefinition();
+#ifdef With_GarField
     NESTS1Photon::Definition();
+#endif
   }
 
 
@@ -158,7 +163,7 @@ namespace nexus {
     }
 
     // Use NEST/Garfield/Degrad physics
-
+#ifdef With_GarField
     if (fastsim_) {
       
       // This is needed to notify Geant4 that the G4FastSimulationModel is to be used as a possible physics process
@@ -224,6 +229,7 @@ namespace nexus {
       pmanager->AddDiscreteProcess(fastSimProcess_garfield);
 
     }
+#endif
   
   }
 

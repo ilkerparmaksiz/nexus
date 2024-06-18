@@ -35,6 +35,8 @@
 #include <iostream>
 #include <string>
 #include "config.h"
+#include "IOUtils.h"
+
 #ifdef With_Opticks
 #include "SEvt.hh"
 #include "G4CXOpticks.hh"
@@ -65,6 +67,11 @@ PersistencyManagerBase(), msg_(0), output_file_("nexus_out"), ready_(false),
   macros_.clear();
   delayed_macros_.clear();
   secondary_macros_.clear();
+
+  // This is for Performance test
+  EventCompletionTime= 0;
+  photonCount=0;
+  AllOpticalHits=std::vector<OpticalHit*>();
 }
 
 
@@ -104,11 +111,21 @@ void PersistencyManager::CloseFile()
 
 G4bool PersistencyManager::Store(const G4Event* event)
 {
+
   if (interacting_evt_) {
     interacting_evts_++;
   }
 
-  if (!store_evt_) {
+#ifdef With_Opticks
+    // Handling Opticks Hits
+    StoreOpticksHits();
+    // Add EventCompilation Time and Number of Photons per Event;
+#endif
+#ifndef With_Opticks
+    StoreOpticalHits();
+#endif
+
+    if (!store_evt_) {
     TrajectoryMap::Clear();
     if (store_steps_) {
       SaveAllSteppingAction* sa = (SaveAllSteppingAction*)
@@ -140,9 +157,7 @@ G4bool PersistencyManager::Store(const G4Event* event)
 
   TrajectoryMap::Clear();
   StoreCurrentEvent(true);
-#ifdef With_Opticks
-  StoreOpticksHits();
-#endif
+
   return true;
 }
 
@@ -279,7 +294,7 @@ void PersistencyManager::StoreSensorHits(G4VHitsCollection* hc)
   if (!hits) return;
 
   std::string sdname = hits->GetSDname();
-
+    //std::cout << "Sensor Name " <<sdname <<std::endl;
   std::map<G4String, G4double>::const_iterator sensdet_it = sensdet_bin_.find(sdname);
   if (sensdet_it == sensdet_bin_.end()) {
     for (size_t j=0; j<hits->entries(); j++) {
@@ -436,35 +451,71 @@ void PersistencyManager::SaveConfigurationInfo(G4String file_name)
 
   history.close();
 }
-void PersistencyManager::StoreOpticksHits() {
+void PersistencyManager::StoreOpticksHits () {
 #ifdef With_Opticks
 
-
     SEvt* sev             = SEvt::Get_EGPU();
-
-    unsigned int num_hits = sev->GetNumHit(0);
-    if(num_hits<0) return;
     auto run= G4RunManager::GetRunManager();
     G4int eventID=run->GetCurrentEvent()->GetEventID();
+    unsigned int num_hits = sev->GetNumHit(0);
+
+    // Return if there are no hits
+    if(num_hits<=0) return;
+
     G4int ngenstep=SEvt::GetNumGenstepFromGenstep(0);
     G4int nphotons=SEvt::GetNumPhotonCollected(0);
 
-    std::cout << "Saving the hits " << num_hits <<std::endl;
+    /*
+    std::cout << "Saving the hits for EventID "<<eventID  <<std::endl;
     G4cout << "Number of Steps Generated " <<ngenstep << G4endl;
     G4cout << "Number of Photons Generated " <<nphotons << G4endl;
-    G4cout << "Number of Hits Opticks  " <<SEvt::GetNumHit(0)<< G4endl;
-    std::cout<<sev->descSimulate()<<std::endl;
+    G4cout << "Number of Hits Opticks  " <<num_hits<< G4endl;
+    */
+
+    // loop through hits
     for(int idx = 0; idx < int(num_hits); idx++)
     {
         sphoton hit;
-
         sev->getHit(hit, idx);
         //std::cout << hit.descDetail() <<std::endl;
+        // Save to hdf5 file
         h5writer_->WriteOpticksHitInfo(eventID,hit.idx(),(hit.pos.x),(hit.pos.y),(hit.pos.z),(hit.time),(hit.boundary()));
 
     }
-
+    // clear the hits
     if(num_hits>0) G4CXOpticks::Get()->reset(eventID);
 
 #endif
+
+
+}
+void PersistencyManager::SaveTimeInfo(){
+    //std::cout << "EventTime " << EventCompletionTime << std::endl;
+    //std::cout <<"Total Simulated Photon " <<photonCount<<std::endl;
+    auto run= G4RunManager::GetRunManager();
+    G4int eventID=run->GetCurrentEvent()->GetEventID();
+
+
+    //G4String str=std::to_string(eventID)+","+std::to_string(EventCompletionTime)+","+std::to_string(photonCount);
+    //std::string labels="EventID,EventTime,TotalPhotons";
+    //SaveToTextFile("/home/argon/Projects/Ilker/NewNexus/time.txt",labels,str);
+    if(photonCount>0) h5writer_->WriteTimingInfo(eventID, photonCount, EventCompletionTime);
+    // Zero Them out
+    EventCompletionTime=0;
+    photonCount=0;
+
+
+}
+void PersistencyManager::StoreOpticalHits(){
+    if(AllOpticalHits.size()<=0) return;
+    auto run= G4RunManager::GetRunManager();
+    G4int eventID=run->GetCurrentEvent()->GetEventID();
+    G4int Counter=0;
+    for (auto &i:AllOpticalHits){
+        //std::cout <<i->name << " " <<i->time<< " " <<i->position.x() <<" " <<i->position.y() <<" " <<i->position.z() <<std::endl;
+
+        h5writer_->WriteAllOpticalHitInfo(eventID,i->name,Counter,i->position.x(),i->position.y(),i->position.z(),i->time);
+        Counter++;
+    }
+    AllOpticalHits.clear();
 }

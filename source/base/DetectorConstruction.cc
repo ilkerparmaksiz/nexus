@@ -79,9 +79,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
   new G4PVPlacement(0, G4ThreeVector(0,0,0),geometry_logic, geometry_logic->GetName(), world_logic, false, 0);
 
 #ifdef With_Opticks
-    std::cout <<"Setting our detector geometry with opticks" <<std::endl;
+    //std::cout <<"Setting our detector geometry with opticks" <<std::endl;
     G4CXOpticks::SetGeometry(world_physi);
-    std::cout << SEventConfig::Desc() <<std::endl;
+    //std::cout << SEventConfig::Desc() <<std::endl;
 #endif
 
     return world_physi;

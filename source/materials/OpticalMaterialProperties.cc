@@ -624,6 +624,7 @@ namespace opticalprops {
     mpt->AddConstProperty("SCINTILLATIONYIELD2", .9);
     mpt->AddConstProperty("ATTACHMENT",         e_lifetime, 1);
 
+
     return mpt;
   }
 

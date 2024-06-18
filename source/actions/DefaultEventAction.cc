@@ -17,18 +17,16 @@
 #include <G4VVisManager.hh>
 #include <G4Trajectory.hh>
 #include <G4GenericMessenger.hh>
-#include <G4HCofThisEvent.hh>
-#include <G4SDManager.hh>
-#include <G4HCtable.hh>
+
 #include <globals.hh>
 // Krishan Garfield specific code
 #include "config.h"
+#ifdef With_GarField
+#include "DegradModel.h"
+#endif
 #ifdef With_Opticks
-    #include "DegradModel.h"
     #include "G4GlobalFastSimulationManager.hh"
-    #include "SensorSD.h"
     #  include "SEvt.hh"
-    #  include "NP.hh"
     #  include "G4CXOpticks.hh"
 namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
 #endif
@@ -72,6 +70,7 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
   void DefaultEventAction::BeginOfEventAction(const G4Event* event)
   {
+    startTime=std::chrono::high_resolution_clock::now();
     // Print out event number info
     if ((nevt_ % nupdate_) == 0) {
       G4cout << " >> Event no. " << nevt_  << G4endl;
@@ -89,12 +88,12 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
     if (pVtx)
       {
         G4double PKE = pVtx->GetPrimary(0)->GetKineticEnergy();
-        dm->SetPrimaryKE(PKE/eV);
+        #ifdef With_GarField
+            dm->SetPrimaryKE(PKE/eV);
+        #endif
       }
 
-#ifdef With_Opticks
-      //G4CXOpticks::Get()->SensitiveDetector_Initialize(event->GetEventID());
-#endif
+
 
   }
 
@@ -111,7 +110,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
         #ifdef With_Opticks
 
-            G4cout<<" Opticks End of Event Action" <<G4endl;
             G4AutoLock lock(&opticks_mt);
             G4CXOpticks * g4cx=G4CXOpticks::Get();
 
@@ -123,18 +121,16 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
             // Simulate the photons
             if(nphotons>0 and ngenstep>0){
-                std::cout<<g4cx->desc()<<std::endl;
-                std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
+                //std::cout<<g4cx->desc()<<std::endl;
+                //std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
                 g4cx->simulate(eventID,0); // For Simulation
+                cudaDeviceSynchronize();
 
-                //g4cx->render();  // For Rendering
+               // std::cout<<"Event " <<eventID <<" Simulating with Opticks nphotons "<< nphotons << " nsteps " << ngenstep << " Hits " <<SEvt::GetNumHit(0) << std::endl;
 
             }
+        //G4cout<<" Opticks End of Event Action" <<G4endl;
 
-            //SensorSD* PMT = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/PMT_R7378A/Pmt");
-            //SensorSD* Camera = (SensorSD*) G4SDManager::GetSDMpointer()->FindSensitiveDetector("/CRAB0/Camera");
-
-        //G4CXOpticks::Get()->SensitiveDetector_EndOfEvent(eventID);
 
 
         #endif
@@ -159,8 +155,7 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         }
       }
       else {
-        G4Exception("[DefaultEventAction]", "EndOfEventAction()", FatalException,
-                    "DefaultTrackingAction is required when using DefaultEventAction");
+        G4Exception("[DefaultEventAction]", "EndOfEventAction()", FatalException,"DefaultTrackingAction is required when using DefaultEventAction");
       }
 
       PersistencyManager* pm = dynamic_cast<PersistencyManager*>
@@ -176,10 +171,14 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       } else {
         pm->StoreCurrentEvent(false);
       }
-
-
-
+        endTime=std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> duration = endTime - startTime;
+        pm->SetCompletionTime(duration.count());
+        pm->SaveTimeInfo();
     }
+
+
+
   }
 
 

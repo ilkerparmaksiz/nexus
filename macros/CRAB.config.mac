@@ -26,16 +26,22 @@
 /Geometry/CRAB0/DetActiveL 21.26 cm
 /Geometry/CRAB0/GasPressure 5.89 bar
 /Geometry/CRAB0/fieldDrift 438.0
-/Geometry/CRAB0/fieldEL 11400.0
+/Geometry/CRAB0/fieldEL 7857.14
 /Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/Xe98.8_Argon0.57_CH4_0.58_5.89bar.gas
 
 ##### GENERATOR #####
+#/Generator/SingleParticle/particle opticalphoton
+#/Generator/SingleParticle/min_energy 7.2 eV
 /Generator/SingleParticle/particle alpha
-/Generator/SingleParticle/min_energy 5.4 MeV
+/Generator/SingleParticle/max_energy 5.3 MeV
+/Generator/SingleParticle/min_energy 5.3 MeV
+#/Generator/SingleParticle/particle e-
+#/Generator/SingleParticle/min_energy 1 MeV
+
 /Generator/SingleParticle/region CENTER
 
 
-#/Generator/SingleParticle/region AD_HOC
+#/Generator/SingleParticle/region NEEDLE
 /Geometry/CRAB0/specific_vertex 0 0 0 mm
 
 ##### ACTIONS #####
@@ -44,12 +50,12 @@
 
 ##### PHYSICS #####
 ## No full simulation
-/PhysicsList/Nexus/clustering          false
-/PhysicsList/Nexus/drift               false
-/PhysicsList/Nexus/electroluminescence false
-/PhysicsList/Nexus/fastsim true
+/PhysicsList/Nexus/clustering          true
+/PhysicsList/Nexus/drift               true
+/PhysicsList/Nexus/electroluminescence true
+/PhysicsList/Nexus/fastsim false
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file CRAB2.next
+/nexus/persistency/output_file runhit_Opticks
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

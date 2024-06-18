@@ -7,7 +7,7 @@
 #include <G4UserSteppingAction.hh>
 #include <globals.hh>
 #include <map>
-
+#include "G4ThreeVector.hh"
 class G4Step;
 
 
@@ -21,6 +21,7 @@ namespace nexus {
         ~OpticksSteppingAction();
         virtual void UserSteppingAction(const G4Step*);
     private:
+
     };
 }
 
