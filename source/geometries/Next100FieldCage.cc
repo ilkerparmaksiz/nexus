@@ -674,7 +674,8 @@ void Next100FieldCage::BuildLightTube()
   G4OpticalSurface* gas_tpb_teflon_surf =
     new G4OpticalSurface("gas_tpb_teflon_surf", glisur, ground,
                          dielectric_dielectric, .01);
-
+ // Fixes issue related to null materials table
+ gas_tpb_teflon_surf->SetMaterialPropertiesTable(new G4MaterialPropertiesTable());
   new G4LogicalBorderSurface("gas_tpb_teflon_surf", tpb_drift_phys, active_phys_,
                              gas_tpb_teflon_surf);
   new G4LogicalBorderSurface("gas_tpb_teflon_surf", active_phys_, tpb_drift_phys,

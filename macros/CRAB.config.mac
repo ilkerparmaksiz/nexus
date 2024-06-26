@@ -34,7 +34,7 @@
 #/Generator/SingleParticle/min_energy 7.2 eV
 /Generator/SingleParticle/particle alpha
 /Generator/SingleParticle/max_energy 5.3 MeV
-/Generator/SingleParticle/min_energy 5.3 MeV
+/Generator/SingleParticle/min_energy 0.5 MeV
 #/Generator/SingleParticle/particle e-
 #/Generator/SingleParticle/min_energy 1 MeV
 
@@ -56,6 +56,6 @@
 /PhysicsList/Nexus/fastsim false
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file runhit_Opticks
+/nexus/persistency/output_file /home/argon/Downloads/Performance/CPB_rtx4090/runtime_G4
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

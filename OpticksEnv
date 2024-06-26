@@ -1,15 +1,13 @@
 #!/bin/bash -l 
 ## Export these
 #export CRABPATH=/home/argon/Projects/Ilker/gxsim/CRAB/
-export GEOM=NEXUS_CRAB_Perf  # Geometry name
+export GEOM=NEXUS_CRAB  # Geometry name
 
 ## Opticks settings
-export OPTICKS_MAX_PHOTON=170000000 # Max Amount of photons
+export OPTICKS_MAX_PHOTON=30000000 # Max Amount of photons
 export OPTICKS_INTEGRATION_MODE=3  # Running both GPU and CPU simulation
-## default setting of the opticks
-#export OPTICKS_RG_MODE="simulate" # Simulate or Render
-#export OPTICKS_HIT_MASK="SD" # getting hits SD is Surface Detect This can be changed to other flags SA, Surface Absorbtion etc.
-### Opticks Detector Identification
+export OPTICKS_EVENT_MODE=Minimal  # Hits or Minimal Prefered. Hits will create .npy files in /tmp/user/opticks/GEOM/NEXUS_CRAB/nexus/ALL0
+### Opticks Detector Identification (Boundary Names for Identifying small number of detectors)
 export U4SensorIdentifierDefault__GLOBAL_SENSOR_BOUNDARY_LIST=$(cat << EOL 
  G4_Galactic/CamSurfaceBorder//MgF2
  G4_SILICON_DIOXIDE/PHOTOCATHODE//G4_Al
@@ -20,6 +18,12 @@ export U4SensorIdentifierDefault__GLOBAL_SENSOR_BOUNDARY_LIST=$(cat << EOL
 
 EOL
 )
+
+## default setting of the opticks
+#export OPTICKS_RG_MODE="simulate" # Simulate or Render
+#export OPTICKS_HIT_MASK="SD" # getting hits SD is Surface Detect This can be changed to other flags SA, Surface Absorbtion etc.
+
+
 
 ## for debugging purposeses
 #export QSim=INFO
@@ -40,7 +44,6 @@ EOL
 #export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
 #export G4CXOpticks__saveGeometry_saveGGeo=0
 #export GGeo__postDirectTranslation_save=1
-export OPTICKS_EVENT_MODE=Hit
 #export IDPath=$G4CXOpticks__setGeometry_saveGeometry
 #export PIDX=100
 #export CFBASE=$HOME/.opticks/GEOM/$GEOM

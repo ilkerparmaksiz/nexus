@@ -131,8 +131,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
             }
         //G4cout<<" Opticks End of Event Action" <<G4endl;
 
-
-
         #endif
 
       // Get the trajectories stored for this event and loop through them
@@ -176,8 +174,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         pm->SetCompletionTime(duration.count());
         pm->SaveTimeInfo();
     }
-
-
 
   }
 

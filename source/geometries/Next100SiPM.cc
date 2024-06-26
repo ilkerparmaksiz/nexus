@@ -97,6 +97,7 @@ void Next100SiPM::Construct()
 
     new G4LogicalSkinSurface(coating_name + "_OPSURF", coating_logic_vol, coating_optSurf);
 
+    coating_optSurf->SetMaterialPropertiesTable(new G4MaterialPropertiesTable());
     coating_logic_vol->SetVisAttributes(G4VisAttributes::GetInvisible());
   }
 

@@ -273,6 +273,8 @@ namespace nexus {
     /// Optical surface on TPB to model roughness ///
     G4OpticalSurface* tpb_surf = new G4OpticalSurface("tpb_sapphire_surf",
                                                       glisur, ground, dielectric_dielectric, .01);
+    tpb_surf->SetMaterialPropertiesTable(new G4MaterialPropertiesTable());
+
     new G4LogicalSkinSurface("tpb_sapphire_surf", tpb_logic, tpb_surf);
 
 

@@ -147,13 +147,14 @@ void Next100SiPMBoard::Construct()
                       mask_wls_logic_vol, mask_wls_name, mask_logic_vol,
                       false, 0, false);
 
-  G4OpticalSurface* mask_wls_opsurf =
-    new G4OpticalSurface(mask_wls_name+"_OPSURF",
+  G4OpticalSurface* mask_wls_opsurf =new G4OpticalSurface(mask_wls_name+"_OPSURF",
                          glisur, ground, dielectric_dielectric, .01);
   new G4LogicalBorderSurface(mask_wls_name+"_OPSURF",
                              mask_wls_phys_vol, mpv_, mask_wls_opsurf);
   new G4LogicalBorderSurface(mask_wls_name+"_OPSURF",
                              mpv_, mask_wls_phys_vol, mask_wls_opsurf);
+  // Fixes issue related to null materials table
+  mask_wls_opsurf->SetMaterialPropertiesTable(new G4MaterialPropertiesTable());
 
 
   // MASK GAS HOLE ///////////////////////////////////////////////////
