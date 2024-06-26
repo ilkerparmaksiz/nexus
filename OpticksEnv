@@ -4,7 +4,7 @@
 export GEOM=NEXUS_CRAB  # Geometry name
 
 ## Opticks settings
-export OPTICKS_MAX_PHOTON=30000000 # Max Amount of photons
+export OPTICKS_MAX_PHOTON=3000000 # Max Amount of photons
 export OPTICKS_INTEGRATION_MODE=3  # Running both GPU and CPU simulation
 export OPTICKS_EVENT_MODE=Minimal  # Hits or Minimal Prefered. Hits will create .npy files in /tmp/user/opticks/GEOM/NEXUS_CRAB/nexus/ALL0
 ### Opticks Detector Identification (Boundary Names for Identifying small number of detectors)
