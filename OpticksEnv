@@ -4,7 +4,7 @@
 export GEOM=NEXUS_CRAB  # Geometry name
 
 ## Opticks settings
-export OPTICKS_MAX_PHOTON=1000000 # Max Amount of photons
+export OPTICKS_MAX_PHOTON=45000000 # Max Amount of photons
 export OPTICKS_INTEGRATION_MODE=3  # Running both GPU and CPU simulation
 export OPTICKS_EVENT_MODE=Minimal  # Hits or Minimal Prefered. Hits will create .npy files in /tmp/user/opticks/GEOM/NEXUS_CRAB/nexus/ALL0
 ### Opticks Detector Identification (Boundary Names for Identifying small number of detectors)
@@ -20,7 +20,7 @@ EOL
 )
 
 ### Lets Check if Curand file present if not then create it 
-##
+## 
 CurandBinPath=$HOME/.opticks/rngcache/RNG/QCurandState_${OPTICKS_MAX_PHOTON}_0_0.bin
 
 #echo $CurandBinPath
@@ -29,7 +29,8 @@ if ! test -f $CurandBinPath; then
 	echo "$CurandBinPath"
 	sleep 2 ## Delay 2s so user knows we are creating curand file
        	export OPTICKS_QUDARAP_RNGMAX=$OPTICKS_MAX_PHOTON/1000000
-       	qudarap-prepare-installation
+       	qudarap-
+	qudarap-prepare-installation
 fi
 ## default setting of the opticks
 #export OPTICKS_RG_MODE="simulate" # Simulate or Render
