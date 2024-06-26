@@ -56,6 +56,6 @@
 /PhysicsList/Nexus/fastsim false
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file /home/argon/Downloads/Performance/CPB_rtx4090/runtime_G4
+/nexus/persistency/output_file hits
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data
