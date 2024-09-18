@@ -60,6 +60,10 @@ hsize_t createTimingType()
     H5Tinsert (memtype, "event_id", HOFFSET (timing_t , event_id), H5T_NATIVE_INT64);
     H5Tinsert (memtype, "photons", HOFFSET (timing_t , photons), H5T_NATIVE_INT64);
     H5Tinsert (memtype, "time", HOFFSET (timing_t , time), H5T_NATIVE_DOUBLE);
+#ifdef With_G4OpticksTest
+    H5Tinsert (memtype, "G4Photon", HOFFSET (timing_t , G4Photon), H5T_NATIVE_INT64);
+    H5Tinsert (memtype, "OpticksPhoton", HOFFSET (timing_t , OpticksPhoton), H5T_NATIVE_INT64);
+#endif
     return memtype;
 
 }
@@ -75,12 +79,47 @@ hsize_t createHitOpticksType(){
     H5Tinsert (memtype, "y", HOFFSET (hit_opticks_t , y), H5T_NATIVE_FLOAT);
     H5Tinsert (memtype, "z", HOFFSET (hit_opticks_t , z), H5T_NATIVE_FLOAT);
     H5Tinsert (memtype, "time", HOFFSET (hit_opticks_t , time), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "wavelength", HOFFSET (hit_opticks_t , wavelength), H5T_NATIVE_FLOAT);
     H5Tinsert (memtype, "boundary", HOFFSET (hit_opticks_t , boundary), H5T_NATIVE_UINT);
+    H5Tinsert (memtype, "polx", HOFFSET (hit_opticks_t , polx), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "poly", HOFFSET (hit_opticks_t , poly), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "polz", HOFFSET (hit_opticks_t , polz), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momx", HOFFSET (hit_opticks_t , momx), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momy", HOFFSET (hit_opticks_t , momy), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momz", HOFFSET (hit_opticks_t , momz), H5T_NATIVE_FLOAT);
+    return memtype;
+#endif
+}
+hsize_t createOpticksStepType(){
+#ifdef With_Opticks
+
+    hid_t flag_strtype = H5Tcopy(H5T_C_S1);
+    H5Tset_size (flag_strtype, STRLEN);
+
+    hid_t strtype = H5Tcopy(H5T_C_S1);
+    H5Tset_size (strtype, STRLEN);
+    hsize_t memtype = H5Tcreate (H5T_COMPOUND, sizeof (step_opticks_t));
+    H5Tinsert (memtype, "event_id", HOFFSET (step_opticks_t , event_id), H5T_NATIVE_INT64);
+    H5Tinsert (memtype, "photon_id", HOFFSET (step_opticks_t , photon_id), H5T_NATIVE_INT32);
+    H5Tinsert (memtype, "x", HOFFSET (step_opticks_t , x), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "y", HOFFSET (step_opticks_t , y), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "z", HOFFSET (step_opticks_t , z), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "time", HOFFSET (step_opticks_t , time), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "polx", HOFFSET (step_opticks_t , polx), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "poly", HOFFSET (step_opticks_t , poly), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "polz", HOFFSET (step_opticks_t , polz), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momx", HOFFSET (step_opticks_t , momx), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momy", HOFFSET (step_opticks_t , momy), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momz", HOFFSET (step_opticks_t , momz), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "flag", HOFFSET (step_opticks_t ,flag), flag_strtype);
+    H5Tinsert (memtype, "wavelength", HOFFSET (step_opticks_t , wavelength), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "boundary", HOFFSET (step_opticks_t , boundary), H5T_NATIVE_UINT);
+    H5Tinsert (memtype, "identity", HOFFSET (step_opticks_t , identiy), H5T_NATIVE_UINT);
     return memtype;
 #endif
 }
 hsize_t createHitOpticalType(){
-#ifndef With_Opticks
+#if not defined(With_Opticks) or defined(With_G4OpticksTest)
     hid_t strtype = H5Tcopy(H5T_C_S1);
     H5Tset_size (strtype, STRLEN);
     hsize_t memtype = H5Tcreate (H5T_COMPOUND, sizeof (hit_optical_t));
@@ -91,6 +130,13 @@ hsize_t createHitOpticalType(){
     H5Tinsert (memtype, "y", HOFFSET (hit_optical_t , y), H5T_NATIVE_FLOAT);
     H5Tinsert (memtype, "z", HOFFSET (hit_optical_t , z), H5T_NATIVE_FLOAT);
     H5Tinsert (memtype, "time", HOFFSET (hit_optical_t , time), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "wavelength", HOFFSET (hit_optical_t , wavelength), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "polx", HOFFSET (hit_optical_t , polx), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "poly", HOFFSET (hit_optical_t , poly), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "polz", HOFFSET (hit_optical_t , polz), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momx", HOFFSET (hit_optical_t , momx), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momy", HOFFSET (hit_optical_t , momy), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "momz", HOFFSET (hit_optical_t , momz), H5T_NATIVE_FLOAT);
     return memtype;
 #endif
 }
@@ -361,10 +407,31 @@ void writeOpticksHit(hit_opticks_t* OptickshitInfo, hid_t dataset, hid_t memtype
     H5Sclose(memspace);
 #endif
 }
+void writeOpticksStep(step_opticks_t * stepInfo, hid_t dataset, hid_t memtype, hsize_t counter)
+{
+#ifdef With_Opticks
+    hid_t memspace, file_space;
+    const hsize_t n_dims = 1;
+    hsize_t dims[n_dims] = {1};
+    memspace = H5Screate_simple(n_dims, dims, NULL);
+
+    dims[0] = counter+1;
+    H5Dset_extent(dataset, dims);
+
+    file_space = H5Dget_space(dataset);
+    hsize_t start[1] = {counter};
+    hsize_t count[1] = {1};
+    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
+    H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, stepInfo);
+    H5Sclose(file_space);
+    H5Sclose(memspace);
+
+#endif
+}
 
 void writeOpticalHit(hit_optical_t * OpticalshitInfo, hid_t dataset, hid_t memtype, hsize_t counter)
 {
-#ifndef With_Opticks
+#if not  defined(With_Opticks) or defined(With_G4OpticksTest)
     hid_t memspace, file_space;
 
     const hsize_t n_dims = 1;

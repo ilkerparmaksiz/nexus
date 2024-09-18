@@ -26,6 +26,7 @@
 #include <G4UserTrackingAction.hh>
 #include <G4UserSteppingAction.hh>
 #include <G4UserStackingAction.hh>
+#include "config.h"
 #ifdef With_GarField
     #include "GarfieldStackingAction.h"
 #endif

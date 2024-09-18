@@ -78,7 +78,8 @@ namespace nexus {
   { return post_; }
 
   inline G4LorentzVector SegmentPointSampler::Shoot() const
-  { G4double rnd = G4UniformRand();
+  {
+    G4double rnd = G4UniformRand();
     G4double time = pre_.t() + rnd * (post_.t() - pre_.t());
     G4ThreeVector position = pre_.v() + rnd * (post_.v() - pre_.v());
     return G4LorentzVector(position,time); }

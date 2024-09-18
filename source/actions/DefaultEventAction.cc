@@ -23,9 +23,10 @@
 #include "config.h"
 #ifdef With_GarField
 #include "DegradModel.h"
+#include "G4GlobalFastSimulationManager.hh"
+
 #endif
 #ifdef With_Opticks
-    #include "G4GlobalFastSimulationManager.hh"
     #  include "SEvt.hh"
     #  include "G4CXOpticks.hh"
 namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
@@ -70,7 +71,15 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
   void DefaultEventAction::BeginOfEventAction(const G4Event* event)
   {
+
+
     startTime=std::chrono::high_resolution_clock::now();
+
+      PersistencyManager* pm = dynamic_cast<PersistencyManager*>
+      (G4VPersistencyManager::GetPersistencyManager());
+      //pm->fG4PhotonCounter=0;
+      //pm->fOpticksPhotonCounter=0;
+
     // Print out event number info
     if ((nevt_ % nupdate_) == 0) {
       G4cout << " >> Event no. " << nevt_  << G4endl;
@@ -94,7 +103,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       }
 
 
-
   }
 
 
@@ -102,7 +110,8 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
   void DefaultEventAction::EndOfEventAction(const G4Event* event)
   {
     nevt_++;
-
+      PersistencyManager* pm = dynamic_cast<PersistencyManager*>
+      (G4VPersistencyManager::GetPersistencyManager());
 
     // Determine whether total energy deposit in ionization sensitive
     // detectors is above threshold
@@ -115,26 +124,35 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
             G4int eventID=event->GetEventID();
             G4int ngenstep=SEvt::GetNumGenstepFromGenstep(0);
-            G4int nphotons=SEvt::GetNumPhotonCollected(0);
+            //G4int nphotons=SEvt::GetNumPhotonCollected(0);
+            G4int hits;
 
 
 
             // Simulate the photons
-            if(nphotons>0 and ngenstep>0){
+            if(ngenstep>0){
                 //std::cout<<g4cx->desc()<<std::endl;
                 //std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
                 g4cx->simulate(eventID,0); // For Simulation
                 cudaDeviceSynchronize();
 
+                hits=SEvt::GetNumHit(0);
+                //std::cout << "DefaultEventAction Hits " << hits<<std::endl;
+                if(hits>0) pm->CollectOpticksHits();
                // std::cout<<"Event " <<eventID <<" Simulating with Opticks nphotons "<< nphotons << " nsteps " << ngenstep << " Hits " <<SEvt::GetNumHit(0) << std::endl;
 
             }
+            G4CXOpticks::Get()->reset(eventID);
+
         //G4cout<<" Opticks End of Event Action" <<G4endl;
 
         #endif
 
       // Get the trajectories stored for this event and loop through them
       // to calculate the total energy deposit
+
+      endTime=std::chrono::high_resolution_clock::now();
+      std::chrono::duration<double> duration = endTime - startTime;
 
       G4double edep = 0.;
 
@@ -156,8 +174,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         G4Exception("[DefaultEventAction]", "EndOfEventAction()", FatalException,"DefaultTrackingAction is required when using DefaultEventAction");
       }
 
-      PersistencyManager* pm = dynamic_cast<PersistencyManager*>
-        (G4VPersistencyManager::GetPersistencyManager());
 
       if (!event->IsAborted() && edep>0) {
         pm->InteractingEvent(true);
@@ -169,11 +185,12 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       } else {
         pm->StoreCurrentEvent(false);
       }
-        endTime=std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> duration = endTime - startTime;
+
         pm->SetCompletionTime(duration.count());
         pm->SaveTimeInfo();
+        //std::cout << "Opticks " << pm->fOpticksPhotonCounter << " G4 " << pm->fG4PhotonCounter << std::endl;
     }
+
 
   }
 

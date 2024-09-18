@@ -28,4 +28,4 @@
 /nexus/RegisterSteppingAction OpticksSteppingAction
 
 
-/nexus/RegisterMacro macros/CRAB.config.mac
+/nexus/RegisterMacro macros/CRAB_COMSOL.config.mac

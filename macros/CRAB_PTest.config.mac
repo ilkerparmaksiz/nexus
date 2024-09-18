@@ -19,10 +19,6 @@
 #/Geometry/Next100/max_step_size 1. mm
 /Geometry/CRAB0/useCAD false
 
-#seed
-/nexus/random_seed 2
-
-
 # Garfield
 /Geometry/CRAB0/DetChamberD 16.4 cm
 /Geometry/CRAB0/DetChamberL 43.18 cm
@@ -36,10 +32,9 @@
 
 # This is for shifting detector
 /Geometry/CRAB0/ShiftDetectors false
-/Geometry/CRAB0/SteelReflect true
 
 # Normaly 25510/MeV
-/Geometry/CRAB0/ScintYield 25510 #25510
+/Geometry/CRAB0/ScintYield 0 #25510
 ## for 8 bar Xenon
 /Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
 /Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
@@ -81,6 +76,6 @@
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file output/Opticks_Hit_Comparison/G4OpticksTest_With_ReflectionOn
+/nexus/persistency/output_file output/Opticks_Hit_Comparison/OpticksPTest
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

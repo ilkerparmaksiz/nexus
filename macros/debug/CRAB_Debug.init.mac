@@ -16,16 +16,17 @@
 
 /nexus/RegisterGeometry CRAB0
 
-/nexus/RegisterGenerator SingleParticleGeneratorModified
+/nexus/RegisterGenerator SingleParticleGenerator
 
 /nexus/RegisterPersistencyManager PersistencyManager
 
 /nexus/RegisterRunAction DefaultRunAction
 /nexus/RegisterEventAction DefaultEventAction
-/nexus/RegisterTrackingAction DefaultTrackingAction
-#/nexus/RegisterTrackingAction OpticalTrackingAction
+#/nexus/RegisterTrackingAction DefaultTrackingAction
+/nexus/RegisterTrackingAction OpticalTrackingAction
 /nexus/RegisterStackingAction GarfieldStackingAction
-/nexus/RegisterSteppingAction OpticksSteppingAction
+#/nexus/RegisterSteppingAction OpticksSteppingAction
+/nexus/RegisterSteppingAction OpticksSaveAllSteppingAction
 
 
-/nexus/RegisterMacro macros/CRAB.config.mac
+/nexus/RegisterMacro macros/debug/CRAB_Debug.config.mac

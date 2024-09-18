@@ -148,3 +148,6 @@ void SingleParticleGenerator::GeneratePrimaryVertex(G4Event* event)
   vertex->SetPrimary(particle);
   event->AddPrimaryVertex(vertex);
 }
+
+
+

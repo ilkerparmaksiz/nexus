@@ -13,6 +13,7 @@
 #include <Randomize.hh>
 #include <sys/stat.h>
 
+using namespace std;
 namespace nexus {
 
     /// Read in the 1d histogram stored in a csv file
@@ -45,7 +46,8 @@ namespace nexus {
     void SaveToTextFile(std::string file,std::string labels, char del, std::vector<std::vector<G4double>>data);
     void SaveToTextFile(std::string file,std::string labels, G4String data);
     void SaveToTextFile(std::string file,std::string labels,char del, std::vector<G4ThreeVector>data);
-    
+    std::unique_ptr<std::vector<G4ThreeVector>> GetThreeVectorData(std::string file, char del,G4int SkipRow);
+
     bool FileCheck(std::string file);
     std::fstream *  OpenFile(std::fstream*,G4String);
     void CloseFile(std::fstream*);

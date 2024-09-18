@@ -48,6 +48,12 @@ namespace opticalprops {
                                 G4double temperature=STP_Temperature,
                                 G4int sc_yield=25510/MeV,
                                 G4double e_lifetime=1000.*ms);
+  G4MaterialPropertiesTable* GXeAlternative(G4double pressure=10.*bar,
+                                          G4double temperature=STP_Temperature,
+                                          G4int sc_yield=25510/MeV,
+                                          G4double e_lifetime=1000.*ms,
+                                          G4double Mean_ScintEnergy=7.20*eV,
+                                          G4double Sigma_ScintEnergy=7.20*eV*0.032);
 
   G4MaterialPropertiesTable* LXe();
 
@@ -85,9 +91,10 @@ namespace opticalprops {
 
   G4MaterialPropertiesTable* XXX();
 
-  G4MaterialPropertiesTable* STEEL();
+  G4MaterialPropertiesTable* STEEL( G4bool ref);
 
   G4MaterialPropertiesTable * PerfectDetector();
+  G4MaterialPropertiesTable * PreventPassage();
 
 
 

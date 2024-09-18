@@ -11,13 +11,17 @@
 #define PERSISTENCY_MANAGER_H
 
 #include "PersistencyManagerBase.h"
-
+#include "hdf5_functions.h"
 #include <G4VPersistencyManager.hh>
 #include <map>
 #include <vector>
 #include "fstream"
 #include "G4ThreeVector.hh"
-
+#include "config.h"
+#ifdef With_Opticks
+#include "SEvt.hh"
+#include "sphoton.h"
+#endif
 class G4GenericMessenger;
 class G4TrajectoryContainer;
 class G4HCofThisEvent;
@@ -34,7 +38,11 @@ namespace nexus {
         G4String name;
         G4double time;
         G4ThreeVector position;
+        G4ThreeVector mom;
+        G4ThreeVector polarization;
+        G4double wavelength;
     };
+
   class PersistencyManager: public PersistencyManagerBase
   {
   public:
@@ -62,7 +70,8 @@ namespace nexus {
     virtual G4bool Retrieve(G4VPhysicalVolume*&);
 
   public:
-    void StoreOpticksHits();
+
+    void CollectOpticksHits();
     void OpenFile();
     void CloseFile();
 
@@ -72,8 +81,10 @@ namespace nexus {
     void SetFstream(std::fstream *fstream);
     std::fstream *GetFstream();
 
-      void AddOpticalHit(G4String name,G4ThreeVector position,G4double time);
+    void AddOpticalHit(G4String name,G4ThreeVector position,G4double time,G4ThreeVector mom,G4ThreeVector pol,G4double wavelength);
 
+    G4int fG4PhotonCounter;
+    G4int fOpticksPhotonCounter;
 
   private:
     void StoreTrajectories(G4TrajectoryContainer*);
@@ -82,8 +93,8 @@ namespace nexus {
     void StoreSensorHits(G4VHitsCollection*);
     void StoreSteps();
     void StoreOpticalHits();
-
-
+    void StoreOpticksSteps();
+    void StoreOpticksHits();
 
 
     void SaveConfigurationInfo(G4String history);
@@ -124,8 +135,12 @@ namespace nexus {
     int64_t photonCount;
     std::fstream *fstream_;
 
+    std::vector<hit_optical_t *> AllOpticalHits;
 
-      std::vector<OpticalHit*> AllOpticalHits;
+#ifdef With_Opticks
+    std::vector<sphoton> AllOpticksHits;
+    G4int OpticksHitCollectCount;
+#endif
   };
 
 
@@ -161,13 +176,25 @@ namespace nexus {
     inline void PersistencyManager::SetCompletionTime(G4double t) {
         EventCompletionTime=t;
     }
-    inline void PersistencyManager::AddOpticalHit(G4String name,G4ThreeVector position,G4double time){
-        OpticalHit * ahit= new OpticalHit();
-        ahit->name=name;
+    inline void PersistencyManager::AddOpticalHit(G4String name,G4ThreeVector position,G4double time,G4ThreeVector mom,G4ThreeVector pol,G4double wavelength){
+        hit_optical_t * ahit= new hit_optical_t();
+        memset(ahit->name, 0, STRLEN);
+        strcpy(ahit->name, name);
+        // Assign the Values
         ahit->time=time;
-        ahit->position=position;
+        ahit->x=position.x();
+        ahit->y=position.y();
+        ahit->z=position.z();
+        ahit->wavelength=wavelength;
+        ahit->polx=pol.x();
+        ahit->poly=pol.y();
+        ahit->polz=pol.z();
+        ahit->momx=mom.x();
+        ahit->momy=mom.y();
+        ahit->momz=mom.z();
         AllOpticalHits.push_back(ahit);
   }
+
 
 } // namespace nexus
 

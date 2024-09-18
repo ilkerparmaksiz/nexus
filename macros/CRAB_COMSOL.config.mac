@@ -19,10 +19,6 @@
 #/Geometry/Next100/max_step_size 1. mm
 /Geometry/CRAB0/useCAD false
 
-#seed
-/nexus/random_seed 2
-
-
 # Garfield
 /Geometry/CRAB0/DetChamberD 16.4 cm
 /Geometry/CRAB0/DetChamberL 43.18 cm
@@ -31,15 +27,14 @@
 /Geometry/CRAB0/GasPressure 8 bar
 /Geometry/CRAB0/fieldDrift 438.0
 /Geometry/CRAB0/fieldEL 7857.14
-/Geometry/CRAB0/SimpleField true
+/Geometry/CRAB0/SimpleField false
 /Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe100_8.09bar.gas
 
 # This is for shifting detector
 /Geometry/CRAB0/ShiftDetectors false
-/Geometry/CRAB0/SteelReflect true
 
 # Normaly 25510/MeV
-/Geometry/CRAB0/ScintYield 25510 #25510
+/Geometry/CRAB0/ScintYield 0 #25510
 ## for 8 bar Xenon
 /Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
 /Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
@@ -58,7 +53,7 @@
 #/Generator/SPModified/particle e-
 #/Generator/SPModified/min_energy 1 MeV
 
-/Generator/SPModified/Mode regular
+/Generator/SPModified/Mode Needles
 
 /Generator/SPModified/region AD_HOC
 
@@ -73,14 +68,14 @@
 
 ##### PHYSICS #####
 ## No full simulation
-/PhysicsList/Nexus/clustering          true
-/PhysicsList/Nexus/drift               true
-/PhysicsList/Nexus/electroluminescence true
-/PhysicsList/Nexus/fastsim false
+/PhysicsList/Nexus/clustering          false
+/PhysicsList/Nexus/drift               false
+/PhysicsList/Nexus/electroluminescence false
+/PhysicsList/Nexus/fastsim true
 
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file output/Opticks_Hit_Comparison/G4OpticksTest_With_ReflectionOn
+/nexus/persistency/output_file output/Opticks_Hit_Comparison/ComsolTest
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

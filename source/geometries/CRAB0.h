@@ -128,6 +128,12 @@ namespace nexus{
         G4Material *vacuum;
         G4Material *teflon;
 
+        G4String ComsolPath_,MeshFile_,Data_,Materialstxt_;
+        G4ThreeVector EL_Diffusion;
+        G4ThreeVector FieldCage_Diffusion;
+        G4bool ShiftDetectors;
+        G4bool SimpleField;
+        G4bool Reflections;
 
     };
 }

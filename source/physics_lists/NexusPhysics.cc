@@ -14,7 +14,7 @@
 #include "Electroluminescence.h"
 #include "WavelengthShifting.h"
 #include "OpPhotoelectricEffect.h"
-
+#include "config.h"
 // Krishan: this needs cleaning up
 #include "G4OpAbsorption.hh"
 #include "G4OpBoundaryProcess.hh"
@@ -207,8 +207,8 @@ namespace nexus {
 
           if (particleName == "opticalphoton" && pmanager) {
             G4cout << " AddDiscreteProcess to OpticalPhoton " << G4endl;
-            pmanager->AddDiscreteProcess(fAbsorptionProcess);
-            pmanager->AddDiscreteProcess(fBoundaryProcess);
+            //pmanager->AddDiscreteProcess(fAbsorptionProcess);
+            //pmanager->AddDiscreteProcess(fBoundaryProcess);
             pmanager->AddDiscreteProcess(fastSimProcess_garfield);
           }
         }

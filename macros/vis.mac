@@ -23,8 +23,7 @@
 ### View offset: Left Up dimensions
 #/vis/viewer/panTo 700 0 mm
 
-### Adding axes x y z size dimensions
-#/vis/scene/add/axes -1200 0 0 300 mm
+
 
 ### Zoom up/down of view
 #/vis/viewer/zoom 1.4
@@ -44,6 +43,9 @@
 # Add trajectories to the current scene
 # Parameter (omittable). Options: "smooth", "rich"
 /vis/scene/add/trajectories smooth
+
+### Adding axes x y z size dimensions
+/vis/scene/add/axes 0 0 0 30 mm
 
 # Requests viewer to accumulate hits, tracks, etc. at end of event.
 # 1st param (omittable): "accumulate" or "refresh"

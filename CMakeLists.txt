@@ -26,6 +26,12 @@ option (With_Opticks OFF)
 
 if(With_Opticks)
   message(STATUS "WITH_OPTICKS is set ON")
+  option (With_G4OpticksTest OFF)  # This is used to compare simulated photon events between  G4 and Opticks by producing them in the same event.
+
+  if(With_G4OpticksTest)
+     message(STATUS "Warning ! With_G4OpticksTest Option is set ON !")
+     message(STATUS "With_G4OpticksTest Option allows you to save both G4 and Opticks photon hits into same file so hits can be compared between two ")
+  endif ()
   list(APPEND CMAKE_MODULE_PATH "$ENV{OPTICKS_HOME}/cmake/Modules")
   #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
   set(OPTICKS_PREFIX "$ENV{OPTICKS_PREFIX}")
@@ -46,7 +52,7 @@ endif ()
 
 
 ### Garfield Implementation
-option(With_GarField ON)
+option(With_GarField OFF)
 if(With_GarField)
   ## ROOT
   find_package(ROOT QUIET REQUIRED COMPONENTS RIO Net)

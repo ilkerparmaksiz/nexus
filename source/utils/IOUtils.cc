@@ -6,7 +6,11 @@
 // The NEXT Collaboration
 // ----------------------------------------------------------------------------
 #include "IOUtils.h"
-
+#include "G4AutoLock.hh"
+#include <iostream>
+#include <fstream>
+#include <string>
+namespace{G4Mutex aMutex = G4MUTEX_INITIALIZER;}
 namespace nexus {
 
   // --------
@@ -475,6 +479,44 @@ namespace nexus {
 
         G4cout<<data << " is written" <<G4endl;
         //Fstream->close();
+    }
+
+    std::unique_ptr<std::vector<G4ThreeVector>> GetThreeVectorData(std::string file, char del,G4int SkipRow=1)
+    {
+            std::string str;
+            G4AutoLock lock(&aMutex);
+
+            G4cout<<"Openning the file --> " << file << G4endl;
+            ifstream file_ =std::ifstream (file);
+            if (!file_.is_open()) {
+            G4Exception("FileHandling","[GetThreeVectorData]",FatalException,"Could not open the file!");
+            }
+
+            vector<G4ThreeVector>Data;
+
+            G4int SkipCount=0;
+
+            while(getline(file_,str)){
+        string val;
+            stringstream sline(str);
+            G4ThreeVector vt;
+            if(SkipRow!=0 and SkipCount<SkipRow) {
+                //G4cout<<"Skipping following lines "<<G4endl;
+                //G4cout<<str<< " is Skipped "<<G4endl;
+                SkipCount++;
+            } else{
+                int Counter=0;
+                while (getline(sline,val,del)){
+                    vt[Counter]=stof(val);
+                    Counter++;
+                 }
+                Data.push_back(vt);
+
+            }
+
+        }
+        std::unique_ptr<vector<G4ThreeVector>> uniquedata=std::make_unique<vector<G4ThreeVector>> (Data);
+        return uniquedata;
     }
 
 

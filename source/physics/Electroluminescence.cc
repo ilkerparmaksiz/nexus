@@ -152,95 +152,152 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
     G4RunManager * runmng=G4RunManager::GetRunManager();
 
     const int eventID=runmng->GetCurrentEvent()->GetEventID();
-    G4double t1,t2=0;
-    G4int singlets,triplets=0;
-    t1=mpt->GetConstProperty(kSCINTILLATIONTIMECONSTANT1);
-    t2=mpt->GetConstProperty(kSCINTILLATIONTIMECONSTANT2);
+    //G4double t1,t2=0;
+    // It seems EL photons does nt take account of singlets and triplet times so we do not take account for it now. It creates mean shift, and sigma difference in time distribution
+    //G4int singlets,triplets=0;
+    //t1=mpt->GetConstProperty(kSCINTILLATIONTIMECONSTANT1);
+    //t2=mpt->GetConstProperty(kSCINTILLATIONTIMECONSTANT2);
+    //singlets= floor(mpt->GetConstProperty(kSCINTILLATIONYIELD1)*num_photons);
+    //triplets= ceil(mpt->GetConstProperty(kSCINTILLATIONYIELD2)*num_photons);
+    //pManger->AddPhotons((singlets+triplets));
+    pManger->AddPhotons(num_photons);
 
-    singlets= floor(mpt->GetConstProperty(kSCINTILLATIONYIELD1)*num_photons);
-    triplets= ceil(mpt->GetConstProperty(kSCINTILLATIONYIELD2)*num_photons);
-    pManger->AddPhotons((singlets+triplets));
 
 #ifdef With_Opticks
-
-            if(singlets>0)
-              U4::CollectGenstep_DsG4Scintillation_r4695(&track,&step,singlets,0,t1);
-            if(triplets>0)
-              U4::CollectGenstep_DsG4Scintillation_r4695(&track,&step,triplets,1,t2);
-            int CollectedPhotons=SEvt::GetNumPhotonCollected(0);
-            int maxPhoton=SEventConfig::MaxPhoton();
-
-            // Amount of the Photons produced may exceed max photon limit for opticks
-            // To prevent any crash, we simulate photons and save the hits right before reaching to this limit
-            if(CollectedPhotons>(maxPhoton*0.97)){
-                // Get Persistance Manager
+    G4LorentzVector initial;
+    int CollectedPhotons;
+    int maxPhoton=SEventConfig::MaxPhoton();
 
 
-                //std::cout<<"Event " << eventID<<" Simulating Photons in GPU and Saving the hits to file .." <<std::endl;
+
+    // Produce a random initial point
+    initial=field->GeneratePointAlongDriftLine(initial_position, final_position);
 
 
-                G4CXOpticks * g4xc=G4CXOpticks::Get();
-                g4xc->simulate(eventID,0);
-                cudaDeviceSynchronize();
+    // Generate new Step that PreStepPoint is sampled from function above
 
-                if(SEvt::GetNumHit(0)>0){
+    // This sets randomply created initial point
+    G4Step  newStep= step;
+    newStep.GetPreStepPoint()->SetPosition(initial.v());
+    newStep.GetPreStepPoint()->SetGlobalTime(initial.t());
 
-                     pManger->StoreOpticksHits();
-                }
+     // Example of Handling Singlets and Triplet times in opticks
+    //if(singlets>0) U4::CollectGenstep_DsG4Scintillation_r4695(&track,&newStep,singlets,0,t1);
+    //if(triplets>0) U4::CollectGenstep_DsG4Scintillation_r4695(&track,&newStep,triplets,1,t2);
+    U4::CollectGenstep_DsG4Scintillation_r4695(&track,&newStep,num_photons,0,0);
 
-                if(SEvt::GetNumPhotonCollected(0)>0) G4CXOpticks::Get()->reset(eventID);
-            }
-#else
-  for (G4int i=0; i<num_photons; i++) {
-    // Generate a random direction for the photon
-    // (EL is supposed isotropic)
-    G4double cos_theta = 1. - 2.*G4UniformRand();
-    G4double sin_theta = sqrt((1.-cos_theta)*(1.+cos_theta));
+    #ifdef With_G4OpticksTest
+    //pManger->fOpticksPhotonCounter+=(singlets+triplets);
+    pManger->fOpticksPhotonCounter+=(num_photons);
+    #endif
 
-    G4double phi = twopi * G4UniformRand();
-    G4double sin_phi = sin(phi);
-    G4double cos_phi = cos(phi);
+    CollectedPhotons=SEvt::GetNumPhotonCollected(0);
 
-    G4double px = sin_theta * cos_phi;
-    G4double py = sin_theta * sin_phi;
-    G4double pz = cos_theta;
+    // Amount of the Photons produced may exceed max photon limit for opticks
+    // To prevent any crash, we simulate photons and save the hits right before reaching to this limit
+    if(CollectedPhotons>(maxPhoton*0.97)){
+        // Get Persistance Manager
+        //std::cout<<"Event " << eventID<<" Simulating Photons in GPU and Saving the hits to file .." <<std::endl;
+        G4CXOpticks * g4xc=G4CXOpticks::Get();
+        //auto startTime=std::chrono::high_resolution_clock::now();
 
-    G4ThreeVector momentum(px, py, pz);
+        g4xc->simulate(eventID,0);
+        cudaDeviceSynchronize();
+        //auto endTime=std::chrono::high_resolution_clock::now();
+        //std::chrono::duration<double> duration = endTime - startTime;
+        //std::cout << "SimTime " << duration.count() << std::endl;
+        if(SEvt::GetNumHit(0)>0) pManger->CollectOpticksHits();
+    }
+#endif
 
-    // Determine photon polarization accordingly
-    G4double sx = cos_theta * cos_phi;
-    G4double sy = cos_theta * sin_phi;
-    G4double sz = -sin_theta;
+#if not defined(With_Opticks) or defined(With_G4OpticksTest)
+    //NP* p = NP::Make<float>(num_photons, 6, 4);
+    //sphoton* pp = (sphoton*)p->bytes() ;
 
-    G4ThreeVector polarization(sx, sy, sz);
-    G4ThreeVector perp = momentum.cross(polarization);
+    for (G4int i=0; i<num_photons; i++) {
+        // Generate a random direction for the photon
+        // (EL is supposed isotropic)
+        G4double cos_theta = 1. - 2.*G4UniformRand();
+        G4double sin_theta = sqrt((1.-cos_theta)*(1.+cos_theta));
 
-    phi = twopi * G4UniformRand();
-    sin_phi = sin(phi);
-    cos_phi = cos(phi);
+        G4double phi = twopi * G4UniformRand();
+        G4double sin_phi = sin(phi);
+        G4double cos_phi = cos(phi);
 
-    polarization = cos_phi * polarization + sin_phi * perp;
-    polarization = polarization.unit();
+        G4double px = sin_theta * cos_phi;
+        G4double py = sin_theta * sin_phi;
+        G4double pz = cos_theta;
 
-    // Generate a new photon and set properties
-    G4DynamicParticle* photon = new G4DynamicParticle(G4OpticalPhoton::Definition(), momentum);
+        G4ThreeVector momentum(px, py, pz);
 
-    photon->SetPolarization(polarization.x(), polarization.y(), polarization.z());
+        // Determine photon polarization accordingly
+        G4double sx = cos_theta * cos_phi;
+        G4double sy = cos_theta * sin_phi;
+        G4double sz = -sin_theta;
 
-    // Determine photon energy
-    G4double sc_value = G4UniformRand()*sc_max;
-    G4double sampled_energy = spectrum_integral->GetEnergy(sc_value);
-    photon->SetKineticEnergy(sampled_energy);
+        G4ThreeVector polarization(sx, sy, sz);
+        G4ThreeVector perp = momentum.cross(polarization);
 
-    G4LorentzVector xyzt =
-      field->GeneratePointAlongDriftLine(initial_position, final_position);
+        phi = twopi * G4UniformRand();
+        sin_phi = sin(phi);
+        cos_phi = cos(phi);
 
-    // Create the track
-    G4Track* secondary = new G4Track(photon, xyzt.t(), xyzt.v());
-    secondary->SetParentID(track.GetTrackID());
-    ParticleChange_->AddSecondary(secondary);
+        polarization = cos_phi * polarization + sin_phi * perp;
+        polarization = polarization.unit();
 
-  }
+        // Generate a new photon and set properties
+        G4DynamicParticle* photon = new G4DynamicParticle(G4OpticalPhoton::Definition(), momentum);
+
+        photon->SetPolarization(polarization.x(), polarization.y(), polarization.z());
+
+        // Determine photon energy
+        G4double sc_value = G4UniformRand()*sc_max;
+        G4double sampled_energy = spectrum_integral->GetEnergy(sc_value);
+        photon->SetKineticEnergy(sampled_energy);
+
+        G4LorentzVector xyzt =
+          field->GeneratePointAlongDriftLine(initial_position, final_position);
+
+        // Create the track
+        G4Track* secondary = new G4Track(photon, xyzt.t(), xyzt.v());
+        secondary->SetParentID(track.GetTrackID());
+        ParticleChange_->AddSecondary(secondary);
+        /*
+        //Testing Opticks
+        sphoton& sp = pp[i];
+        sp.orient_idx=i;
+        sp.pos.x = xyzt.x();
+        sp.pos.y = xyzt.y();
+        sp.pos.z = xyzt.z();
+        sp.time = xyzt.t();
+
+        sp.mom.x = momentum.x();
+        sp.mom.y = momentum.y();
+        sp.mom.z = momentum.z();
+
+        sp.pol.x = polarization.x();
+        sp.pol.y = polarization.y();
+        sp.pol.z = polarization.z();
+        sp.wavelength=1239.8/sampled_energy*CLHEP::eV; //nm
+        */
+
+    }
+    /*
+    // Pass the gen steps
+    pManger->fOpticksPhotonCounter+=num_photons;
+    CollectedPhotons=SEvt::GetNumPhotonCollected(0);
+    std::cout<< pManger->fOpticksPhotonCounter <<std::endl;
+    std::cout<< CollectedPhotons <<std::endl;
+    if(CollectedPhotons>(maxPhoton*0.97) or pManger->fOpticksPhotonCounter>(maxPhoton*0.97)){
+        // Get Persistance Manager
+        //std::cout<<"Event " << eventID<<" Simulating Photons in GPU and Saving the hits to file .." <<std::endl;
+        G4CXOpticks * g4xc=G4CXOpticks::Get();
+        g4xc->simulate(eventID,0);
+        cudaDeviceSynchronize();
+        if(SEvt::GetNumHit(0)>0) pManger->CollectOpticksHits();
+    }
+    SEvt::AddGenstep(p);
+     */
 #endif
   return G4VDiscreteProcess::PostStepDoIt(track, step);
 }

@@ -24,6 +24,9 @@ G4double XenonRefractiveIndex(G4double energy, G4double density);
 G4double GXeScintillation(G4double energy, G4double pressure);
 G4double LXeScintillation(G4double energy);
 
+/// Alternative way of producing scintilation photon probabilities with a given mean and sigma
+G4double Gaussian1DScintilationEnergy(G4double energy,G4double mean,G4double sigma);
+
 std::pair<G4int, G4int> MakeXeDensityDataTable(std::vector<std::vector<G4double>> &data);
 G4double GetGasDensity(G4double pressure, G4double temperature);
 

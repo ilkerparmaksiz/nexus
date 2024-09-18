@@ -19,13 +19,18 @@ namespace nexus {
   class GarfieldHelper
   {
   public:
-
+    struct COMSOL_Variables{
+        G4String Path,MeshFile,Data,Materialstxt;
+    };
     /// Default constructor 
     GarfieldHelper();
     GarfieldHelper(G4double DetChamberR ,G4double DetChamberL_,G4double DetActiveR ,G4double DetActiveL ,G4double GasPressure ,G4double gap_EL ,G4double fieldDrift ,G4double fieldEL);
 
+
     void DumpParams();
     void SetGasFile(G4String g);
+    void SetCOMSOLVariables(COMSOL_Variables *ComsolVariable );
+    COMSOL_Variables * GetComsolVariables_();
     G4String GetGasFile();
     /// Destructor
     ~GarfieldHelper();
@@ -44,6 +49,8 @@ namespace nexus {
 
     G4double thermalE_{1.3*eV}; // eV
 
+    COMSOL_Variables * ComsolVariable_;
+
 
   };
 
@@ -52,6 +59,12 @@ namespace nexus {
   inline GarfieldHelper::~GarfieldHelper() { }
   inline void GarfieldHelper::SetGasFile(G4String g) {GasFile_=g;}
   inline G4String GarfieldHelper::GetGasFile() { return GasFile_;}
+  inline void GarfieldHelper::SetCOMSOLVariables(nexus::GarfieldHelper::COMSOL_Variables *ComsolVariable) {
+      ComsolVariable_=ComsolVariable;
+  }
+  //GarfieldHelper::COMSOL_Variables * GarfieldHelper::GetComsolVariables_() { return ComsolVariable_;}
+
+
 } // namespace nexus
 
 #endif

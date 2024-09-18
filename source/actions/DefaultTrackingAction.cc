@@ -10,13 +10,13 @@
 // ----------------------------------------------------------------------------
 
 #include "DefaultTrackingAction.h"
-
+#include "config.h"
 #include "Trajectory.h"
 #include "TrajectoryMap.h"
 #include "IonizationElectron.h"
 #include "FactoryBase.h"
-#ifdef With_Garfield
-    #include "NEST/G4/NESTS1Photon.hh"
+#ifdef With_GarField
+#include "NEST/G4/NESTS1Photon.hh"
 #endif
 #include <G4Track.hh>
 #include <G4TrackingManager.hh>
@@ -46,14 +46,10 @@ void DefaultTrackingAction::PreUserTrackingAction(const G4Track *track)
     fpTrackingManager->SetStoreTrajectory(false);
 
 
-
-    #ifdef With_Opticks
-    if(track->GetDefinition() == G4OpticalPhoton::Definition() ) track->SetTrackStatus(fStopAndKill);
-    #endif
     return;
   }
 
-#ifdef With_Garfield
+#ifdef With_GarField
     if ( track->GetDefinition() == NESTS1Photon::Definition()){
        fpTrackingManager->SetStoreTrajectory(false);
        return;
@@ -74,13 +70,10 @@ void DefaultTrackingAction::PreUserTrackingAction(const G4Track *track)
 
 void DefaultTrackingAction::PostUserTrackingAction(const G4Track *track)
 {
-#ifdef With_Opticks
-    if(track->GetDefinition() == G4OpticalPhoton::Definition() ) track->SetTrackStatus(fStopAndKill);
-#endif
   // Do nothing if the track is an optical photon or an ionization electron
   if (track->GetDefinition() == G4OpticalPhoton::Definition() ||
       track->GetDefinition() == IonizationElectron::Definition()){
-#ifdef With_Garfield
+#ifdef With_GarField
       if ( track->GetDefinition() == NESTS1Photon::Definition()) return;
 #endif
     return;

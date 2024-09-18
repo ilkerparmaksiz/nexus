@@ -19,10 +19,6 @@
 #/Geometry/Next100/max_step_size 1. mm
 /Geometry/CRAB0/useCAD false
 
-#seed
-/nexus/random_seed 2
-
-
 # Garfield
 /Geometry/CRAB0/DetChamberD 16.4 cm
 /Geometry/CRAB0/DetChamberL 43.18 cm
@@ -31,13 +27,7 @@
 /Geometry/CRAB0/GasPressure 8 bar
 /Geometry/CRAB0/fieldDrift 438.0
 /Geometry/CRAB0/fieldEL 7857.14
-/Geometry/CRAB0/SimpleField true
 /Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe100_8.09bar.gas
-
-# This is for shifting detector
-/Geometry/CRAB0/ShiftDetectors false
-/Geometry/CRAB0/SteelReflect true
-
 # Normaly 25510/MeV
 /Geometry/CRAB0/ScintYield 25510 #25510
 ## for 8 bar Xenon
@@ -50,37 +40,47 @@
 /Geometry/CRAB0/Materials CRABMaterialProperties.txt
 
 ##### GENERATOR #####
-#/Generator/SPModified/particle opticalphoton
-#/Generator/SPModified/min_energy 7.2 eV
-/Generator/SPModified/particle alpha
-/Generator/SPModified/max_energy 5.4 MeV
-/Generator/SPModified/min_energy 5.4 MeV
-#/Generator/SPModified/particle e-
-#/Generator/SPModified/min_energy 1 MeV
+#/Generator/SingleParticle/particle opticalphoton
+#/Generator/SingleParticle/min_energy 7.2 eV
+/Generator/SingleParticle/particle alpha
+/Generator/SingleParticle/max_energy 5.4 MeV
+/Generator/SingleParticle/min_energy 5.4 MeV
+#/Generator/SingleParticle/particle e-
+#/Generator/SingleParticle/min_energy 1 MeV
 
-/Generator/SPModified/Mode regular
-
-/Generator/SPModified/region AD_HOC
+/Generator/SingleParticle/region CENTER
 
 
-#/Generator/SPModified/region NEEDLE
+#/Generator/SingleParticle/region NEEDLE
 /Geometry/CRAB0/specific_vertex 0 0 0 mm
 
 ##### ACTIONS #####
 #/Actions/DefaultEventAction/min_energy 0.6 keV
 #/Actions/DefaultEventAction/max_energy 2.55 MeV
+## For Debugging (Opticks)
+/Actions/OpticksSaveAllSteppingAction/select_particle opticalphoton
+#/Actions/OpticksSaveAllSteppingAction/select_volume   ACTIVE   #    full match
+#/Actions/OpticksSaveAllSteppingAction/select_volume   EL_GAP      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume   PMT_TUBE0      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume   PMT_TUBE1      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume   Lens      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume   MgF2_WINDOW      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume   camWindow      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume   PMTWindow      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume   LAB      # partial match
+#/Actions/OpticksSaveAllSteppingAction/kill_after_selection False
 
 
 ##### PHYSICS #####
 ## No full simulation
-/PhysicsList/Nexus/clustering          true
-/PhysicsList/Nexus/drift               true
-/PhysicsList/Nexus/electroluminescence true
+/PhysicsList/Nexus/clustering          false
+/PhysicsList/Nexus/drift               false
+/PhysicsList/Nexus/electroluminescence false
 /PhysicsList/Nexus/fastsim false
 
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file output/Opticks_Hit_Comparison/G4OpticksTest_With_ReflectionOn
+/nexus/persistency/output_file output/Opticks_Hit_Comparison/S1s_debug
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

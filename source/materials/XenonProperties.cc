@@ -103,7 +103,13 @@ G4double XenonMassPerMole(G4int a)
   return mass_per_mole;
 }
 
-
+// Create Intensities/Probabilities profile for a given mean and sigma for Scintilation Photons.
+G4double Gaussian1DScintilationEnergy(G4double energy,G4double mean,G4double sigma)
+{
+    G4double Intensity;
+    Intensity=(1/(sigma/eV*sqrt(2*pi)))* exp(-(pow(energy/eV-mean/eV,2))/(2*pow(sigma/eV,2)));
+    return Intensity;
+}
 
 G4double XenonRefractiveIndex(G4double energy, G4double density)
 {

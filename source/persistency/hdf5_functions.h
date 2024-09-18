@@ -99,9 +99,35 @@
       float y;
       float z;
       float time;
+      float wavelength;
       unsigned int boundary;
+      float polx;
+      float poly;
+      float polz;
+      float momx;
+      float momy;
+      float momz;
   } hit_opticks_t;
 
+typedef struct{
+    int64_t event_id;
+    int32_t photon_id;
+    float x;
+    float y;
+    float z;
+    float polx;
+    float poly;
+    float polz;
+    float momx;
+    float momy;
+    float momz;
+    float time;
+    char flag[STRLEN];
+    float wavelength;
+    unsigned int boundary;
+    unsigned int identiy;
+
+} step_opticks_t;
 typedef struct{
     int64_t event_id;
     char name[STRLEN];
@@ -110,11 +136,20 @@ typedef struct{
     float y;
     float z;
     float time;
+    float wavelength;
+    float polx;
+    float poly;
+    float polz;
+    float momx;
+    float momy;
+    float momz;
 } hit_optical_t;
 
 typedef struct{
     int64_t event_id;
     int64_t photons;
+    int64_t G4Photon;
+    int64_t OpticksPhoton;
     double time;
 
 } timing_t;
@@ -125,6 +160,7 @@ typedef struct{
   hsize_t createParticleInfoType();
   hsize_t createSensorPosType();
   hsize_t createStepType();
+  hsize_t createOpticksStepType();
   hsize_t createHitOpticksType();
   hsize_t createHitOpticalType();
   hsize_t createTimingType();
@@ -140,6 +176,7 @@ typedef struct{
   void writeSnsPos(sns_pos_t* snsPos, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeStep(step_info_t* step, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeOpticksHit(hit_opticks_t* hitInfo, hid_t dataset, hid_t memtype, hsize_t counter);
+  void writeOpticksStep(step_opticks_t * stepInfo, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeOpticalHit(hit_optical_t* hitInfo, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeTimingInfo(timing_t* timinginfo, hid_t dataset, hid_t memtype, hsize_t counter);
 #endif
