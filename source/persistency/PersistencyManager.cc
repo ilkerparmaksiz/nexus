@@ -589,7 +589,7 @@ void PersistencyManager::SaveTimeInfo(){
     fOpticksPhotonCounter=0;
     fG4PhotonCounter=0;
 #else
-    if(photonCount>0){
+    if(photonCount>=0){
         timinginfo->event_id=eventID;
         timinginfo->photons=photonCount;
         timinginfo->time=EventCompletionTime;
