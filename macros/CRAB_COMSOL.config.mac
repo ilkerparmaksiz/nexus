@@ -33,8 +33,12 @@
 # This is for shifting detector
 /Geometry/CRAB0/ShiftDetectors false
 
+## Turns on and off the reflections on steel and Teflon
+/Geometry/CRAB0/SteelReflect true
+
+
 # Normaly 25510/MeV
-/Geometry/CRAB0/ScintYield 0 #25510
+/Geometry/CRAB0/ScintYield 25510
 ## for 8 bar Xenon
 /Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
 /Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
@@ -43,6 +47,9 @@
 /Geometry/CRAB0/MeshFile CRAB_Mesh.mphtxt
 /Geometry/CRAB0/Data CRAB_Data.txt
 /Geometry/CRAB0/Materials CRABMaterialProperties.txt
+
+
+
 
 ##### GENERATOR #####
 #/Generator/SPModified/particle opticalphoton
@@ -53,7 +60,7 @@
 #/Generator/SPModified/particle e-
 #/Generator/SPModified/min_energy 1 MeV
 
-/Generator/SPModified/Mode Needles
+/Generator/SPModified/Mode Needle_4cm
 
 /Generator/SPModified/region AD_HOC
 
@@ -76,6 +83,6 @@
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file output/Opticks_Hit_Comparison/ComsolTest
+/nexus/persistency/output_file output/Opticks_Hit_Comparison/ComsolTest_50_WithDiffusion
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

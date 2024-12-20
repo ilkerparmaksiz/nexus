@@ -62,11 +62,12 @@ void OpticksSteppingAction::UserSteppingAction(const G4Step* step) {
                 if ((*PostStepProc)[stp]->GetProcessName() == "Scintillation") {
                     G4Scintillation *ScintProc = (G4Scintillation *) (*PostStepProc)[stp];
                     G4int num_photons = ScintProc->GetNumPhotons();
+
                     //std::cout << "Scintilation "<< num_photons <<std::endl;
 
                     if (num_photons > 0) {
                         TotalPhotns+=num_photons;
-                        //std::cout << "Scintilation "<< num_photons <<" Amount of Singlets " <<singlets <<" Triplets " << triplets <<std::endl;
+                        //std::cout << "Scintilation PreStep "<< step->GetPreStepPoint()->GetPosition() << " PostStep " << step->GetPostStepPoint()->GetPosition() <<" TotalNumber " << num_photons <<std::endl;
                     }
 
                 }
@@ -81,18 +82,29 @@ void OpticksSteppingAction::UserSteppingAction(const G4Step* step) {
             #ifdef With_G4OpticksTest
             pManger->fOpticksPhotonCounter+=(singlets+triplets);
             #endif
+            //std::unique_ptr<G4Step> newStep= std::make_unique<G4Step>(G4Step(*step)) ;
+           // G4Step *newStep= new G4Step(*step) ;
+            //std::cout <<"New Step" <<std::endl;
+            //G4StepPoint newStepPoint=*newStep->GetPreStepPoint();
+            //newStepPoint.SetPosition(newStep->GetPreStepPoint()->GetPosition()+(newStep->GetPostStepPoint()->GetPosition()-newStep->GetPreStepPoint()->GetPosition())*G4UniformRand());
+            //newStepPoint.SetGlobalTime(newStep->GetPreStepPoint()->GetGlobalTime()+(newStep->GetPostStepPoint()->GetGlobalTime()-newStep->GetPreStepPoint()->GetGlobalTime())*G4UniformRand());
+            //newStep->SetPreStepPoint(&newStepPoint);
+            //std::cout << "Triplet " <<triplets << " Singlets " << singlets <<std::endl;
             if (singlets > 0)
                 U4::CollectGenstep_DsG4Scintillation_r4695(track, step, singlets, 0, t1);
             if (triplets > 0)
                 U4::CollectGenstep_DsG4Scintillation_r4695(track, step, triplets, 1, t2);
         #endif
         }
+        //std::cout << "PreStep "<< step->GetPreStepPoint()->GetPosition() << " PostStep " << step->GetPostStepPoint()->GetPosition() << std::endl;
+
     }else{
     #ifdef With_G4OpticksTest
             if( G4OpticalPhoton::Definition() and track->GetTrackStatus()==fStopAndKill) pManger->fG4PhotonCounter+=1;
     #endif
 
 #if defined(With_Opticks)  and not defined(With_G4OpticksTest)
+
         if(step->GetTrack()->GetDefinition()==G4OpticalPhoton::Definition()) step->GetTrack()->SetTrackStatus(fStopAndKill);
 #endif
 #if not defined(With_Opticks) || defined(With_G4OpticksTest)

@@ -5,6 +5,9 @@ sleep 2
 echo "Cleaning tmp File /tmp/argon/opticks"
 rm -rf /tmp/argon/opticks
 sleep 2
+## Import Opticks_Config
+source "$HOME/.opticks_config"
+Macro=CRAB.init.mac
 if [ "$1" == "run" ]; then
 	source OpticksRun
 	buildFolder=build
@@ -24,7 +27,12 @@ if [ "$1" == "run" ]; then
 	## Then run
 	echo " Running the code total events are ${runNumber} "
 	sleep 1
-	./"${buildFolder}"/nexus -n "${runNumber}" macros/CRAB.init.mac
+	echo "Printing the 4th value $4"
+	if [ -n "$4" ]; then
+		Macro=$4.init.mac
+	fi
+	 echo "Running Macro $Macro"
+	 ./"${buildFolder}"/nexus -n "${runNumber}" macros/"$Macro"
 
 elif [ "$1" == "debug" ]; then
   source OpticksDebug

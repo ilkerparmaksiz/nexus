@@ -1,14 +1,30 @@
-#!/bin/bash -l 
+#!/bin/bash -l
 ## Export these
 #export CRABPATH=/home/argon/Projects/Ilker/gxsim/CRAB/
-export GEOM=NEXTCRAB  # Geometry name
+export GEOM=NEXTCRAB_Run  # Geometry name
 #source env.sh
+export RNG_SEED=0
+export RNG_OFFSET=0
+## Repeats random values
+#export OPTICKS_EVENT_SKIPAHEAD=0
+
+## Match it to GEANT4
+#export OPTICKS_EVENT_SKIPAHEAD=100000
 
 ## Opticks settings
 export OPTICKS_MAX_PHOTON=165000000 # Max Amount of photons
 export OPTICKS_INTEGRATION_MODE=3  # Running both GPU and CPU simulation
 export OPTICKS_EVENT_MODE=Minimal  # Hits or Minimal Prefered. Hits will create .npy files in /tmp/user/opticks/GEOM/NEXUS_CRAB/nexus/ALL0
-### Opticks Detector Identification (Boundary Names for Identifying small number of detectors)
+
+## Skipahead is used for offseting the random generator values so photons produce per event is not repeated
+if [ -z ${SKIPAHEAD+x} ]; then
+	echo " SKIPAHEAD is not set";
+	echo "Setting SKIPAHEAD to 100k";
+	SKIPAHEAD=100000
+	sleep 2
+fi
+export OPTICKS_EVENT_SKIPAHEAD=$SKIPAHEAD
+## Opticks Detector Identification (Boundary Names for Identifying small number of detectors)
 export U4SensorIdentifierDefault__GLOBAL_SENSOR_BOUNDARY_LIST=$(cat << EOL 
   G4_Galactic/CamSurfaceBorder//MgF2
   G4_SILICON_DIOXIDE/PHOTOCATHODE//G4_Al
@@ -27,7 +43,7 @@ EOL
 
 ### Lets Check if Curand file present if not then create it 
 ##
-CurandBinPath=$HOME/.opticks/rngcache/RNG/QCurandState_${OPTICKS_MAX_PHOTON}_0_0.bin
+CurandBinPath=$HOME/.opticks/rngcache/RNG/QCurandState_${OPTICKS_MAX_PHOTON}_${RNG_SEED}_${RNG_OFFSET}.bin
 
 #echo $CurandBinPath
 if ! test -f $CurandBinPath; then
@@ -61,8 +77,14 @@ fi
 #export ShimG4OpAbsorption=INFO
 #export G4CXOpticks__simulate_saveEvent=0
 export G4CXOpticks__setGeometry_saveGeometry=$HOME/.opticks/GEOM/$GEOM
-export G4CXOpticks__saveGeometry_saveGGeo=1
-export GGeo__postDirectTranslation_save=1
+export G4CXOpticks__saveGeometry_saveGGeo=0
+export GGeo__postDirectTranslation_save=0
 #export IDPath=$G4CXOpticks__setGeometry_saveGeometry
 #export PIDX=100
 #export CFBASE=$HOME/.opticks/GEOM/$GEOM
+
+echo "RNG_Offset -->$RNG_OFSEET"
+echo "RNG SEED  --> $RNG_SEED"
+echo "SKIPAHEAD--> $OPTICKS_EVENT_SKIPAHEAD"
+echo "MaxPhoton--> $OPTICKS_MAX_PHOTON"
+sleep 2

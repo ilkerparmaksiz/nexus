@@ -133,6 +133,7 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
             if(ngenstep>0){
                 //std::cout<<g4cx->desc()<<std::endl;
                 //std::cout<<"--- G4Optickx ---" << g4cx->descSimulate() <<std::endl;
+                //std::cout<< "Simulating Photons " <<ngenstep <<std::endl;
                 g4cx->simulate(eventID,0); // For Simulation
                 cudaDeviceSynchronize();
 
@@ -140,9 +141,9 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
                 //std::cout << "DefaultEventAction Hits " << hits<<std::endl;
                 if(hits>0) pm->CollectOpticksHits();
                // std::cout<<"Event " <<eventID <<" Simulating with Opticks nphotons "<< nphotons << " nsteps " << ngenstep << " Hits " <<SEvt::GetNumHit(0) << std::endl;
-
+                G4CXOpticks::Get()->reset(eventID);
             }
-            G4CXOpticks::Get()->reset(eventID);
+
 
         //G4cout<<" Opticks End of Event Action" <<G4endl;
 

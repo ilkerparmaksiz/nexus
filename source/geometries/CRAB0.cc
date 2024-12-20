@@ -69,7 +69,7 @@ namespace nexus {
             HideSourceHolder_(false),
             max_step_size_(1. * mm),
             ElGap_(7 * mm),
-            ELyield_(925 / cm),
+            ELyield_(925),
             PMT1_Pos_(2.08 * cm),
             PMT3_Pos_(3.52 * cm),
             HideCollimator_(true),
@@ -127,9 +127,9 @@ namespace nexus {
             msg_->DeclareProperty("GasFile", GasFile_, "Use CAD geometry or G4 bools");
 
             // Initial Values
-            ComsolPath_="/home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/17k_8k_7k/";
-            MeshFile_="CRAB_Mesh.mphtxt";
-            Data_="CRAB_Data.txt";
+            //ComsolPath_="/home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/17k_8k_7k/";
+            //MeshFile_="CRAB_Mesh.mphtxt";
+            //Data_="CRAB_Data.txt";
             Materialstxt_="CRABMaterialProperties.txt";
             msg_->DeclareProperty("ComsolPath",ComsolPath_,"Comsol file Path");
             msg_->DeclareProperty("MeshFile",MeshFile_,"Comsol file Path");
@@ -141,6 +141,7 @@ namespace nexus {
             msg_->DeclareProperty("ShiftDetectors",ShiftDetectors,"Move Detectors into CRAB");
             msg_->DeclareProperty("SimpleField",SimpleField,"Simple Electrical Field");
             msg_->DeclareProperty("SteelReflect",Reflections,"Reflections from steel can be turned off or on");
+            msg_->DeclareProperty("ELYield",ELyield_,"Electroluminesence Yield photons/cm");
 
         Sampler=std::make_shared<SampleFromSurface>(SampleFromSurface("Needles"));
 
@@ -171,8 +172,8 @@ namespace nexus {
         gxe->SetMaterialPropertiesTable(opticalprops::GXeAlternative(gas_pressure_, 68, sc_yield_/MeV, e_lifetime_));
         Steel->SetMaterialPropertiesTable(opticalprops::STEEL(Reflections));
         vacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
-        teflon->SetMaterialPropertiesTable(opticalprops::PTFE());
-        PEEK->SetMaterialPropertiesTable(opticalprops::PTFE());
+        teflon->SetMaterialPropertiesTable(opticalprops::PTFE(Reflections));
+        PEEK->SetMaterialPropertiesTable(opticalprops::PTFE(Reflections));
 
 
 
@@ -808,7 +809,7 @@ namespace nexus {
             // ELRegion->SetLightYield(xgp.ELLightYield(24.8571*kilovolt/cm));//value for E that gives Y=1160 photons per ie- in normal conditions
             //EfieldForEL->SetLightYield(XenonELLightYield(20*kilovolt/cm, gas_pressure_));
             //EfieldForEL->SetELGap(ElGap_*cm);
-	        EfieldForEL->SetLightYield(ELyield_);
+	        EfieldForEL->SetLightYield(ELyield_/cm);
             G4Region* el_region = new G4Region("EL_GAP");
             el_region->SetUserInformation(EfieldForEL);
             el_region->AddRootLogicalVolume(EL_logic);

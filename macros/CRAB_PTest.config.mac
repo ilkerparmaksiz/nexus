@@ -34,7 +34,7 @@
 /Geometry/CRAB0/ShiftDetectors false
 
 # Normaly 25510/MeV
-/Geometry/CRAB0/ScintYield 0 #25510
+/Geometry/CRAB0/ScintYield 1000 #25510
 ## for 8 bar Xenon
 /Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
 /Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
@@ -68,14 +68,14 @@
 
 ##### PHYSICS #####
 ## No full simulation
-/PhysicsList/Nexus/clustering          true
-/PhysicsList/Nexus/drift               true
-/PhysicsList/Nexus/electroluminescence true
+/PhysicsList/Nexus/clustering          false
+/PhysicsList/Nexus/drift               false
+/PhysicsList/Nexus/electroluminescence false
 /PhysicsList/Nexus/fastsim false
 
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file output/Opticks_Hit_Comparison/OpticksPTest
+/nexus/persistency/output_file OpticksPTest
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

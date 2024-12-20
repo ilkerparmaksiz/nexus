@@ -586,10 +586,10 @@ namespace opticalprops {
             sc_energy.push_back(6.20625 * eV + 0.01 * i * eV);
         }
         std::vector<G4double> intensity;
-        std::vector<G4double> REmisProb;
+        //std::vector<G4double> REmisProb;
         for (G4int i = 0; i < sc_entries; i++) {
             intensity.push_back(GXeScintillation(sc_energy[i], pressure));
-            REmisProb.push_back(0);
+            //REmisProb.push_back(0);
         }
         //for (int i=0; i<sc_entries; i++) {
         //  G4cout << "* GXe Scint:  " << std::setw(7) << sc_energy[i]/eV
@@ -600,7 +600,7 @@ namespace opticalprops {
         mpt->AddProperty("ELSPECTRUM", sc_energy, intensity, 1);
         mpt->AddProperty("FASTCOMPONENT", sc_energy, intensity, 1);
         mpt->AddProperty("SLOWCOMPONENT", sc_energy, intensity, 1);
-        mpt->AddProperty("REEMISSIONPROB", sc_energy, REmisProb, 1);
+        mpt->AddProperty("REEMISSIONPROB", sc_energy, intensity, 1);
 
         // CONST PROPERTIES
         mpt->AddConstProperty("SCINTILLATIONYIELD", sc_yield);
@@ -651,7 +651,7 @@ namespace opticalprops {
         // Sampling from ~150 nm to 200 nm <----> from 6.20625 eV to 8.20625 eV
         const G4int sc_entries = 200;
         std::vector<G4double> sc_energy;
-        std::vector<G4double> REmisProb;
+        //std::vector<G4double> REmisProb;
 
         for (int i = 0; i < sc_entries; i++) {
             sc_energy.push_back(6.20625 * eV + 0.01 * i * eV);
@@ -663,7 +663,7 @@ namespace opticalprops {
             //https://iopscience.iop.org/article/10.1070/QE1975v004n09ABEH011556/pdf
             // Peak wavelength assumed to be 172 nm with 13nm FWHM
             intensity.push_back(Gaussian1DScintilationEnergy(sc_energy[i], Mean_ScintEnergy, Sigma_ScintEnergy));
-            REmisProb.push_back(0);
+            //REmisProb.push_back(0);
 
         }
         //for (int i=0; i<sc_entries; i++) {
@@ -675,7 +675,7 @@ namespace opticalprops {
         mpt->AddProperty("ELSPECTRUM", sc_energy, intensity, 1);
         mpt->AddProperty("FASTCOMPONENT", sc_energy, intensity, 1);
         mpt->AddProperty("SLOWCOMPONENT", sc_energy, intensity, 1);
-        mpt->AddProperty("REEMISSIONPROB", sc_energy, REmisProb, 1);
+        mpt->AddProperty("REEMISSIONPROB", sc_energy,intensity, 1);
 
         // CONST PROPERTIES
         mpt->AddConstProperty("SCINTILLATIONYIELD", sc_yield);
@@ -805,6 +805,53 @@ namespace opticalprops {
                 .98, .98, .98, .98,
                 .72, .72, .72
         };
+
+        mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
+
+        // REFLEXION BEHAVIOR
+        std::vector<G4double> ENERGIES_2 = {optPhotMinE_, optPhotMaxE_};
+        // Specular reflection about the normal to a microfacet.
+        // Such a vector is chosen according to a gaussian distribution with
+        // sigma = SigmaAlhpa (in rad) and centered in the average normal.
+        std::vector<G4double> specularlobe = {0., 0.};
+        // specular reflection about the average normal
+        std::vector<G4double> specularspike = {0., 0.};
+        // 180 degrees reflection.
+        std::vector<G4double> backscatter = {0., 0.};
+        // 1 - the sum of these three last parameters is the percentage of Lambertian reflection
+
+        mpt->AddProperty("SPECULARLOBECONSTANT", ENERGIES_2, specularlobe);
+        mpt->AddProperty("SPECULARSPIKECONSTANT", ENERGIES_2, specularspike);
+        mpt->AddProperty("BACKSCATTERCONSTANT", ENERGIES_2, backscatter);
+
+        // REFRACTIVE INDEX
+        std::vector<G4double> rIndex = {1.41, 1.41};
+        mpt->AddProperty("RINDEX", ENERGIES_2, rIndex);
+
+        return mpt;
+    }
+    G4MaterialPropertiesTable *PTFE(G4bool ref) {
+        G4MaterialPropertiesTable *mpt = new G4MaterialPropertiesTable();
+
+        // REFLECTIVITY
+        std::vector<G4double> ENERGIES = {
+                optPhotMinE_, 2.8 * eV, 3.5 * eV, 4. * eV,
+                6. * eV, 7.2 * eV, optPhotMaxE_
+        };
+        std::vector<G4double> REFLECTIVITY;
+        if(ref){
+            REFLECTIVITY = {
+                    .98, .98, .98, .98,
+                    .72, .72, .72
+            };
+        }else{
+            REFLECTIVITY = {
+                    0, 0, 0, 0,
+                    0, 0, 0
+            };
+        }
+
+
         mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
 
         // REFLEXION BEHAVIOR

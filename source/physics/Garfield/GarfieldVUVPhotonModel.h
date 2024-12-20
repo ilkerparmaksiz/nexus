@@ -79,6 +79,9 @@ namespace nexus {
         // Generate EL photons in the gap according to a simple model
         void MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti);
 
+        // Generate EL photons in the gap and take account of diffusion in the EL-Gap
+        void MakeELPhotonsSimple(G4FastStep& fastStep, G4double xi, G4double yi, G4double zi, G4double ti,G4int colHitsEntries);
+
         // Function to print the electric field
         void PrintElectricField(G4double x0,G4double y0, G4double z);
 
@@ -94,6 +97,10 @@ namespace nexus {
         // Function to get the photon polarization
         void GetPhotonPol(G4ThreeVector &momentum, G4ThreeVector &polarization);
 
+        // Get EL-Yields
+        const G4double GetElYields(G4double length,G4double Efield);
+
+
         G4ThreeVector garfPos;
         G4double garfTime;
 
@@ -104,7 +111,9 @@ namespace nexus {
 
         G4String gasFile;
         G4String ionMobFile;
-
+        G4bool isEL_Gain;
+        G4bool includeEL_Diffusion;
+        G4bool SaveDiffusionValues;
         Garfield::MediumMagboltz* fMediumMagboltz;
         Garfield::AvalancheMC* fAvalancheMC;
         Garfield::Sensor* fSensor;
@@ -121,6 +130,8 @@ namespace nexus {
 
         GarfieldHelper GH_;
 
+        G4bool use_ELFile;
+        G4bool use_OlderSimple;
         G4double ELPos_; // cm
         G4double FCTop_; // cm
 

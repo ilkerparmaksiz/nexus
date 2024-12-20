@@ -92,8 +92,8 @@ namespace opticalprops {
   G4MaterialPropertiesTable* XXX();
 
   G4MaterialPropertiesTable* STEEL( G4bool ref);
-
-  G4MaterialPropertiesTable * PerfectDetector();
+  G4MaterialPropertiesTable *PTFE(G4bool ref);
+    G4MaterialPropertiesTable * PerfectDetector();
   G4MaterialPropertiesTable * PreventPassage();
 
 

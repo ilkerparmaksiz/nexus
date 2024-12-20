@@ -17,37 +17,43 @@
 ##### GEOMETRY #####
 #/Geometry/Next100/elfield false
 #/Geometry/Next100/max_step_size 1. mm
-/Geometry/CRAB0/useCAD false
 
 #seed
 /nexus/random_seed 2
 
 
-# Garfield
 /Geometry/CRAB0/DetChamberD 16.4 cm
 /Geometry/CRAB0/DetChamberL 43.18 cm
 /Geometry/CRAB0/DetActiveD 8.6 cm
 /Geometry/CRAB0/DetActiveL 21.26 cm
-/Geometry/CRAB0/GasPressure 8 bar
+
+### Pressure ###
+#/Geometry/CRAB0/GasPressure 8 bar
+/Geometry/CRAB0/GasPressure 10 bar
+
+### Garfield ###
 /Geometry/CRAB0/fieldDrift 438.0
 /Geometry/CRAB0/fieldEL 7857.14
 /Geometry/CRAB0/SimpleField true
 /Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe100_8.09bar.gas
 
-# This is for shifting detector
+# This is for shifting detectors into CRAB
 /Geometry/CRAB0/ShiftDetectors false
-/Geometry/CRAB0/SteelReflect true
+
+## Turns of the reflections
+/Geometry/CRAB0/SteelReflect false
 
 # Normaly 25510/MeV
 /Geometry/CRAB0/ScintYield 25510 #25510
+/Geometry/CRAB0/ELYield 925 #25510
+#### Using Uniform Electrical Fields Without Garfield ####
 ## for 8 bar Xenon
-/Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
-/Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
-# Comsol Related info
-/Geometry/CRAB0/ComsolPath /home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/8bar/
-/Geometry/CRAB0/MeshFile CRAB_Mesh.mphtxt
-/Geometry/CRAB0/Data CRAB_Data.txt
-/Geometry/CRAB0/Materials CRABMaterialProperties.txt
+#/Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
+#/Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
+## for 10 bar Xenon
+/Geometry/CRAB0/EL_Diffusion  4.6 0.24 0.17
+/Geometry/CRAB0/FieldCage_Diffusion 0.90 0.92 0.36
+
 
 ##### GENERATOR #####
 #/Generator/SPModified/particle opticalphoton
@@ -64,8 +70,8 @@
 
 
 #/Generator/SPModified/region NEEDLE
-/Geometry/CRAB0/specific_vertex 0 0 0 mm
-
+/Geometry/CRAB0/specific_vertex -16 16 -50 mm
+#/Geometry/CRAB0/specific_vertex 0 0 0 mm
 ##### ACTIONS #####
 #/Actions/DefaultEventAction/min_energy 0.6 keV
 #/Actions/DefaultEventAction/max_energy 2.55 MeV
@@ -81,6 +87,6 @@
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file output/Opticks_Hit_Comparison/G4OpticksTest_With_ReflectionOn
+/nexus/persistency/output_file /media/argon/5TB2_rooks/CRAB/ReflectionsOFF_10bar_160MSkip_16mm #output/Oct_13_2024/OpticksTest_With_ReflectionOff_2k_All_160MSkip
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data
