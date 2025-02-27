@@ -42,6 +42,7 @@
 #include "G4CXOpticks.hh"
 #include "OpticksPhoton.hh"
 #include "OpticksGenstep.h"
+#include "QSim.hh"
 #endif
 using namespace nexus;
 
@@ -77,6 +78,7 @@ PersistencyManagerBase(), msg_(0), output_file_("nexus_out"), ready_(false),
 #ifdef With_Opticks
   AllOpticksHits=std::vector<sphoton>();
   OpticksHitCollectCount=0;
+  fG4Steps=  std::vector<G4Step*>();
 #endif
 }
 
@@ -464,7 +466,7 @@ void PersistencyManager::SaveConfigurationInfo(G4String file_name)
 void PersistencyManager::StoreOpticksHits () {
 #ifdef With_Opticks
 
-    SEvt* sev             = SEvt::Get_EGPU();
+    //SEvt* sev             = SEvt::Get_EGPU();
     auto run= G4RunManager::GetRunManager();
     G4int eventID=run->GetCurrentEvent()->GetEventID();
 
@@ -497,6 +499,7 @@ void PersistencyManager::StoreOpticksHits () {
     }
     OpticksHitCollectCount=0;
     AllOpticksHits.clear();
+    AllOpticksHits.shrink_to_fit();
 #endif
 
 }
@@ -539,6 +542,14 @@ void PersistencyManager::CollectOpticksHits(){
 
     // clear the hits
     G4CXOpticks::Get()->reset(eventID);
+    QSim::Get()->reset(eventID);
+    sev->ClearOutput();
+    sev->ClearGenstep();
+    hits.clear();
+    hits.shrink_to_fit();
+    delete sev->getHit(),sev->getInputGenstep(),sev->getInputPhoton();
+
+    //Releasememory();qq
 #endif
 
 }
@@ -625,3 +636,15 @@ void PersistencyManager::StoreOpticalHits(){
     }
     AllOpticalHits.clear();
 }
+void PersistencyManager::Releasememory() {
+   ;
+    for (auto i:fG4Steps){
+        delete i;
+    }
+    fG4Steps.clear();
+    fG4Steps.shrink_to_fit();
+
+
+}
+
+

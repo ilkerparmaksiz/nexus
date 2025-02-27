@@ -13,11 +13,12 @@ start=`date +%s`
 JOBNAME="10bar_G4"
 
 TYPE="Reflections"
+#N_EVENTS=80
 N_EVENTS=80
 Reflections=true
 BuildFolder=build
 NexusPath=/home/argon/Projects/Ilker/NewNexus
-SimPath=/media/argon/5TB2_rooks/CRAB/Sim/Dec_20_2024
+SimPath=/media/argon/5TB2_rooks/CRAB/Sim/Jan_20_2025
 alias mc='(cd "${NexusPath}")'
 #echo "CRABPATH is $CRABPATH"
 ## if the folder does nt exist , this will create it

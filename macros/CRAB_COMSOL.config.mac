@@ -36,31 +36,29 @@
 ## Turns on and off the reflections on steel and Teflon
 /Geometry/CRAB0/SteelReflect true
 
-
 # Normaly 25510/MeV
 /Geometry/CRAB0/ScintYield 25510
 ## for 8 bar Xenon
 /Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
 /Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
 # Comsol Related info
-/Geometry/CRAB0/ComsolPath /home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/8bar/
+#/Geometry/CRAB0/ComsolPath /home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/8bar/
+/Geometry/CRAB0/ComsolPath /home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/5.89bar/
 /Geometry/CRAB0/MeshFile CRAB_Mesh.mphtxt
 /Geometry/CRAB0/Data CRAB_Data.txt
 /Geometry/CRAB0/Materials CRABMaterialProperties.txt
-
-
 
 
 ##### GENERATOR #####
 #/Generator/SPModified/particle opticalphoton
 #/Generator/SPModified/min_energy 7.2 eV
 /Generator/SPModified/particle alpha
-/Generator/SPModified/max_energy 5.4 MeV
-/Generator/SPModified/min_energy 5.4 MeV
+/Generator/SPModified/max_energy 5.3 MeV
+/Generator/SPModified/min_energy 5.3 MeV
 #/Generator/SPModified/particle e-
 #/Generator/SPModified/min_energy 1 MeV
 
-/Generator/SPModified/Mode Needle_4cm
+/Generator/SPModified/Mode Needle_14cm
 
 /Generator/SPModified/region AD_HOC
 
@@ -72,7 +70,6 @@
 #/Actions/DefaultEventAction/min_energy 0.6 keV
 #/Actions/DefaultEventAction/max_energy 2.55 MeV
 
-
 ##### PHYSICS #####
 ## No full simulation
 /PhysicsList/Nexus/clustering          false
@@ -80,9 +77,7 @@
 /PhysicsList/Nexus/electroluminescence false
 /PhysicsList/Nexus/fastsim true
 
-
-
 ##### PERSISTENCY #####
-/nexus/persistency/output_file output/Opticks_Hit_Comparison/ComsolTest_50_WithDiffusion
+/nexus/persistency/output_file /home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/5.89bar/RootFiles/G4Test_14cm_Comsol_50 #output/Opticks_Hit_Comparison/ComsolTest_50_WithDiffusion_G4Opticks_Needles
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

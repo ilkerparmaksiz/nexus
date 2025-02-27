@@ -45,7 +45,7 @@
 /vis/scene/add/trajectories smooth
 
 ### Adding axes x y z size dimensions
-/vis/scene/add/axes 0 0 0 30 mm
+#/vis/scene/add/axes 0 0 0 30 mm
 
 # Requests viewer to accumulate hits, tracks, etc. at end of event.
 # 1st param (omittable): "accumulate" or "refresh"

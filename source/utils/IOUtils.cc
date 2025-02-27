@@ -306,7 +306,7 @@ namespace nexus {
 
 
               // Just a Warning
-              G4Exception("FileHandling","[SaveToTextFile]",JustWarning,"Empty File!");
+              G4Exception("IOUtils","[SaveToTextFile]",JustWarning,"Empty File!");
 
               // If the labels are not present,  just add them
               if(!labels.empty()){
@@ -314,7 +314,7 @@ namespace nexus {
               }
           }
 
-          if (data.size()==0) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Data array is empty!");
+          if (data.size()==0) G4Exception("IOUtils","[SaveToTextFile]",FatalException,"Data array is empty!");
 
           for (int i=0; i<data.size();i++){
               std::string str;
@@ -343,10 +343,10 @@ namespace nexus {
         if (!fstfile.is_open()) {
             G4cout<< "File Path is "<<file <<G4endl;
             fstfile.open(file,  std::fstream::in | std::fstream::out | std::fstream::trunc);
-            G4Exception("FileHandling","[SaveToTextFile]",JustWarning,"Couldnt open the file! so Creating it");
+            G4Exception("IOUtils","[SaveToTextFile]",JustWarning,"Couldnt open the file! so Creating it");
             //std::this_thread::sleep_for(std::chrono::seconds(1));
             //G4cout<<"Waiting to create file for 1s" <<G4endl;
-            if(!fstfile.is_open()) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Couldnt create it");
+            if(!fstfile.is_open()) G4Exception("IOUtils","[SaveToTextFile]",FatalException,"Couldnt create it");
 
 
         }
@@ -366,7 +366,7 @@ namespace nexus {
 
 
             // Just a Warning
-            G4Exception("FileHandling","[SaveToTextFile]",JustWarning,"Empty File!");
+            G4Exception("IOUtils","[SaveToTextFile]",JustWarning,"Empty File!");
 
             // If the labels are not present,  just add them
             if(!labels.empty()){
@@ -374,7 +374,7 @@ namespace nexus {
             }
         }
 
-        if (data.size()==0) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Data array is empty!");
+        if (data.size()==0) G4Exception("IOUtils","[SaveToTextFile]",FatalException,"Data array is empty!");
         std::string str;
         for (int i=0; i<data.size();i++){
             str=std::to_string(data.at(i)[0])+del+std::to_string(data.at(i)[1])+del+std::to_string(data.at(i)[2])+"\n";
@@ -391,7 +391,7 @@ namespace nexus {
         std::fstream fstfile ;
         if(!fstfile.is_open()) fstfile=std::fstream (file.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
 
-        if (!fstfile.is_open()) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Couldnt open the file!");
+        if (!fstfile.is_open()) G4Exception("IOUtils","[SaveToTextFile]",FatalException,"Couldnt open the file!");
 
 
         std::stringstream sline(labels);
@@ -408,7 +408,7 @@ namespace nexus {
 
 
             // Just a Warning
-            G4Exception("FileHandling","[SaveToTextFile]",JustWarning,"Empty File!");
+            G4Exception("IOUtils","[SaveToTextFile]",JustWarning,"Empty File!");
 
             // If the labels are not present,  just add them
             if(!labels.empty()){
@@ -417,7 +417,7 @@ namespace nexus {
         }
 
 
-        if (data.size()==0) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Data array is empty!");
+        if (data.size()==0) G4Exception("IOUtils","[SaveToTextFile]",FatalException,"Data array is empty!");
 
         fstfile << data <<"\n";
 
@@ -447,7 +447,7 @@ namespace nexus {
 
     void SaveToTextFile(std::fstream *Fstream,std::string labels, G4String data) {
         std::string val;
-        if (!Fstream->is_open()) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Couldnt open the file!");
+        if (!Fstream->is_open()) G4Exception("IOUtils","[SaveToTextFile]",FatalException,"Couldnt open the file!");
 
 
         std::stringstream sline(labels);
@@ -464,7 +464,7 @@ namespace nexus {
 
 
             // Just a Warning
-            G4Exception("FileHandling","[SaveToTextFile]",JustWarning,"Empty File!");
+            G4Exception("IOUtils","[SaveToTextFile]",JustWarning,"Empty File!");
 
             // If the labels are not present,  just add them
             if(!labels.empty()){
@@ -473,7 +473,7 @@ namespace nexus {
         }
 
 
-        if (data.size()==0) G4Exception("FileHandling","[SaveToTextFile]",FatalException,"Data array is empty!");
+        if (data.size()==0) G4Exception("IOUtils","[SaveToTextFile]",FatalException,"Data array is empty!");
 
         *Fstream << data <<"\n";
 
@@ -489,7 +489,7 @@ namespace nexus {
             G4cout<<"Openning the file --> " << file << G4endl;
             ifstream file_ =std::ifstream (file);
             if (!file_.is_open()) {
-            G4Exception("FileHandling","[GetThreeVectorData]",FatalException,"Could not open the file!");
+            G4Exception("IOUtils","[GetThreeVectorData]",FatalException,"Could not open the file!");
             }
 
             vector<G4ThreeVector>Data;
@@ -519,5 +519,47 @@ namespace nexus {
         return uniquedata;
     }
 
+
+
+    // This function imports data with two column with any delimiter
+
+    vector<vector<G4double>> Load2ColumnTXT(string file, char del,G4int SkipRow=1)
+    {
+        string str;
+        ifstream file_ = ifstream (file);
+        std::cout << "Openning File -- >" << file <<std::endl;
+        if (!file_.is_open()) {
+            G4Exception("IOUtils","[Load2ColumnTXT]",FatalException,"Could not open the file!");
+        }
+        vector<vector<G4double>> Data2d;
+        vector<G4double>c1,c2;
+
+        G4int SkipCount=0;
+
+        while(getline(file_,str)){
+            string val;
+            stringstream sline(str);
+            if(SkipRow!=0 and SkipCount<SkipRow) {
+                G4cout<<"Skipping following lines "<<G4endl;
+                G4cout<<str<< " is Skipped "<<G4endl;
+                SkipCount++;
+            } else{
+                int Counter=0;
+                while (getline(sline,val,del)){
+                    if(Counter==0)
+                        c1.push_back(stof(val));
+                    else
+                        c2.push_back(stof(val));
+                    Counter++;
+                }
+
+            }
+
+        }
+        Data2d.push_back(c1);
+        Data2d.push_back(c2);
+        return Data2d;
+
+    }
 
 }

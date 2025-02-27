@@ -21,6 +21,8 @@ namespace nexus {
   public:
     struct COMSOL_Variables{
         G4String Path,MeshFile,Data,Materialstxt;
+        G4bool useCOMSOL;
+        G4ThreeVector gGainReduction;
     };
     /// Default constructor 
     GarfieldHelper();

@@ -19,20 +19,36 @@
 #/Geometry/Next100/max_step_size 1. mm
 /Geometry/CRAB0/useCAD false
 
-# Garfield
-/Geometry/CRAB0/DetChamberD 16.4 cm
-/Geometry/CRAB0/DetChamberL 43.18 cm
-/Geometry/CRAB0/DetActiveD 8.6 cm
-/Geometry/CRAB0/DetActiveL 21.26 cm
-/Geometry/CRAB0/GasPressure 8 bar
+
+### Garfield ###
 /Geometry/CRAB0/fieldDrift 438.0
 /Geometry/CRAB0/fieldEL 7857.14
+/Geometry/CRAB0/SimpleField true
 /Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe100_8.09bar.gas
+
+# This is for shifting detectors into CRAB
+/Geometry/CRAB0/ShiftDetectors false
+
+## Turns of the reflections
+/Geometry/CRAB0/SteelReflect false
+
+### Pressure ###
+#/Geometry/CRAB0/GasPressure 8 bar
+/Geometry/CRAB0/GasPressure 10 bar
+
 # Normaly 25510/MeV
-/Geometry/CRAB0/ScintYield 25510 #25510
+/Geometry/CRAB0/ScintYield 2000 #25510
+/Geometry/CRAB0/ELYield 2 #25510
+#### Using Uniform Electrical Fields Without Garfield ####
 ## for 8 bar Xenon
-/Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
-/Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
+#/Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
+#/Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
+## for 10 bar Xenon
+/Geometry/CRAB0/EL_Diffusion  4.6 0.24 0.17
+/Geometry/CRAB0/FieldCage_Diffusion 0.90 0.92 0.36
+
+
+
 # Comsol Related info
 /Geometry/CRAB0/ComsolPath /home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/8bar/
 /Geometry/CRAB0/MeshFile CRAB_Mesh.mphtxt
@@ -52,35 +68,39 @@
 
 
 #/Generator/SingleParticle/region NEEDLE
-/Geometry/CRAB0/specific_vertex 0 0 0 mm
+/Geometry/CRAB0/specific_vertex -10 10 -10 mm
+
 
 ##### ACTIONS #####
 #/Actions/DefaultEventAction/min_energy 0.6 keV
 #/Actions/DefaultEventAction/max_energy 2.55 MeV
 ## For Debugging (Opticks)
 /Actions/OpticksSaveAllSteppingAction/select_particle opticalphoton
-#/Actions/OpticksSaveAllSteppingAction/select_volume   ACTIVE   #    full match
-#/Actions/OpticksSaveAllSteppingAction/select_volume   EL_GAP      # partial match
-/Actions/OpticksSaveAllSteppingAction/select_volume   PMT_TUBE0      # partial match
-/Actions/OpticksSaveAllSteppingAction/select_volume   PMT_TUBE1      # partial match
-/Actions/OpticksSaveAllSteppingAction/select_volume   Lens      # partial match
-/Actions/OpticksSaveAllSteppingAction/select_volume   MgF2_WINDOW      # partial match
-/Actions/OpticksSaveAllSteppingAction/select_volume   camWindow      # partial match
-/Actions/OpticksSaveAllSteppingAction/select_volume   PMTWindow      # partial match
-/Actions/OpticksSaveAllSteppingAction/select_volume   LAB      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_particle alpha
+/Actions/OpticksSaveAllSteppingAction/select_volume GAS   #    full match
+/Actions/OpticksSaveAllSteppingAction/select_volume EL_GAP      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume ACTIVE      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume PMT_TUBE0      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume PMT_TUBE1      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume Lens      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume MgF2_WINDOW      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume camWindow      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume PMTWindow      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume LAB      # partial match
+/Actions/OpticksSaveAllSteppingAction/select_volume CHAMBER      # partial match
 #/Actions/OpticksSaveAllSteppingAction/kill_after_selection False
 
 
 ##### PHYSICS #####
 ## No full simulation
-/PhysicsList/Nexus/clustering          false
-/PhysicsList/Nexus/drift               false
-/PhysicsList/Nexus/electroluminescence false
+/PhysicsList/Nexus/clustering          true
+/PhysicsList/Nexus/drift               true
+/PhysicsList/Nexus/electroluminescence true
 /PhysicsList/Nexus/fastsim false
 
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file output/Opticks_Hit_Comparison/S1s_debug
+/nexus/persistency/output_file OpticksPTest
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

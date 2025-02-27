@@ -433,7 +433,6 @@ void writeOpticalHit(hit_optical_t * OpticalshitInfo, hid_t dataset, hid_t memty
 {
 #if not  defined(With_Opticks) or defined(With_G4OpticksTest)
     hid_t memspace, file_space;
-
     const hsize_t n_dims = 1;
     hsize_t dims[n_dims] = {1};
     memspace = H5Screate_simple(n_dims, dims, NULL);
@@ -449,7 +448,6 @@ void writeOpticalHit(hit_optical_t * OpticalshitInfo, hid_t dataset, hid_t memty
     H5Sclose(file_space);
     H5Sclose(memspace);
 #endif
-
 }
 
 void writeTimingInfo(timing_t * timinginfo, hid_t dataset, hid_t memtype, hsize_t counter)

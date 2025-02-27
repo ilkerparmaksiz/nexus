@@ -132,7 +132,7 @@ namespace opticalprops {
 
         std::vector<G4double> ri_energy;
         std::vector<G4double> Reflectivity;
-        std::vector<G4double> Transmittance;
+        //std::vector<G4double> Transmittance;
         for (int i = 0; i < ri_entries; i++) {
             ri_energy.push_back(optPhotMinE_ + i * eWidth);
             RIndex.push_back(seq.RefractiveIndex(h_Planck * c_light / ri_energy[i]));
@@ -845,11 +845,20 @@ namespace opticalprops {
                     .72, .72, .72
             };
         }else{
-            REFLECTIVITY = {
-                    0, 0, 0, 0,
-                    0, 0, 0
-            };
-        }
+
+                REFLECTIVITY = {
+                        0, 0, 0, 0,
+                        0, 0, 0
+                };
+                //std::vector<G4double> EFFICIENCY;
+                /*EFFICIENCY =  {
+                        0, 0, 0, 0,
+                        0, 0, 0
+                };
+
+                mpt->AddProperty("EFFICIENCY", ENERGIES, EFFICIENCY);
+                 */
+            }
 
 
         mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
@@ -1823,7 +1832,15 @@ namespace opticalprops {
         };
         std::vector<G4double> REFLECTIVITY;
         if(ref) REFLECTIVITY = {0.2, 0.2, 0.2};
-        else REFLECTIVITY = { 0.00,0.00,0.00};
+        else
+        {
+            REFLECTIVITY = { 0,0,0};
+
+            /*std::vector<G4double> EFFICIENCY;
+            EFFICIENCY = { 0.00,0.00,0.00};
+            mpt->AddProperty("EFFICIENCY", ENERGIES, EFFICIENCY);
+             */
+            }
 
         // REFLEXION BEHAVIOR
         std::vector<G4double> ENERGIES_2 = {optPhotMinE_, optPhotMaxE_};

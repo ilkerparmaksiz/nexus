@@ -18,10 +18,15 @@
 #include "fstream"
 #include "G4ThreeVector.hh"
 #include "config.h"
+
 #ifdef With_Opticks
 #include "SEvt.hh"
 #include "sphoton.h"
 #endif
+
+// for memory leak handling
+#include "G4StepPoint.hh"
+#include "G4Step.hh"
 class G4GenericMessenger;
 class G4TrajectoryContainer;
 class G4HCofThisEvent;
@@ -86,6 +91,12 @@ namespace nexus {
     G4int fG4PhotonCounter;
     G4int fOpticksPhotonCounter;
 
+    // Added for Memmory Handling
+
+    void AddSteps(G4Step * stp);
+
+    void Releasememory();
+
   private:
     void StoreTrajectories(G4TrajectoryContainer*);
     void StoreHits(G4HCofThisEvent*);
@@ -95,8 +106,6 @@ namespace nexus {
     void StoreOpticalHits();
     void StoreOpticksSteps();
     void StoreOpticksHits();
-
-
     void SaveConfigurationInfo(G4String history);
 
 
@@ -136,6 +145,8 @@ namespace nexus {
     std::fstream *fstream_;
 
     std::vector<hit_optical_t *> AllOpticalHits;
+    std::vector<G4Step *> fG4Steps;
+
 
 #ifdef With_Opticks
     std::vector<sphoton> AllOpticksHits;
@@ -195,6 +206,10 @@ namespace nexus {
         AllOpticalHits.push_back(ahit);
   }
 
+  inline void  PersistencyManager::AddSteps(G4Step * stp){
+      if(stp!= nullptr)
+          fG4Steps.push_back(stp);
+  }
 
 } // namespace nexus
 

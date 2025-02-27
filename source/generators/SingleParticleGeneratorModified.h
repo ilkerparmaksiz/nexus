@@ -39,6 +39,7 @@ namespace nexus {
     void GeneratePrimaryVertex(G4Event*);
     void GenerateFromSurface(G4Event*);
     void GenerateRegular(G4Event * event);
+    void GenerateForSpeedTest(G4Event * event);
 
   private:
 

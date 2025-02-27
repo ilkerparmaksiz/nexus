@@ -29,6 +29,7 @@
 #ifdef With_Opticks
     #  include "SEvt.hh"
     #  include "G4CXOpticks.hh"
+    #  include "QSim.hh"
 namespace {G4Mutex opticks_mt =G4MUTEX_INITIALIZER;}
 #endif
 
@@ -60,7 +61,6 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
     pm->SaveNumbOfInteractingEvents(true);
   }
-
 
 
   DefaultEventAction::~DefaultEventAction()
@@ -141,7 +141,9 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
                 //std::cout << "DefaultEventAction Hits " << hits<<std::endl;
                 if(hits>0) pm->CollectOpticksHits();
                // std::cout<<"Event " <<eventID <<" Simulating with Opticks nphotons "<< nphotons << " nsteps " << ngenstep << " Hits " <<SEvt::GetNumHit(0) << std::endl;
+                QSim::Get()->reset(eventID);
                 G4CXOpticks::Get()->reset(eventID);
+
             }
 
 
@@ -192,7 +194,10 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         //std::cout << "Opticks " << pm->fOpticksPhotonCounter << " G4 " << pm->fG4PhotonCounter << std::endl;
     }
 
-
+#ifdef With_Opticks
+    std::cout << "--Releasing Memory--" <<std::endl;
+    pm->Releasememory();
+#endif
   }
 
 

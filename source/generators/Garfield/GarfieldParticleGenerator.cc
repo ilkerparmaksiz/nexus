@@ -191,8 +191,6 @@ void GarfieldParticleGenerator::GenerateSingleParticle(G4Event * event) {
     particle1->SetMomentum(p.x(), p.y(), p.z());
     std::cout << "\nGarfieldParticleGenerator: Adding particle with " << particle1->GetKineticEnergy()/keV << " keV w ux,uy,uz " << p.x() << ", " << p.y() << ", " << p.z()<< " to vertexA."  << std::endl;
 
-
-
     // Generate events off the surface of the needle
     if (useNeedle){
 

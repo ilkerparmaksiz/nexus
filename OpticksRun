@@ -1,7 +1,7 @@
 #!/bin/bash -l
 ## Export these
 #export CRABPATH=/home/argon/Projects/Ilker/gxsim/CRAB/
-export GEOM=NEXTCRAB_Run  # Geometry name
+export GEOM=NEXTCRAB_Run_14cm  # Geometry name
 #source env.sh
 export RNG_SEED=0
 export RNG_OFFSET=0
@@ -12,18 +12,26 @@ export RNG_OFFSET=0
 #export OPTICKS_EVENT_SKIPAHEAD=100000
 
 ## Opticks settings
-export OPTICKS_MAX_PHOTON=165000000 # Max Amount of photons
+#export OPTICKS_MAX_GENSTEP=40000000
+if [[ -z "${Photon}" ]]; then
+     export OPTICKS_MAX_PHOTON=160000000 # Max Amount of photons   
+else
+     export OPTICKS_MAX_PHOTON=${Photon} # Max Amount of photons     
+fi
+
 export OPTICKS_INTEGRATION_MODE=3  # Running both GPU and CPU simulation
 export OPTICKS_EVENT_MODE=Minimal  # Hits or Minimal Prefered. Hits will create .npy files in /tmp/user/opticks/GEOM/NEXUS_CRAB/nexus/ALL0
 
 ## Skipahead is used for offseting the random generator values so photons produce per event is not repeated
-if [ -z ${SKIPAHEAD+x} ]; then
+if [ -z $SKIPAHEAD ]; then
 	echo " SKIPAHEAD is not set";
-	echo "Setting SKIPAHEAD to 100k";
-	SKIPAHEAD=100000
+	export OPTICKS_EVENT_SKIPAHEAD=$OPTICKS_MAX_PHOTON
+	echo "Setting SKIPAHEAD to $OPTICKS_EVENT_SKIPAHEAD";
 	sleep 2
+else
+	export OPTICKS_EVENT_SKIPAHEAD=$SKIPAHEAD
+
 fi
-export OPTICKS_EVENT_SKIPAHEAD=$SKIPAHEAD
 ## Opticks Detector Identification (Boundary Names for Identifying small number of detectors)
 export U4SensorIdentifierDefault__GLOBAL_SENSOR_BOUNDARY_LIST=$(cat << EOL 
   G4_Galactic/CamSurfaceBorder//MgF2

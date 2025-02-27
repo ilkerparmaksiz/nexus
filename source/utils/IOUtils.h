@@ -52,6 +52,7 @@ namespace nexus {
     std::fstream *  OpenFile(std::fstream*,G4String);
     void CloseFile(std::fstream*);
     void SaveToTextFile(std::fstream *Fstream,std::string labels, G4String data);
+    vector<vector<G4double>> Load2ColumnTXT(string file, char del,G4int SkipRow);
 
 
 

@@ -79,9 +79,11 @@ namespace nexus {
             useCAD_(false),
             EL_Diffusion{4.61,0.24,0.17},
             FieldCage_Diffusion{0.9,0.92,0.36},
+            GainReduction(1,1,1), // This is used for reducing the gain for Xenon-Methane values come from data.
             ShiftDetectors(false),
             SimpleField(true),
-            Reflections(true)
+            Reflections(true),
+            useCOMSOL_(true)
            {
 
             // Messenger
@@ -142,6 +144,8 @@ namespace nexus {
             msg_->DeclareProperty("SimpleField",SimpleField,"Simple Electrical Field");
             msg_->DeclareProperty("SteelReflect",Reflections,"Reflections from steel can be turned off or on");
             msg_->DeclareProperty("ELYield",ELyield_,"Electroluminesence Yield photons/cm");
+            msg_->DeclareProperty("useCOMSOL",useCOMSOL_,"Toggle on and off using comsol fields or uniform electrical field.");
+            msg_->DeclareProperty("GainReduction",GainReduction,"Mean Percent, Standard deviation, and percentage of Methane");
 
         Sampler=std::make_shared<SampleFromSurface>(SampleFromSurface("Needles"));
 
@@ -883,8 +887,6 @@ namespace nexus {
        //new G4LogicalBorderSurface("LensToVacuumBorderSurface",lensPhysical,PMT_Tube_Vacuum_Phys0,MgF2toVacuum);
        //new G4LogicalBorderSurface("WindowToVacuumBorderSurface",MgF2WindowPhysical,PMT_Tube_Vacuum_Phys1,MgF2toVacuum);
 
-
-
          // Other Surfaces
         /*G4OpticalSurface *opt2= new G4OpticalSurface("VacuumSide");
         opt2->SetMaterialPropertiesTable(opticalprops::Vacuum());
@@ -894,19 +896,18 @@ namespace nexus {
         new G4LogicalBorderSurface("VacuumSideCam",camPhysical,PMT_Tube_Vacuum_Phys0,opt2);
         new G4LogicalBorderSurface("VacuumSidePMT",gas_phys,PMT_Tube_Vacuum_Phys1,opt2);
         */
-
         // ____________________________________________________________________s
         // ================= Detector Properties  =============================
-
         G4SDManager *SDManager = G4SDManager::GetSDMpointer();
         IonizationSD* ionisd = new IonizationSD("/CRAB0/GAS");
         SDManager->SetVerboseLevel(1);
         SDManager->AddNewDetector(ionisd);
-#ifndef  With_GarField
-        gas_logic->SetSensitiveDetector(ionisd);
-        //FieldCage_Logic->SetSensitiveDetector(ionisd);
 
+#ifndef  With_GarField
+        //gas_logic->SetSensitiveDetector(ionisd);
+        FieldCage_Logic->SetSensitiveDetector(ionisd);
 #endif
+
 
 #ifdef With_GarField
         gas_logic->SetSensitiveDetector(ionisd);
@@ -923,6 +924,8 @@ namespace nexus {
         Variables->MeshFile=MeshFile_;
         Variables->Data=Data_;
         Variables->Materialstxt=Materialstxt_;
+        Variables->useCOMSOL=useCOMSOL_;
+        Variables->gGainReduction=GainReduction;
         GH.SetCOMSOLVariables(Variables);
 
 #endif
@@ -1048,8 +1051,8 @@ namespace nexus {
         G4LogicalVolume *PmttubeLog1 = lvStore->GetVolume("PMT_TUBE1");
         PmttubeLog1->SetVisAttributes(PmttubeVis);
         G4LogicalVolume *PmttubeBlockLog1 = lvStore->GetVolume("PMT_TUBE_BLOCK1");
-        PmttubeBlockLog0->SetVisAttributes(G4VisAttributes::GetInvisible());
-        PmttubeBlockLog1->SetVisAttributes(G4VisAttributes::GetInvisible());
+        PmttubeBlockLog0->SetVisAttributes(PmttubeVis);
+        PmttubeBlockLog1->SetVisAttributes(PmttubeVis);
         G4LogicalVolume *PmttubeVacuumLog1 = lvStore->GetVolume("MgF2_Vacuum");
         G4LogicalVolume *PmttubeVacuumLog2 = lvStore->GetVolume("lens_Vacuum");
         G4VisAttributes PmttubeVacuumVis = G4Colour(0,1,0,0.3);

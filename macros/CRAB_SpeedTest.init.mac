@@ -22,10 +22,11 @@
 
 /nexus/RegisterRunAction DefaultRunAction
 /nexus/RegisterEventAction DefaultEventAction
-#/nexus/RegisterTrackingAction DefaultTrackingAction
-/nexus/RegisterTrackingAction OpticalTrackingAction
+/nexus/RegisterTrackingAction DefaultTrackingAction
+#/nexus/RegisterTrackingAction OpticalTrackingAction
 /nexus/RegisterStackingAction GarfieldStackingAction
-#/nexus/RegisterSteppingAction OpticksSteppingAction
-/nexus/RegisterSteppingAction OpticksSaveAllSteppingAction
+/nexus/RegisterSteppingAction OpticksSteppingAction
 
-/nexus/RegisterMacro macros/CRAB_PTest.config.mac
+
+/nexus/RegisterMacro macros/CRAB_SpeedTest.config.mac
+

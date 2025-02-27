@@ -78,6 +78,8 @@ costheta_min_(-1.), costheta_max_(1.), phi_min_(0.),GeneratorMode_("regular"), p
 
   msg_->DeclareProperty("Mode",GeneratorMode_,"Generate Mode Needles or Regular");
 
+  msg_->DeclareProperty("Mode",GeneratorMode_,"Generate Mode Needles,Regular,SpeedTest");
+
 
   DetectorConstruction* detconst = (DetectorConstruction*) G4RunManager::GetRunManager()->GetUserDetectorConstruction();
   geom_ = detconst->GetGeometry();
@@ -110,7 +112,11 @@ void SingleParticleGeneratorModified::GeneratePrimaryVertex(G4Event* event)
     if(GeneratorMode_=="regular") {
         if(event->GetEventID()==0) std::cout << "Single regular particle generation .." << std::endl;
         GenerateRegular(event);
-    }else{
+    } else if(GeneratorMode_=="SpeedTest"){
+        //This produce particles between min and max energy with an incrementation defined by the number of events
+        GenerateForSpeedTest(event);
+    }
+    else{
         //std::cout <<"Generating with Ion Mode for event: " << event->GetEventID() << std::endl;
         if(NeedlePoints==nullptr){
             NeedlePointPath="data/"+GeneratorMode_+".txt";
@@ -125,6 +131,61 @@ void SingleParticleGeneratorModified::GeneratePrimaryVertex(G4Event* event)
 void SingleParticleGeneratorModified::GenerateRegular(G4Event * event){
     // Generate uniform random energy in [E_min, E_max]
     G4double kinetic_energy = nexus::UniformRandomInRange(energy_max_, energy_min_);
+
+    // Calculate cartesian components of momentum
+    G4double mass   = particle_definition_->GetPDGMass();
+    G4double energy = kinetic_energy + mass;
+    G4double pmod = std::sqrt(energy*energy - mass*mass);
+
+    bool fixed_momentum = momentum_ != G4ThreeVector{};
+    bool restrict_angle = costheta_min_ != -1. || costheta_max_ != 1. || phi_min_ != 0. || phi_max_ !=2.*pi;
+
+    G4ThreeVector p_dir; // it will be set in the if branches below
+    if (fixed_momentum) { // if the user provides a momentum direction
+        p_dir = momentum_.unit();
+    } else if (restrict_angle) { // if the user provides a range of angles
+        p_dir = RandomDirectionInRange(costheta_min_, costheta_max_, phi_min_, phi_max_);
+    } else {
+        p_dir = G4RandomDirection();
+    }
+
+    G4ThreeVector p = pmod * p_dir;
+
+    // Create the new primary particle and set it some properties
+    auto particle = new G4PrimaryParticle(particle_definition_, p.x(), p.y(), p.z());
+
+    // Set random polarization
+    if (particle_definition_ == G4OpticalPhoton::Definition()) {
+        G4ThreeVector polarization = G4RandomDirection();
+        particle->SetPolarization(polarization);
+    }
+
+    // Generate an initial position for the particle using the geometry
+    G4ThreeVector position = geom_->GenerateVertex(region_);
+
+    // Particle generated at start-of-event
+    G4double time = 0.;
+
+    // Create a new vertex
+    G4PrimaryVertex* vertex = new G4PrimaryVertex(position, time);
+
+    // Add particle to the vertex and this to the event
+    vertex->SetPrimary(particle);
+    event->AddPrimaryVertex(vertex);
+}
+
+void SingleParticleGeneratorModified::GenerateForSpeedTest(G4Event * event){
+    // Generate uniform random energy in [E_min, E_max]
+    G4int numberofEvents=G4RunManager::GetRunManager()->GetNumberOfEventsToBeProcessed();
+
+    G4double IncrementEnergy=(energy_max_-energy_min_)/numberofEvents;
+    G4int EventID=event->GetEventID();
+    G4double kinetic_energy;
+    if (EventID!=(numberofEvents-1)){
+        kinetic_energy = (energy_min_+IncrementEnergy*event->GetEventID());
+    }else {
+        kinetic_energy=energy_max_;
+    }
 
     // Calculate cartesian components of momentum
     G4double mass   = particle_definition_->GetPDGMass();

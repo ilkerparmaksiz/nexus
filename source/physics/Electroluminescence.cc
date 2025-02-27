@@ -153,7 +153,9 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
 
     const int eventID=runmng->GetCurrentEvent()->GetEventID();
     //G4double t1,t2=0;
-    // It seems EL photons does nt take account of singlets and triplet times so we do not take account for it now. It creates mean shift, and sigma difference in time distribution
+    //#### Note ####
+    // It seems that EL photons in G4 are not being taking account of singlets and triplet times so we do not take account for it now for opticks.
+    // It creates mean shift, and sigma difference in time distribution
     //G4int singlets,triplets=0;
     //t1=mpt->GetConstProperty(kSCINTILLATIONTIMECONSTANT1);
     //t2=mpt->GetConstProperty(kSCINTILLATIONTIMECONSTANT2);
@@ -167,24 +169,32 @@ Electroluminescence::PostStepDoIt(const G4Track& track, const G4Step& step)
     G4LorentzVector initial;
     int CollectedPhotons;
     int maxPhoton=SEventConfig::MaxPhoton();
-
-
-
-    // Produce a random initial point
-    initial=field->GeneratePointAlongDriftLine(initial_position, final_position);
-
-
-    // Generate new Step that PreStepPoint is sampled from function above
-
-    // This sets randomply created initial point
     G4Step  newStep= step;
-    newStep.GetPreStepPoint()->SetPosition(initial.v());
-    newStep.GetPreStepPoint()->SetGlobalTime(initial.t());
+
+
+
 
      // Example of Handling Singlets and Triplet times in opticks
     //if(singlets>0) U4::CollectGenstep_DsG4Scintillation_r4695(&track,&newStep,singlets,0,t1);
     //if(triplets>0) U4::CollectGenstep_DsG4Scintillation_r4695(&track,&newStep,triplets,1,t2);
-    U4::CollectGenstep_DsG4Scintillation_r4695(&track,&newStep,num_photons,0,0);
+
+    //for(int i=0;i<num_photons;i++){
+        // Produce a random initial point
+        initial=field->GeneratePointAlongDriftLine(initial_position, final_position);
+
+
+        // Generate new Step that PreStepPoint is sampled from function above
+
+        // This sets randomply created initial point
+        //G4Step * newStep=new G4Step() ;
+        //newStep->SetPreStepPoint(step.GetPreStepPoint());
+        //newStep->SetPostStepPoint(step.GetPostStepPoint());
+        //newStep->GetPreStepPoint()->SetPosition(initial.v());
+        newStep.GetPreStepPoint()->SetGlobalTime(initial.t());
+        U4::CollectGenstep_DsG4Scintillation_r4695(&track,&newStep,num_photons,0,0);
+
+    //}
+
 
     #ifdef With_G4OpticksTest
     //pManger->fOpticksPhotonCounter+=(singlets+triplets);

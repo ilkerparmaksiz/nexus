@@ -131,9 +131,11 @@ namespace nexus{
         G4String ComsolPath_,MeshFile_,Data_,Materialstxt_;
         G4ThreeVector EL_Diffusion;
         G4ThreeVector FieldCage_Diffusion;
+        G4ThreeVector GainReduction;
         G4bool ShiftDetectors;
         G4bool SimpleField;
         G4bool Reflections;
+        G4bool useCOMSOL_;
 
     };
 }

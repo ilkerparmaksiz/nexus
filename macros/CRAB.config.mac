@@ -41,7 +41,7 @@
 /Geometry/CRAB0/ShiftDetectors false
 
 ## Turns of the reflections
-/Geometry/CRAB0/SteelReflect false
+/Geometry/CRAB0/SteelReflect true
 
 # Normaly 25510/MeV
 /Geometry/CRAB0/ScintYield 25510 #25510
@@ -59,8 +59,8 @@
 #/Generator/SPModified/particle opticalphoton
 #/Generator/SPModified/min_energy 7.2 eV
 /Generator/SPModified/particle alpha
-/Generator/SPModified/max_energy 5.4 MeV
-/Generator/SPModified/min_energy 5.4 MeV
+/Generator/SPModified/max_energy 5.3 MeV
+/Generator/SPModified/min_energy 5.3 MeV
 #/Generator/SPModified/particle e-
 #/Generator/SPModified/min_energy 1 MeV
 
@@ -70,8 +70,9 @@
 
 
 #/Generator/SPModified/region NEEDLE
-/Geometry/CRAB0/specific_vertex -16 16 -50 mm
+/Geometry/CRAB0/specific_vertex -10 10 -10 mm
 #/Geometry/CRAB0/specific_vertex 0 0 0 mm
+
 ##### ACTIONS #####
 #/Actions/DefaultEventAction/min_energy 0.6 keV
 #/Actions/DefaultEventAction/max_energy 2.55 MeV
@@ -87,6 +88,7 @@
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file /media/argon/5TB2_rooks/CRAB/ReflectionsOFF_10bar_160MSkip_16mm #output/Oct_13_2024/OpticksTest_With_ReflectionOff_2k_All_160MSkip
+/nexus/persistency/output_file /media/argon/5TB2_rooks/CRAB/ReflectionsON_10bar_160MSkip_10mmv2 #output/Oct_13_2024/OpticksTest_With_ReflectionOff_2k_All_160MSkip
+
 ## eventType options: bb0nu, bb2nu, background
-/nexus/persistency/event_type data
+/nexus/persistency/event_type run

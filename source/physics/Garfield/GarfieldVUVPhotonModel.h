@@ -49,6 +49,7 @@
 #include "GeometryBase.h"
 #include "CRAB0.h"
 #include "IonizationSD.h"
+#include "PersistencyManager.h"
 
 class G4GenericMessenger;
 namespace nexus {
@@ -96,13 +97,17 @@ namespace nexus {
 
         // Function to get the photon polarization
         void GetPhotonPol(G4ThreeVector &momentum, G4ThreeVector &polarization);
-
+        void Clear();
         // Get EL-Yields
         const G4double GetElYields(G4double length,G4double Efield);
-
+        const std::vector<double> GetStats(std::vector<double> );
+        bool compareTwoDouble(double a, double b,double epilson);
 
         G4ThreeVector garfPos;
         G4double garfTime;
+        PersistencyManager *pManger;
+        G4RunManager * runmng;
+        G4int TempEventID;
 
 
     private:
@@ -117,8 +122,9 @@ namespace nexus {
         Garfield::MediumMagboltz* fMediumMagboltz;
         Garfield::AvalancheMC* fAvalancheMC;
         Garfield::Sensor* fSensor;
+        std::vector<std::vector<double>> Probs;
 
-        std::vector<uint> counter {0,0,0,0};
+        std::vector<uint> counter {0,0,0,0,0};
 
         // Variable to store the EL timing profiles to sample from
         // <event> <photon> <x,y,z,t of photon>
@@ -129,6 +135,7 @@ namespace nexus {
         std::vector<G4double> EL_events;
 
         GarfieldHelper GH_;
+        G4ThreeVector GainAdjustments;
 
         G4bool use_ELFile;
         G4bool use_OlderSimple;
@@ -139,6 +146,15 @@ namespace nexus {
 
         /// The sensitive detector to fill hits into
         IonizationSD* fGarfieldSD;
+
+        // SavePositions and Efields
+        std::vector<double> fx;
+        std::vector<double> fy;
+        std::vector<double> fz;
+        std::vector<double> ft;
+        std::vector<double> fEfields;
+        double fMeanEfield;
+
 
     };
 

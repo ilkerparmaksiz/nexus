@@ -223,8 +223,15 @@ G4double XenonELLightYield(G4double field_strength, G4double pressure)
   // Values for different pressures are found in: Freitas-2010
   // Physics Letters B 684 (2010) 205–210
 
-  const G4double b = 116. / (bar*cm);
-  G4double a = 140. / kilovolt;
+  G4double b,a;
+  b = 131. / (bar*cm);
+  a = 140. / kilovolt;
+  // Less than 2 bar we use
+  // C.M.B. Monteiro et al., JINST 2 (2007) P05001.
+  if (pressure > 0 && pressure < 2){
+     a = 140. / kilovolt;
+     b = 116. / (bar*cm);
+  }
 
   // Updating the slope
   if (pressure >= 2. * bar) a = 141. / kilovolt;
