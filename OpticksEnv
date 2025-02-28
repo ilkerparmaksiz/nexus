@@ -8,7 +8,7 @@ export RNG_OFFSET=0
 
 ## Opticks settings
 export OPTICKS_MAX_PHOTON=1000000 # Max Amount of photons
-export OPTICKS_INTEGRATION_MODE=3  # Running both GPU and CPU simulation
+export OPTICKS_INTEGRATION_MODE=1  # Running both GPU and CPU simulation
 export OPTICKS_EVENT_MODE=DebugHeavy  # Hits or Minimal Prefered. Hits will create .npy files in /tmp/user/opticks/GEOM/NEXUS_CRAB/nexus/ALL
 ### Opticks Detector Identification (Boundary Names for Identifying small number of detectors)
 ## Skipahead is used for offseting the random generator values so photons produce per event is not repeated

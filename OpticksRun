@@ -19,7 +19,7 @@ else
      export OPTICKS_MAX_PHOTON=${Photon} # Max Amount of photons     
 fi
 
-export OPTICKS_INTEGRATION_MODE=3  # Running both GPU and CPU simulation
+export OPTICKS_INTEGRATION_MODE=1  # Running both GPU and CPU simulation
 export OPTICKS_EVENT_MODE=Minimal  # Hits or Minimal Prefered. Hits will create .npy files in /tmp/user/opticks/GEOM/NEXUS_CRAB/nexus/ALL0
 
 ## Skipahead is used for offseting the random generator values so photons produce per event is not repeated

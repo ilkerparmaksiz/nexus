@@ -112,7 +112,10 @@ void PersistencyManager::CloseFile()
 {
   if (!h5writer_) return;
 
+  // Memory Handling
   h5writer_->Close();
+  delete h5writer_;
+  h5writer_= nullptr;
 }
 
 
@@ -295,7 +298,11 @@ void PersistencyManager::StoreIonizationHits(G4VHitsCollection* hc)
 			    xyz[0], xyz[1], xyz[2],
 			    hit->GetTime(), hit->GetEnergyDeposit(),
 			    sdname.c_str());
+    ihits_->clear();
+    ihits_->shrink_to_fit();
   }
+  hit_map_.clear();
+
 }
 
 
@@ -493,9 +500,8 @@ void PersistencyManager::StoreOpticksHits () {
         ohit->boundary=hit.boundary();
         ohit->wavelength=hit.wavelength;
         h5writer_->WriteOpticksHitInfo(ohit);
-        ohit=nullptr;
         delete ohit;
-
+        ohit=nullptr;
     }
     OpticksHitCollectCount=0;
     AllOpticksHits.clear();
@@ -610,8 +616,8 @@ void PersistencyManager::SaveTimeInfo(){
     // Zero Them out
 
 #endif
-    timinginfo=nullptr;
     delete timinginfo;
+    timinginfo=nullptr;
 
     EventCompletionTime=0;
     photonCount=0;

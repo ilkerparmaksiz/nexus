@@ -122,7 +122,7 @@ void GarfieldVUVPhotonModel::DoIt(const G4FastTrack& fastTrack, G4FastStep& fast
     counter[1]++;
     
     // Print how many of each type we have
-    if (!(counter[1]%100000))
+    if (!(counter[1]%50000))
       G4cout << "GarfieldVUV: ie-: " << counter[1] << G4endl;
 
     if (!(counter[2]%100000) && counter[2] >0)
@@ -368,7 +368,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
 
     fSensor = new Garfield::Sensor();
     auto Variables=GH_.ComsolVariable_;
-    GainAdjustments=GH_.gGainAdjustments;
+    GainAdjustments=Variables->gGainReduction;
     if (!Variables->useCOMSOL){
         std::cout<<"Initializing Garfield without COMSOL" <<std::endl;
         Garfield::ComponentUser* componentDriftLEM = CreateSimpleGeometry();
