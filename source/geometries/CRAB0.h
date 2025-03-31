@@ -136,6 +136,8 @@ namespace nexus{
         G4bool SimpleField;
         G4bool Reflections;
         G4bool useCOMSOL_;
+        G4bool useOlderSimple_;
+        G4float ComsolStepsize;
 
     };
 }

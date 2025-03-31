@@ -141,6 +141,7 @@ namespace nexus {
         G4bool use_OlderSimple;
         G4double ELPos_; // cm
         G4double FCTop_; // cm
+        G4double CustomELYield; // Photons/cm
 
         bool UseOpticks;
 

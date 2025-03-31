@@ -87,7 +87,8 @@ namespace nexus {
     std::fstream *GetFstream();
 
     void AddOpticalHit(G4String name,G4ThreeVector position,G4double time,G4ThreeVector mom,G4ThreeVector pol,G4double wavelength);
-
+    void DiffusionFill(const double Efield,const double dl,const double dt,const double vd ,const  std::array<double,3> p0);
+    void ELElectronFill(const  std::array<double,3> p0,const double time);
     G4int fG4PhotonCounter;
     G4int fOpticksPhotonCounter;
 
@@ -107,6 +108,7 @@ namespace nexus {
     void StoreOpticksSteps();
     void StoreOpticksHits();
     void SaveConfigurationInfo(G4String history);
+    void StoreDiffusionValues();
 
 
   private:
@@ -151,6 +153,10 @@ namespace nexus {
 #ifdef With_Opticks
     std::vector<sphoton> AllOpticksHits;
     G4int OpticksHitCollectCount;
+#endif
+#ifdef GarfieldNewerVersion
+    std::vector<DiffusionParam_t> DiffusionValues;
+    std::vector<ELElectron_t> ELElectrons;
 #endif
   };
 

@@ -20,6 +20,7 @@ namespace nexus {
     gap_EL_      = gap_EL;
     fieldDrift_  = fieldDrift;
     fieldEL_     = fieldEL;
+
   }
 
   GarfieldHelper::GarfieldHelper(){};

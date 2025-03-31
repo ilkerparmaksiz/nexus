@@ -22,7 +22,7 @@ using namespace nexus;
 
 HDF5Writer::HDF5Writer():
   file_(0), irun_(0), ismp_(0), ihit_(0),
-  ipart_(0), ipos_(0), istep_(0),iophit_(0),iopticalhit_(0),itiming_(0),oistep_(0)
+  ipart_(0), ipos_(0), istep_(0),iophit_(0),iopticalhit_(0),itiming_(0),oistep_(0),iElelectron_(0),iDiffusion_(0)
 {
 }
 
@@ -83,6 +83,17 @@ void HDF5Writer::Open(std::string fileName, bool debug)
     OpticalHitsInfoTable_ = createTable(group, G4_table_name, memtypeOpticalInfo_);
 #endif
 
+    // These are for Performance Studies
+#if defined(GarfieldNewerVersion)
+
+    std::string Diffusion_table_name = "Diffusion_Values";
+    memtypeDiffusionInfo_ = createDiffusionType();
+    DiffusionInfoTable_ = createTable(group, Diffusion_table_name, memtypeDiffusionInfo_);
+
+    std::string ELElec_table_name = "ELElectrons";
+    memtypeELElectronInfo_ = createELElectronType();
+    ELElectronInfoTable_ = createTable(group, ELElec_table_name, memtypeELElectronInfo_);
+#endif
 
   if (debug) {
     std::string debug_group_name = "/DEBUG";
@@ -284,5 +295,18 @@ void HDF5Writer::WriteAllOpticalHitInfo(hit_optical_t *opt)
 {
     writeOpticalHit(opt,  OpticalHitsInfoTable_, memtypeOpticalInfo_, iopticalhit_);
     iopticalhit_++;
+}
+
+// GEANT4 Hits
+void HDF5Writer::WriteDiffusionInfo(DiffusionParam_t *DiffusionParam)
+{
+    writeDiffusionValueInfo(DiffusionParam,  DiffusionInfoTable_, memtypeDiffusionInfo_, iDiffusion_);
+    iDiffusion_++;
+}
+
+void HDF5Writer::WriteELElectronInfo(ELElectron_t *ELe)
+{
+    writeELelectronInfo(ELe,  ELElectronInfoTable_, memtypeELElectronInfo_, iElelectron_);
+    iElelectron_++;
 }
 

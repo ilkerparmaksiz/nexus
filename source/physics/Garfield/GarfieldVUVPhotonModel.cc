@@ -222,7 +222,7 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
             //std::cout << " zi " << zi << " EL_Pos " <<ELPos_ << " Gap " <<GH_.gap_EL_ << " zi-ElPos "  <<abs(zi-ELPos_) << std::endl;
             if ((zi < 0 && zi < ELPos_) && (abs(zi - ELPos_) <= (GH_.gap_EL_ / 10) + 0.02) &&
                 (zi < ELPos_ && (std::sqrt(xi * xi + yi * yi) < GH_.DetActiveR_))) {
-
+                count_++;
                 fx.push_back(xi);
                 fy.push_back(yi);
                 fz.push_back(zi);
@@ -230,9 +230,22 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
 
                 if (SaveDiffusionValues) {
                     fEfields.push_back(DiffusionParms[i].Efield);
+                    // Save Diffusion Values
+                    //if(DiffusionParms[i].Efield>1) {
+                    //    pManger->DiffusionFill(DiffusionParms[i].Efield,DiffusionParms[i].dl,DiffusionParms[i].dt,DiffusionParms[i].vd,DiffusionParms[i].x0);
+                    //}
+                    //Save Electrons Final Location
+                    if(count_==1) {
+                        pManger->ELElectronFill(std::array<double,3> {xi,yi,zi},ti);
+                    }
+
                 } else {
                     fEfields.push_back(GH_.fieldEL_);
                 }
+                // Save Values
+
+
+
 
                 //survived = GetAttachment(ti);
                 //if (!survived)
@@ -274,16 +287,24 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
             std::vector<double> stats;
             double FieldPoint, zPoint,tempZpoint,tempProb;
             int Index = -1;
-            stats = GetStats(fEfields); // mean ,std
-            // Sample a field point
-            FieldPoint = (G4RandGauss::shoot(stats[0], stats[1]));
-            // Get Yield in EL using formula
-            TotalYield = GetElYields(GH_.gap_EL_, FieldPoint)*GainReduction;
+            if (CustomELYield>0){
+                TotalYield = (CustomELYield*(GH_.gap_EL_/10))*GainReduction;
+                FieldPoint=0;
+            } else{
+                stats = GetStats(fEfields); // mean ,std
+                // Sample a field point
+                FieldPoint = (G4RandGauss::shoot(stats[0], stats[1]));
+                // Get Yield in EL using formula
+                TotalYield = GetElYields(GH_.gap_EL_, FieldPoint)*GainReduction;
+            }
+            //std::cout << "Total Yield "<<TotalYield <<std::endl;
             if (TotalYield <= 0) return;  // NoPhotons
             //for ( int p=0;p<Probs.at(0).size();p++) std::cout << "Key "<< Probs.at(0).at(p) << " Val " << Probs.at(1).at(p) << std::endl
-            int IndexMaxZPoint,cnt=0;
+            int IndexMaxZPoint=0;
+            int cnt=0;
             tempProb=0;
             // produce photons along the path of electron according to probility distribution profided in txt file.
+            /* // This is only good for step size 0.01 cm
             for (int i = 0; i < fx.size(); i++) {
 
                 zPoint = abs(std::round((fz.at(i) - ELPos_) * 100) / 100);
@@ -300,10 +321,43 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
                         IndexMaxZPoint=Index;
                     }
                     cnt++;
-                    if(PhotonsProduced>TotalYield-10) continue;
+                    if(PhotonsProduced>(TotalYield-10)) {
+                        std::cout  << "SkippedX "<< fx.at(i)<< " Y " <<  fy.at(i) << " Z " << fz.at(i) <<" ZPoint "<< zPoint<<" Photons "<< PhotonsAtEachStep <<std::endl;
+                        continue;
+                    }
+
+
+                    std::cout  << "X "<< fx.at(i)<< " Y " <<  fy.at(i) <<" Z "<< zPoint<<" Photons "<< PhotonsAtEachStep <<std::endl;
                     PhotonsAtEachStep=std::round(TotalYield * Probs.at(1).at(Index));
                     MakeELPhotonsSimple(fastStep, fx.at(i), fy.at(i), fz.at(i), ft.at(i),PhotonsAtEachStep);
                     PhotonsProduced+=PhotonsAtEachStep;
+                }
+            }*/
+            int i=0;
+            // Good for any step size. it randomly picks from a distribution.
+            while(PhotonsProduced<(TotalYield-10) and TotalYield>30) {
+                i=std::round((fz.size()-1)*G4UniformRand());
+
+                zPoint = abs(std::round((fz.at(i) - ELPos_) * 100) / 100);
+
+                auto it = std::find_if(Probs.at(0).begin(), Probs.at(0).end(), [&](double value){return compareTwoDouble(value,zPoint,1e-2);});
+
+                if (it != Probs.at(0).end()) {
+
+                    Index = std::distance(Probs.at(0).begin(), it);
+
+                    if(tempProb<Probs.at(1).at(Index) || cnt==0){
+                        tempZpoint=zPoint;
+                        tempProb=Probs.at(1).at(Index);
+                        IndexMaxZPoint=Index;
+                    }
+                    cnt++;
+
+                    PhotonsAtEachStep=std::round(TotalYield * Probs.at(1).at(Index));
+                    MakeELPhotonsSimple(fastStep, fx.at(i), fy.at(i), fz.at(i), ft.at(i),PhotonsAtEachStep);
+                    PhotonsProduced+=PhotonsAtEachStep;
+                    //std::cout  << "X "<< fx.at(i)<< " Y " <<  fy.at(i) << " Z " << fz.at(i) <<" ZPoint "<<  zPoint<<" Photons "<< PhotonsAtEachStep <<" Prob " <<Probs.at(1).at(Index) <<std::endl;
+
                 }
             }
             // If we produced less photon then the total yield then produce remaining at a location that has highest probability.
@@ -312,11 +366,12 @@ void GarfieldVUVPhotonModel::GenerateVUVPhotons(const G4FastTrack& fastTrack, G4
                 v=TotalYield-PhotonsProduced;
 
                 MakeELPhotonsSimple(fastStep, fx.at(IndexMaxZPoint), fy.at(IndexMaxZPoint), fz.at(IndexMaxZPoint), ft.at(IndexMaxZPoint),v);
+                //std::cout  << "Remaining X "<< fx.at(IndexMaxZPoint)<< " Y " <<  fy.at(IndexMaxZPoint) <<" Z "<< fz.at(IndexMaxZPoint)<<" Photons "<< v <<std::endl;
                 PhotonsProduced+=v;
 
             }
             pManger->AddPhotons(PhotonsProduced);
-            //std::cout <<" Efield "<< FieldPoint << " Produced Photons " <<PhotonsProduced << " Total Yield "<<TotalYield <<std::endl;
+            //std::cout << "CustomELYield " << CustomELYield<<" Efield "<< FieldPoint << " Produced Photons " <<PhotonsProduced << " Total Yield "<<TotalYield <<std::endl;
         }
 
         Clear();
@@ -342,11 +397,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     
     if(ionMobFile!="")
       fMediumMagboltz->LoadIonMobility(path + "/Data/" + ionMobFile);
-    
-    if(gasFile!=""){
-      
-      std::cout << "Loaded gasfile." << std::endl;
-    }
+
     // Using this so we can pass gas files using the macros
     if(GH_.GetGasFile()) gasFile=GH_.GetGasFile();
     else gasFile = "data/Xenon_10Bar.gas";
@@ -369,14 +420,16 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     fSensor = new Garfield::Sensor();
     auto Variables=GH_.ComsolVariable_;
     GainAdjustments=Variables->gGainReduction;
+    use_ELFile = false;
+    use_OlderSimple= Variables->useOlderSimple;
+    CustomELYield=Variables->ELYield;
+    //isEL_Gain=false;
     if (!Variables->useCOMSOL){
         std::cout<<"Initializing Garfield without COMSOL" <<std::endl;
         Garfield::ComponentUser* componentDriftLEM = CreateSimpleGeometry();
         fSensor->AddComponent(componentDriftLEM);
-
         // Set the region where the sensor is active -- based on the gas volume
         fSensor->SetArea(-GH_.DetChamberR_, -GH_.DetChamberR_, -GH_.DetChamberL_/2.0, GH_.DetChamberR_, GH_.DetChamberR_, GH_.DetChamberL_/2.0); // cm
-
     }
     else {
         std::cout << "Initialising Garfiled with a COMSOL geometry" << std::endl;
@@ -386,7 +439,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
         std::string meshfile   = Variables->MeshFile; //"CRAB_Mesh.mphtxt";
         std::string fieldfile  = Variables->Data; //"CRAB_Data.txt";
         std::string fileconfig = Variables->Materialstxt; //"CRABMaterialProperties.txt";
-        isEL_Gain=false;
+
 
         // Setup the electric potential map
         Garfield::ComponentComsol* fm = new Garfield::ComponentComsol(); // Field Map
@@ -394,8 +447,7 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
         std::cout << home+meshfile <<std::endl;
         std::cout << home+ fieldfile << std::endl;
         std::cout << home+ fileconfig << std::endl;
-        use_OlderSimple= false;
-        use_ELFile=false;
+
 
         fm->Initialise(home + meshfile ,home + fileconfig, home + fieldfile, "mm");
         fm->DisableDebugging();
@@ -417,12 +469,13 @@ void GarfieldVUVPhotonModel::InitialisePhysics(){
     fAvalancheMC = new Garfield::AvalancheMC(); // drift, not avalanche, to be fair.
     fAvalancheMC->SetSensor(fSensor);
     fAvalancheMC->SetTimeSteps(0.1);      // ns
-    fAvalancheMC->SetDistanceSteps(0.01); // in cm
+    fAvalancheMC->SetDistanceSteps(Variables->stepsize); // in cm
     fAvalancheMC->EnableDebugging(false);  // way too much information. 
     fAvalancheMC->DisableAttachment();     // Currently getting warning messages about the attachment. You can supress those by switching this on.
     fAvalancheMC->EnableDriftLines();
 
-    use_ELFile = false;
+
+
     SaveDiffusionValues=true;
     // Load in the events
     if (use_ELFile)

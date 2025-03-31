@@ -51,6 +51,8 @@ namespace nexus {
     void WriteAllOpticalHitInfo(hit_optical_t *opt);
 
     void WriteTimingInfo(timing_t *);
+    void WriteELElectronInfo(ELElectron_t *);
+    void WriteDiffusionInfo(DiffusionParam_t *);
 
 
   private:
@@ -70,6 +72,8 @@ namespace nexus {
     size_t OpticksstepTable_;
     size_t OpticalHitsInfoTable_;
     size_t TimingInfoTable_;
+    size_t ELElectronInfoTable_;
+    size_t DiffusionInfoTable_;
 
 
 
@@ -83,6 +87,8 @@ namespace nexus {
     size_t memtypeOptickInfo_;
     size_t memtypeOpticalInfo_;
     size_t memtypeTimingInfo_;
+    size_t memtypeDiffusionInfo_;
+    size_t memtypeELElectronInfo_;
 
 
     size_t irun_; ///< counter for configuration parameters
@@ -95,6 +101,8 @@ namespace nexus {
     size_t iophit_; ///< counter for Opticks hits
     size_t iopticalhit_; ///< counter for opticalHits GEANT4 hits
     size_t itiming_; ///< counter for Performance Comparison for GEANT4 vs Opticks hits
+    size_t iElelectron_;
+    size_t iDiffusion_;
 
   };
 

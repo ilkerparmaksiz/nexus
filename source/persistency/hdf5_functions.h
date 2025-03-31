@@ -150,9 +150,29 @@ typedef struct{
     int64_t photons;
     int64_t G4Photon;
     int64_t OpticksPhoton;
-    double time;
+    float time;
 
 } timing_t;
+
+typedef struct{
+    int64_t event_id;
+    float EField;
+    float dl;
+    float dt;
+    float dv;
+    float x;
+    float y;
+    float z;
+
+} DiffusionParam_t;
+
+typedef struct{
+    int64_t event_id;
+    float x;
+    float y;
+    float z;
+    float t;
+} ELElectron_t;
 
   hsize_t createRunType();
   hsize_t createSensorDataType();
@@ -164,6 +184,8 @@ typedef struct{
   hsize_t createHitOpticksType();
   hsize_t createHitOpticalType();
   hsize_t createTimingType();
+  hsize_t createELElectronType();
+  hsize_t createDiffusionType();
 
 
   hid_t createTable(hid_t group, std::string& table_name, hsize_t memtype);
@@ -179,4 +201,6 @@ typedef struct{
   void writeOpticksStep(step_opticks_t * stepInfo, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeOpticalHit(hit_optical_t* hitInfo, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeTimingInfo(timing_t* timinginfo, hid_t dataset, hid_t memtype, hsize_t counter);
+  void writeDiffusionValueInfo(DiffusionParam_t* Dinfo, hid_t dataset, hid_t memtype, hsize_t counter);
+  void writeELelectronInfo(ELElectron_t* ELinfo, hid_t dataset, hid_t memtype, hsize_t counter);
 #endif

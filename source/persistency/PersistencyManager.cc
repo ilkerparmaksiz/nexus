@@ -136,6 +136,9 @@ G4bool PersistencyManager::Store(const G4Event* event)
     //GEANT4 Photon Hits
     StoreOpticalHits();
 #endif
+#ifdef GarfieldNewerVersion
+    StoreDiffusionValues();
+#endif
 
     if (!store_evt_) {
     TrajectoryMap::Clear();
@@ -654,3 +657,58 @@ void PersistencyManager::Releasememory() {
 }
 
 
+void PersistencyManager::StoreDiffusionValues() {
+    //Store Diffusion Info from Garfield
+#ifdef GarfieldNewerVersion
+
+    auto run= G4RunManager::GetRunManager();
+    G4int eventID=run->GetCurrentEvent()->GetEventID();
+    G4int Counter=0;
+    if(DiffusionValues.size()>0){
+        for (auto &i:DiffusionValues)
+        {
+            //std::cout<< "Diff "  <<i.dt<< " " <<i.x <<" " <<i.y <<" " <<i.z <<std::endl;
+            i.event_id=eventID;
+            h5writer_->WriteDiffusionInfo(&i);
+        }
+        DiffusionValues.clear();
+        DiffusionValues.shrink_to_fit();
+    }
+    //Store Ionization Electron In EL Info from Garfield
+    if(ELElectrons.size()>0){
+        for (auto &i:ELElectrons)
+        {
+            i.event_id=eventID;
+            //std::cout  << "Electron " <<i.t<< " " <<i.x <<" " <<i.y <<" " <<i.z <<std::endl;
+            h5writer_->WriteELElectronInfo(&i);
+        }
+        ELElectrons.clear();
+        ELElectrons.shrink_to_fit();
+    }
+
+#endif
+}
+void PersistencyManager::DiffusionFill(const double Efield, const double dl, const double dt, const double vd,
+                                   const std::array<double, 3> p0) {
+#ifdef GarfieldNewerVersion
+    DiffusionParam_t df;
+    df.EField=(float)Efield;
+    df.dl=(float)dl;
+    df.dt=(float)dt;
+    df.dv=(float)vd;
+    df.x=(float)p0.at(0);
+    df.y=(float)p0.at(1);
+    df.z=(float)p0.at(2);
+    DiffusionValues.push_back(df);
+#endif
+}
+void PersistencyManager::ELElectronFill(const std::array<double, 3> p0, const double time) {
+#ifdef GarfieldNewerVersion
+    ELElectron_t EL;
+    EL.x=(float)p0.at(0);
+    EL.y=(float)p0.at(1);
+    EL.z=(float)p0.at(2);
+    EL.t=(float)time;
+    ELElectrons.push_back(EL);
+#endif
+}

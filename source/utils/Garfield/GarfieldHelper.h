@@ -22,7 +22,10 @@ namespace nexus {
     struct COMSOL_Variables{
         G4String Path,MeshFile,Data,Materialstxt;
         G4bool useCOMSOL;
+        G4bool useOlderSimple;
         G4ThreeVector gGainReduction;
+        G4double ELYield;
+        G4float stepsize;
     };
     /// Default constructor 
     GarfieldHelper();

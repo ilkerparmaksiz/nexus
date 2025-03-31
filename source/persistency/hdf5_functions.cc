@@ -141,6 +141,36 @@ hsize_t createHitOpticalType(){
 #endif
 }
 
+hsize_t createDiffusionType(){
+#ifdef GarfieldNewerVersion
+    hid_t strtype = H5Tcopy(H5T_C_S1);
+    H5Tset_size (strtype, STRLEN);
+    hsize_t memtype = H5Tcreate (H5T_COMPOUND, sizeof (DiffusionParam_t));
+    H5Tinsert (memtype, "event_id", HOFFSET (DiffusionParam_t , event_id), H5T_NATIVE_INT64);
+    H5Tinsert (memtype, "EField", HOFFSET (DiffusionParam_t , EField), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "dl", HOFFSET (DiffusionParam_t , dl), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "dt", HOFFSET (DiffusionParam_t , dt), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "dv", HOFFSET (DiffusionParam_t , dv), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "x", HOFFSET (DiffusionParam_t , x), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "y", HOFFSET (DiffusionParam_t , y), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "z", HOFFSET (DiffusionParam_t , z), H5T_NATIVE_FLOAT);
+    return memtype;
+#endif
+}
+
+hsize_t createELElectronType(){
+#ifdef GarfieldNewerVersion
+    hid_t strtype = H5Tcopy(H5T_C_S1);
+    H5Tset_size (strtype, STRLEN);
+    hsize_t memtype = H5Tcreate (H5T_COMPOUND, sizeof (ELElectron_t));
+    H5Tinsert (memtype, "event_id", HOFFSET (ELElectron_t , event_id), H5T_NATIVE_INT64);
+    H5Tinsert (memtype, "x", HOFFSET (ELElectron_t , x), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "y", HOFFSET (ELElectron_t , y), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "z", HOFFSET (ELElectron_t , z), H5T_NATIVE_FLOAT);
+    H5Tinsert (memtype, "t", HOFFSET (ELElectron_t , t), H5T_NATIVE_FLOAT);
+    return memtype;
+#endif
+}
 
 
 hsize_t createParticleInfoType()
@@ -466,6 +496,44 @@ void writeTimingInfo(timing_t * timinginfo, hid_t dataset, hid_t memtype, hsize_
     hsize_t count[1] = {1};
     H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
     H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, timinginfo);
+    H5Sclose(file_space);
+    H5Sclose(memspace);
+}
+void writeDiffusionValueInfo(DiffusionParam_t* Dinfo, hid_t dataset, hid_t memtype, hsize_t counter)
+{
+    hid_t memspace, file_space;
+
+    const hsize_t n_dims = 1;
+    hsize_t dims[n_dims] = {1};
+    memspace = H5Screate_simple(n_dims, dims, NULL);
+
+    dims[0] = counter+1;
+    H5Dset_extent(dataset, dims);
+
+    file_space = H5Dget_space(dataset);
+    hsize_t start[1] = {counter};
+    hsize_t count[1] = {1};
+    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
+    H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, Dinfo);
+    H5Sclose(file_space);
+    H5Sclose(memspace);
+}
+void writeELelectronInfo(ELElectron_t* ELinfo, hid_t dataset, hid_t memtype, hsize_t counter)
+{
+    hid_t memspace, file_space;
+
+    const hsize_t n_dims = 1;
+    hsize_t dims[n_dims] = {1};
+    memspace = H5Screate_simple(n_dims, dims, NULL);
+
+    dims[0] = counter+1;
+    H5Dset_extent(dataset, dims);
+
+    file_space = H5Dget_space(dataset);
+    hsize_t start[1] = {counter};
+    hsize_t count[1] = {1};
+    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
+    H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, ELinfo);
     H5Sclose(file_space);
     H5Sclose(memspace);
 }

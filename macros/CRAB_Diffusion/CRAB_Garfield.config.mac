@@ -28,8 +28,10 @@
 /Geometry/CRAB0/fieldDrift 438.0
 /Geometry/CRAB0/fieldEL 7857.14
 /Geometry/CRAB0/SimpleField false
-#/Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe100_8.09bar.gas
-/Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe100_5bar.gas
+/Geometry/CRAB0/Stepsize 0.004
+/Geometry/CRAB0/GainReduction 1 1 1
+
+/Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe100_8.09bar.gas
 
 # This is for shifting detector
 /Geometry/CRAB0/ShiftDetectors false
@@ -40,13 +42,15 @@
 
 # Normaly 25510/MeV
 /Geometry/CRAB0/ScintYield 25510
+/Geometry/CRAB0/ELYield 0
+
 ## for 8 bar Xenon
 /Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
 /Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
 
+
 # Comsol Related info
 /Geometry/CRAB0/useCOMSOL false
-#/Geometry/CRAB0/ComsolPath /home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/8bar/
 /Geometry/CRAB0/ComsolPath /home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/5bar/
 /Geometry/CRAB0/MeshFile CRAB_Mesh.mphtxt
 /Geometry/CRAB0/Data CRAB_Data.txt

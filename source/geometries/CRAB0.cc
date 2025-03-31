@@ -80,10 +80,12 @@ namespace nexus {
             EL_Diffusion{4.61,0.24,0.17},
             FieldCage_Diffusion{0.9,0.92,0.36},
             GainReduction(1,1,1), // This is used for reducing the gain for Xenon-Methane values come from data.
+            ComsolStepsize(0.01),
             ShiftDetectors(false),
             SimpleField(true),
             Reflections(true),
-            useCOMSOL_(true)
+            useCOMSOL_(true),
+            useOlderSimple_(false)
            {
 
             // Messenger
@@ -145,7 +147,9 @@ namespace nexus {
             msg_->DeclareProperty("SteelReflect",Reflections,"Reflections from steel can be turned off or on");
             msg_->DeclareProperty("ELYield",ELyield_,"Electroluminesence Yield photons/cm");
             msg_->DeclareProperty("useCOMSOL",useCOMSOL_,"Toggle on and off using comsol fields or uniform electrical field.");
+            msg_->DeclareProperty("useOlderSimple",useOlderSimple_,"Going back to earlier garfield EL photon Production");
             msg_->DeclareProperty("GainReduction",GainReduction,"Mean Percent, Standard deviation, and percentage of Methane");
+            msg_->DeclareProperty("Stepsize",ComsolStepsize,"Comsol Step Size");
 
         Sampler=std::make_shared<SampleFromSurface>(SampleFromSurface("Needles"));
 
@@ -926,6 +930,9 @@ namespace nexus {
         Variables->Materialstxt=Materialstxt_;
         Variables->useCOMSOL=useCOMSOL_;
         Variables->gGainReduction=GainReduction;
+        Variables->useOlderSimple=useOlderSimple_;
+        Variables->ELYield=ELyield_;
+        Variables->stepsize=ComsolStepsize;
         GH.SetCOMSOLVariables(Variables);
 
 #endif

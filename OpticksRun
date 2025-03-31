@@ -1,7 +1,7 @@
 #!/bin/bash -l
 ## Export these
 #export CRABPATH=/home/argon/Projects/Ilker/gxsim/CRAB/
-export GEOM=NEXTCRAB_Run_14cm  # Geometry name
+export GEOM=test  # Geometry name
 #source env.sh
 export RNG_SEED=0
 export RNG_OFFSET=0
