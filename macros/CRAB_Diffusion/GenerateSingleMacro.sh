@@ -15,7 +15,7 @@ ExistOrCreate () {
 ## Variables
 ## Geometry
 Pressure=${Pressure:-5}  # in terms of bar
-S1Yield=${S1Yield:=-25510}
+S1Yield=${S1Yield:-25510}
 ## Used for uniform field
 DriftField=${DriftField:-438} # V/cm
 ELField=${ELField:-7857.14} # V/cm

@@ -16,7 +16,7 @@
 
 /nexus/RegisterGeometry CRAB0
 
-/nexus/RegisterGenerator SingleParticleGenerator
+/nexus/RegisterGenerator SingleParticleGeneratorModified
 
 /nexus/RegisterPersistencyManager PersistencyManager
 

@@ -170,6 +170,7 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         for (unsigned int i=0; i<tc->size(); ++i) {
           Trajectory* tr = dynamic_cast<Trajectory*>((*tc)[i]);
           edep += tr->GetEnergyDeposit();
+          //std::cout <<tr->GetParticleName()<<std::endl;
         }
       }
       else {
@@ -183,7 +184,8 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         pm->InteractingEvent(false);
       }
       if (!event->IsAborted() && edep > energy_min_ && edep < energy_max_) {
-        pm->StoreCurrentEvent(true);
+          //std::cout << "Energy Deposit "<<edep << " Emin " <<energy_min_ << " EMax " << energy_max_<<std::endl;
+          pm->StoreCurrentEvent(true);
       } else {
         pm->StoreCurrentEvent(false);
       }

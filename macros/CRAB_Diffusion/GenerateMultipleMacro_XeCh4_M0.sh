@@ -14,7 +14,7 @@ export S1Yield=11989.7 # (25510*0.47)
 Path="/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Diffusion_Mode0/XenonMethane"
 export SimPath="${Path}/XeMethane_101"
 export OutPutPath="$SimPath/H5files/"
-export GasFile="/home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe99.899_CH4_0.101_5bar.gas"
+export GasFile="/home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe99.899_CH4_0.101_5bar_M0.gas"
 export ComsolPath="/home/argon/Projects/Ilker/CRAB_COMSOL/With_Needles/13.5k_8k_7k/5bar/"
 RunNeedles (){
   export MacroFile=$1
@@ -44,7 +44,7 @@ export MacroFile="Comsol"
 export useCOMSOL=true
 export SimPath="${Path}/XeMethane_174"
 export OutPutPath="$SimPath/H5files/"
-export GasFile="/home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe99.826_CH4_0.174_5bar.gas"
+export GasFile="/home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe99.826_CH4_0.174_5bar_M0.gas"
 
 
 # Create events with comsol
@@ -65,7 +65,7 @@ export MacroFile="Comsol"
 export useCOMSOL=true
 export SimPath="${Path}/XeMethane_338"
 export OutPutPath="$SimPath/H5files/"
-export GasFile="/home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe99.662_CH4_0.338_5bar.gas"
+export GasFile="/home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe99.662_CH4_0.338_5bar_M0.gas"
 export StepDistance=0.003
 
 # Create events with comsol

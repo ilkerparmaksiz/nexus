@@ -47,7 +47,7 @@ namespace nexus {
     REGISTER_CLASS(CRAB0,GeometryBase)
     
     CRAB0::CRAB0() :
-            checkOverlaps(0),
+            checkOverlaps(1),
             temperature(300 * kelvin), // temperature
             Lab_size(1 * m),
             chamber_diam(16.4 * cm),
@@ -63,10 +63,10 @@ namespace nexus {
             Active_diam(8.6 * cm),
             sc_yield_(25510.),
             e_lifetime_(3000. * ms),
-            MgF2_window_thickness_(6. * mm),
+            MgF2_window_thickness_(6 * mm),
             Anode_window_diam_(16.22*mm),
             Cathode_window_diam_(16.58*mm),
-            HideSourceHolder_(false),
+            HideSourceHolder_(true),
             max_step_size_(1. * mm),
             ElGap_(7 * mm),
             ELyield_(925),
@@ -85,7 +85,8 @@ namespace nexus {
             SimpleField(true),
             Reflections(true),
             useCOMSOL_(true),
-            useOlderSimple_(false)
+            useOlderSimple_(false),
+            useSimpleGeometry_(false)
            {
 
             // Messenger
@@ -147,6 +148,7 @@ namespace nexus {
             msg_->DeclareProperty("SteelReflect",Reflections,"Reflections from steel can be turned off or on");
             msg_->DeclareProperty("ELYield",ELyield_,"Electroluminesence Yield photons/cm");
             msg_->DeclareProperty("useCOMSOL",useCOMSOL_,"Toggle on and off using comsol fields or uniform electrical field.");
+            msg_->DeclareProperty("useSimpleGeometry",useSimpleGeometry_,"This removes all the field cage components");
             msg_->DeclareProperty("useOlderSimple",useOlderSimple_,"Going back to earlier garfield EL photon Production");
             msg_->DeclareProperty("GainReduction",GainReduction,"Mean Percent, Standard deviation, and percentage of Methane");
             msg_->DeclareProperty("Stepsize",ComsolStepsize,"Comsol Step Size");
@@ -159,8 +161,6 @@ namespace nexus {
     }
 
     void CRAB0::Construct() {
-
-
 
 
         //  ------------------------ Materials --------------------------------
@@ -241,14 +241,17 @@ namespace nexus {
 
         // Remove the parts that intersect with the MgF2 window and sLens in the gas
         //G4SubtractionSolid * sLensGas=new G4SubtractionSolid("sLensGas",gas_solid,sLens,0,G4ThreeVector(0,0,gas_solid->GetZHalfLength()+1.82426*mm+175*um+739.326*nm));
-        //G4SubtractionSolid * MgF2_sLens_Gas_solid=new G4SubtractionSolid("MgF2_Gas",sLensGas,MgF2_window_solid,0,G4ThreeVector(0,0,-gas_solid->GetZHalfLength()-1.5*mm/2+750*um));
         G4UnionSolid * sLensGas=new G4UnionSolid("sLensGas",gas_solid,sLens,0,G4ThreeVector(0,0,gas_solid->GetZHalfLength()+1.99796*mm+2.93955*um));
-        G4UnionSolid * MgF2_sLens_Gas_solid=new G4UnionSolid("MgF2_Gas",sLensGas,MgF2_window_solid,0,G4ThreeVector(0,0,-gas_solid->GetZHalfLength()-1.5*mm/2-750*um/2+1.125*mm/2+562.5*um));
+        //G4UnionSolid * MgF2_sLens_Gas_solid=new G4UnionSolid("MgF2_Gas",sLensGas,MgF2_window_solid,0,G4ThreeVector(0,0,-gas_solid->GetZHalfLength()+1*mm));
+        //G4UnionSolid * MgF2_sLens_Gas_solid=new G4UnionSolid("MgF2_Gas",sLensGas,MgF2_window_solid,0,G4ThreeVector(0,0,-gas_solid->GetZHalfLength()*0.9-1.5*mm/2-750*um/2+1.125*mm/2+562.5*um));
+        //G4SubtractionSolid * MgF2_sLens_Gas_solid=new G4SubtractionSolid("MgF2_Gas",sLensGas,MgF2_window_solid,0,G4ThreeVector(0,0,-gas_solid->GetZHalfLength()));
+
 
 
         //  ------------------------ Gas -------------------------------------
         //gas_logic = new G4LogicalVolume(gas_solid, gxe, "GAS");
-        gas_logic = new G4LogicalVolume(MgF2_sLens_Gas_solid, gxe, "GAS");
+        //gas_logic = new G4LogicalVolume(MgF2_sLens_Gas_solid, gxe, "GAS");
+        gas_logic = new G4LogicalVolume(sLensGas, gxe, "GAS");
 
 
         // Xenon Gas in Active Area and Non-Active Area
@@ -280,6 +283,8 @@ namespace nexus {
         OpSteelSurf->SetType(dielectric_metal);
         OpSteelSurf->SetModel(unified);
         OpSteelSurf->SetFinish(polished);
+
+
         // gas_mesh_opsur->SetSigmaAlpha(0.0);
         // --- Optical ---
         new G4LogicalBorderSurface("SteelSurface_Chamber",gas_phys,chamber_phys, OpSteelSurf);
@@ -290,9 +295,11 @@ namespace nexus {
 
 
         // MgF2 Window Logical
+        //G4LogicalVolume *MgF2_window_logic = new G4LogicalVolume(MgF2_window_solid, MgF2, "MgF2_WINDOW");
         G4LogicalVolume *MgF2_window_logic = new G4LogicalVolume(MgF2_window_solid, MgF2, "MgF2_WINDOW");
 
         // Lens logical
+        //G4LogicalVolume *lensLogical = new G4LogicalVolume(sLens, MgF2, "Lens");
         G4LogicalVolume *lensLogical = new G4LogicalVolume(sLens, MgF2, "Lens");
 
         // --- Placement ---
@@ -301,7 +308,7 @@ namespace nexus {
 
 
         G4VPhysicalVolume *lensPhysical = new G4PVPlacement(0, G4ThreeVector(0., 0., window_posz + maxLensLength / 2.0),lensLogical, "MgF2_LENS_CATHODE",gas_logic, false, 0, checkOverlaps);
-        G4VPhysicalVolume *MgF2WindowPhysical= new G4PVPlacement(0, G4ThreeVector(0., 0., -window_posz), MgF2_window_logic, "MgF2_WINDOW_ANODE", gas_logic, false,1, checkOverlaps);
+        G4VPhysicalVolume *MgF2WindowPhysical= new G4PVPlacement(0, G4ThreeVector(0., 0., -window_posz), MgF2_window_logic, "MgF2_WINDOW_ANODE", lab_logic_volume, false,0, checkOverlaps);
 
 
         //  --------------------------- EL ------------------------------------
@@ -389,42 +396,6 @@ namespace nexus {
 
         // --- Placement ---
        std::vector<G4VPhysicalVolume *> FieldRingsPhysical;
-        // Field Cage Rings
-        for (int i=1; i<5;i++){
-            FieldRingsPhysical.push_back( new G4PVPlacement(0, G4ThreeVector(0, 0, -FR_thick / 2.0 +i * (FR_thick + PEEK_Rod_thick)),FR_logic, FR_logic->GetName(), gas_logic, 1, i, checkOverlaps));
-            FieldRingsPhysical.push_back( new G4PVPlacement(0, G4ThreeVector(0, 0, -FR_thick / 2.0 -i * (FR_thick + PEEK_Rod_thick)),FR_logic, FR_logic->GetName(), gas_logic, 1, i+5, checkOverlaps));
-
-
-        }
-
-
-        FieldRingsPhysical.push_back( new G4PVPlacement(0, G4ThreeVector(0, 0, -FR_thick / 2.0 ),FR_logic, FR_logic->GetName(), gas_logic, 1, 5, checkOverlaps));
-        FieldRingsPhysical.push_back( new G4PVPlacement(0, G4ThreeVector(0, 0, -FR_thick / 2.0 +5 * (FR_thick + PEEK_Rod_thick)),FR_logic, FR_logic->GetName(), gas_logic, 1, 11, checkOverlaps));
-
-        // // EL Field Rings
-        FieldRingsPhysical.push_back(new G4PVPlacement(0, G4ThreeVector(0, 0, PeekRodExtend-FR_thick / 2.0 -
-                                                                              4 * (FR_thick + PEEK_Rod_thick) -
-                                                                              2.5 * cm - 1.3 * cm - 0.7 * cm -
-                                                                              1.3 * cm - 2 * cm - FR_thick -
-                                                                              2 * (FR_thick + PEEK_Rod_thick)),
-                                                       FR_logic, FR_logic->GetName(), gas_logic, 1, 12, checkOverlaps));
-        FieldRingsPhysical.push_back(new G4PVPlacement(0, G4ThreeVector(0, 0, PeekRodExtend-FR_thick / 2.0 -
-                                                                              4 * (FR_thick + PEEK_Rod_thick) -
-                                                                              2.5 * cm - 1.3 * cm - 0.7 * cm -
-                                                                              1.3 * cm - 2 * cm - FR_thick -
-                                                                              1 * (FR_thick + PEEK_Rod_thick)),
-                                                       FR_logic, FR_logic->GetName(), gas_logic, 1, 13, checkOverlaps));
-        FieldRingsPhysical.push_back(new G4PVPlacement(0, G4ThreeVector(0, 0, PeekRodExtend-FR_thick / 2.0 -
-                                                                              4 * (FR_thick + PEEK_Rod_thick) -
-                                                                              2.5 * cm - 1.3 * cm - 0.7 * cm -
-                                                                              1.3 * cm - 2 * cm - FR_thick), FR_logic,
-                                                       FR_logic->GetName(), gas_logic, 1, 14, checkOverlaps));
-
-        // Reflections
-        for (int i=0;i<FieldRingsPhysical.size();i++)
-            new G4LogicalBorderSurface("SteelSurface_Rings_"+std::to_string(i),gas_phys,FieldRingsPhysical.at(i), OpSteelSurf);
-
-
 
         // PEEK Rods
 
@@ -435,97 +406,146 @@ namespace nexus {
         std::vector<G4double> x_rot_v = {0, x_rot_2, x_rot_3};
         std::vector<G4double> y_rot_v = {-5 * cm, y_rot_2, y_rot_3};
         G4double EL_PEEK_ROD_SHIFT = - 4 * (FR_thick + PEEK_Rod_thick) - 2.5 * cm - EL_thick - ElGap_ - EL_thick - 2 * cm - FR_thick;
+       if(!useSimpleGeometry_){
+            // Field Cage Rings
+            for (int i=1; i<5;i++){
+                FieldRingsPhysical.push_back( new G4PVPlacement(0, G4ThreeVector(0, 0, -FR_thick / 2.0 +i * (FR_thick + PEEK_Rod_thick)),FR_logic, FR_logic->GetName(), gas_logic, 1, i, checkOverlaps));
+                FieldRingsPhysical.push_back( new G4PVPlacement(0, G4ThreeVector(0, 0, -FR_thick / 2.0 -i * (FR_thick + PEEK_Rod_thick)),FR_logic, FR_logic->GetName(), gas_logic, 1, i+5, checkOverlaps));
 
-        // Loop rotations
-        for (G4int j = 0; j <=2; j++) {
-            // The PEEK rods at the end
-            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1 * cm / 2.0 + 5 * (FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 1, j, checkOverlaps);
 
-            // The other FC PEEK rods
-            for (G4int i = 4; i >= -4; i--) {
-                new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + i * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+4, checkOverlaps);
             }
 
-            // PEEK EL
-            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1.1 * cm / 2.0       + EL_PEEK_ROD_SHIFT+PeekRodExtend), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 1, 0, checkOverlaps);
-            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + EL_PEEK_ROD_SHIFT - 1 * (FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+1, checkOverlaps);
-            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + EL_PEEK_ROD_SHIFT - 2 * (FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+2, checkOverlaps);
-            new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 3.37 * cm / 2.0      + EL_PEEK_ROD_SHIFT - 2 * (FR_thick + PEEK_Rod_thick) - FR_thick - 3.37 * cm+PeekRodExtend/2), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 1, j+3, checkOverlaps);
-        }
+
+            FieldRingsPhysical.push_back( new G4PVPlacement(0, G4ThreeVector(0, 0, -FR_thick / 2.0 ),FR_logic, FR_logic->GetName(), gas_logic, 1, 5, checkOverlaps));
+            FieldRingsPhysical.push_back( new G4PVPlacement(0, G4ThreeVector(0, 0, -FR_thick / 2.0 +5 * (FR_thick + PEEK_Rod_thick)),FR_logic, FR_logic->GetName(), gas_logic, 1, 11, checkOverlaps));
+
+            // // EL Field Rings
+            FieldRingsPhysical.push_back(new G4PVPlacement(0, G4ThreeVector(0, 0, PeekRodExtend-FR_thick / 2.0 -
+                                                                                  4 * (FR_thick + PEEK_Rod_thick) -
+                                                                                  2.5 * cm - 1.3 * cm - 0.7 * cm -
+                                                                                  1.3 * cm - 2 * cm - FR_thick -
+                                                                                  2 * (FR_thick + PEEK_Rod_thick)),
+                                                           FR_logic, FR_logic->GetName(), gas_logic, 1, 12, checkOverlaps));
+            FieldRingsPhysical.push_back(new G4PVPlacement(0, G4ThreeVector(0, 0, PeekRodExtend-FR_thick / 2.0 -
+                                                                                  4 * (FR_thick + PEEK_Rod_thick) -
+                                                                                  2.5 * cm - 1.3 * cm - 0.7 * cm -
+                                                                                  1.3 * cm - 2 * cm - FR_thick -
+                                                                                  1 * (FR_thick + PEEK_Rod_thick)),
+                                                           FR_logic, FR_logic->GetName(), gas_logic, 1, 13, checkOverlaps));
+            FieldRingsPhysical.push_back(new G4PVPlacement(0, G4ThreeVector(0, 0, PeekRodExtend-FR_thick / 2.0 -
+                                                                                  4 * (FR_thick + PEEK_Rod_thick) -
+                                                                                  2.5 * cm - 1.3 * cm - 0.7 * cm -
+                                                                                  1.3 * cm - 2 * cm - FR_thick), FR_logic,
+                                                           FR_logic->GetName(), gas_logic, 1, 14, checkOverlaps));
+
+            // Reflections
+            for (int i=0;i<FieldRingsPhysical.size();i++)
+                new G4LogicalBorderSurface("SteelSurface_Rings_"+std::to_string(i),gas_phys,FieldRingsPhysical.at(i), OpSteelSurf);
+
+
+
+
+            // Loop rotations
+            for (G4int j = 0; j <=2; j++) {
+                // The PEEK rods at the end
+                new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1 * cm / 2.0 + 5 * (FR_thick + PEEK_Rod_thick)), PEEK_logic_cathode, PEEK_logic->GetName(), gas_logic, 1, j, checkOverlaps);
+
+                // The other FC PEEK rods
+                for (G4int i = 4; i >= -4; i--) {
+                    new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + i * (FR_thick + PEEK_Rod_thick)), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+4, checkOverlaps);
+                }
+
+                // PEEK EL
+                new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 1.1 * cm / 2.0       + EL_PEEK_ROD_SHIFT+PeekRodExtend), PEEK_logic_buffer, PEEK_logic->GetName(), gas_logic, 1, 0, checkOverlaps);
+                new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + EL_PEEK_ROD_SHIFT - 1 * (FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+1, checkOverlaps);
+                new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], PEEK_Rod_thick / 2.0 + EL_PEEK_ROD_SHIFT - 2 * (FR_thick + PEEK_Rod_thick)+PeekRodExtend), PEEK_logic, PEEK_logic->GetName(), gas_logic, 1, j+2, checkOverlaps);
+                new G4PVPlacement(0, G4ThreeVector(x_rot_v[j], y_rot_v[j], 3.37 * cm / 2.0      + EL_PEEK_ROD_SHIFT - 2 * (FR_thick + PEEK_Rod_thick) - FR_thick - 3.37 * cm+PeekRodExtend/2), PEEK_logic_buffer_end, PEEK_logic->GetName(), gas_logic, 1, j+3, checkOverlaps);
+            }
+
+     }
 
 #ifndef With_GarField
         // EL_Gap
          new G4PVPlacement(0, G4ThreeVector(0., 0., EL_pos), EL_logic, EL_solid->GetName(), gas_logic, 0, 0, checkOverlaps);
 #endif
-        G4VPhysicalVolume *EL_Ring_Plus = new G4PVPlacement(0, G4ThreeVector(0., 0., PeekRodExtend+EL_thick / 2.0 - FR_thick -
-                                                                                     4 * (FR_thick + PEEK_Rod_thick) -
-                                                                                     2.5 * cm - EL_thick),
-                                                            EL_ring_logic, "EL_Ring_Plus", gas_logic, 0, 0, checkOverlaps);
-        new G4LogicalBorderSurface("SteelSurfaceELPRing", gas_phys,EL_Ring_Plus, OpSteelSurf);
 
-///// Off for Opticks /////
-        // Place the Mesh bits
-        /*4VPhysicalVolume *EL_Mesh_Plus_plus = new G4PVPlacement(rotateMesh, G4ThreeVector(0., 0.,PeekRodExtend+
-                                                                                           EL_thick / 2.0 - FR_thick -
-                                                                                           4 *
-                                                                                           (FR_thick + PEEK_Rod_thick) -
-                                                                                           2.5 * cm - EL_thick -
-                                                                                           EL_thick / 2.0),
-                                                                 ELP_Disk_logic, ELP_Disk_logic->GetName(), gas_logic,
-                                                                 0, 0, checkOverlaps);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELP_Disk_logic, EL_Hex_logic);
-         */
-///// Off for Opticks End /////
-        G4VPhysicalVolume *EL_Ring_Plus_plus = new G4PVPlacement(0, G4ThreeVector(0., 0., PeekRodExtend+EL_thick / 2.0 - FR_thick -
-                                                                                          4 *
-                                                                                          (FR_thick + PEEK_Rod_thick) -
-                                                                                          2.5 * cm - EL_thick - ElGap_ -
-                                                                                          EL_thick), EL_ring_logic,
-                                                                 "EL_Ring_Plus_plus", gas_logic, 0, 0, checkOverlaps);
-        new G4LogicalBorderSurface("SteelSurfaceELRing", gas_phys,EL_Ring_Plus_plus, OpSteelSurf);
+       if(!useSimpleGeometry_) {
+           G4VPhysicalVolume *EL_Ring_Plus = new G4PVPlacement(0, G4ThreeVector(0., 0., PeekRodExtend + EL_thick / 2.0 -
+                                                                                        FR_thick -
+                                                                                        4 *
+                                                                                        (FR_thick + PEEK_Rod_thick) -
+                                                                                        2.5 * cm - EL_thick),
+                                                               EL_ring_logic, "EL_Ring_Plus", gas_logic, 0, 0,
+                                                               checkOverlaps);
+           new G4LogicalBorderSurface("SteelSurfaceELPRing", gas_phys, EL_Ring_Plus, OpSteelSurf);
 
-///// Off for Opticks /////
-        // Place the Mesh bits
-        /*G4VPhysicalVolume *EL_Mesh_Plus = new G4PVPlacement(0, G4ThreeVector(0., 0., PeekRodExtend+EL_thick / 2.0 - FR_thick -4 * (FR_thick + PEEK_Rod_thick) -2.5 * cm - EL_thick - ElGap_ -EL_thick + EL_thick / 2.0),ELPP_Disk_logic, ELPP_Disk_logic->GetName(), gas_logic, 0,0, checkOverlaps);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELPP_Disk_logic, EL_Hex_logic);
-         */
-///// Off for Opticks End /////
+           ///// Off for Opticks /////
+           // Place the Mesh bits
+           /*4VPhysicalVolume *EL_Mesh_Plus_plus = new G4PVPlacement(rotateMesh, G4ThreeVector(0., 0.,PeekRodExtend+
+                                                                                              EL_thick / 2.0 - FR_thick -
+                                                                                              4 *
+                                                                                              (FR_thick + PEEK_Rod_thick) -
+                                                                                              2.5 * cm - EL_thick -
+                                                                                              EL_thick / 2.0),
+                                                                    ELP_Disk_logic, ELP_Disk_logic->GetName(), gas_logic,
+                                                                    0, 0, checkOverlaps);
+           HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELP_Disk_logic, EL_Hex_logic);
+            */
+           ///// Off for Opticks End /////
+           G4VPhysicalVolume *EL_Ring_Plus_plus = new G4PVPlacement(0, G4ThreeVector(0., 0.,
+                                                                                     PeekRodExtend + EL_thick / 2.0 -
+                                                                                     FR_thick -
+                                                                                     4 *
+                                                                                     (FR_thick + PEEK_Rod_thick) -
+                                                                                     2.5 * cm - EL_thick - ElGap_ -
+                                                                                     EL_thick), EL_ring_logic,
+                                                                    "EL_Ring_Plus_plus", gas_logic, 0, 0,
+                                                                    checkOverlaps);
+           new G4LogicalBorderSurface("SteelSurfaceELRing", gas_phys, EL_Ring_Plus_plus, OpSteelSurf);
 
-
-        // Cathode
-        G4VPhysicalVolume * Cathode = new G4PVPlacement(0, G4ThreeVector(0., 0., EL_thick / 2.0 + 1 * cm +
-                                                                                 5 * (FR_thick + PEEK_Rod_thick)),
-                                                        Cathode_ring_logic, "CATHODE", gas_logic, 0, 0, checkOverlaps);
-        new G4LogicalBorderSurface("SteelSurfaceFR", gas_phys,Cathode, OpSteelSurf);
-///// Off for Opticks /////
-        // Place the Mesh bits
-        /*G4VPhysicalVolume *Cathode_EL_Mesh = new G4PVPlacement(rotateMesh, G4ThreeVector(0., 0.,
-                                                                                         EL_thick / 2.0 + 1 * cm + 5 *
-                                                                                                                   (FR_thick +
-                                                                                                                    PEEK_Rod_thick) -
-                                                                                         EL_thick / 2.0),
-                                                               Cathode_Disk_logic, Cathode_Disk_logic->GetName(),
-                                                               gas_logic, 0, 0, checkOverlaps);
-        HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, Cathode_Disk_logic, EL_Hex_logic);
-        new G4LogicalSkinSurface("GAS_ELPMESH_OPSURF", ELP_Disk_logic, OpSteelSurf);
-        new G4LogicalSkinSurface("GAS_ELPPMESH_OPSURF", ELPP_Disk_logic, OpSteelSurf);
-        new G4LogicalSkinSurface("GAS_CATHODEMESH_OPSURF",Cathode_Disk_logic, OpSteelSurf);
-         */
-///// Off for Opticks End /////
+           ///// Off for Opticks /////
+           // Place the Mesh bits
+           /*G4VPhysicalVolume *EL_Mesh_Plus = new G4PVPlacement(0, G4ThreeVector(0., 0., PeekRodExtend+EL_thick / 2.0 - FR_thick -4 * (FR_thick + PEEK_Rod_thick) -2.5 * cm - EL_thick - ElGap_ -EL_thick + EL_thick / 2.0),ELPP_Disk_logic, ELPP_Disk_logic->GetName(), gas_logic, 0,0, checkOverlaps);
+           HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, ELPP_Disk_logic, EL_Hex_logic);
+            */
+           ///// Off for Opticks End /////
 
 
-        // --- Optical ---
-        //new G4LogicalSkinSurface("SteelSurfaceFR", FR_logic, OpSteelSurf);
-        //new G4LogicalSkinSurface("SteelSurfaceELRing1", EL_ring_logic, OpSteelSurf);
-        //new G4LogicalSkinSurface("SteelSurfaceCathodeRing", Cathode_ring_logic, OpSteelSurf);
+           // Cathode
+           G4VPhysicalVolume *Cathode = new G4PVPlacement(0, G4ThreeVector(0., 0., EL_thick / 2.0 + 1 * cm +
+                                                                                   5 * (FR_thick + PEEK_Rod_thick)),
+                                                          Cathode_ring_logic, "CATHODE", gas_logic, 0, 0,
+                                                          checkOverlaps);
+           new G4LogicalBorderSurface("SteelSurfaceFR", gas_phys, Cathode, OpSteelSurf);
+           ///// Off for Opticks /////
+           // Place the Mesh bits
+           /*G4VPhysicalVolume *Cathode_EL_Mesh = new G4PVPlacement(rotateMesh, G4ThreeVector(0., 0.,
+                                                                                            EL_thick / 2.0 + 1 * cm + 5 *
+                                                                                                                      (FR_thick +
+                                                                                                                       PEEK_Rod_thick) -
+                                                                                            EL_thick / 2.0),
+                                                                  Cathode_Disk_logic, Cathode_Disk_logic->GetName(),
+                                                                  gas_logic, 0, 0, checkOverlaps);
+           HexCreator->PlaceHexagons(nHole, EL_hex_size, EL_mesh_thick, Cathode_Disk_logic, EL_Hex_logic);
+           new G4LogicalSkinSurface("GAS_ELPMESH_OPSURF", ELP_Disk_logic, OpSteelSurf);
+           new G4LogicalSkinSurface("GAS_ELPPMESH_OPSURF", ELPP_Disk_logic, OpSteelSurf);
+           new G4LogicalSkinSurface("GAS_CATHODEMESH_OPSURF",Cathode_Disk_logic, OpSteelSurf);
+            */
+           ///// Off for Opticks End /////
+
+
+           // --- Optical ---
+           //new G4LogicalSkinSurface("SteelSurfaceFR", FR_logic, OpSteelSurf);
+           //new G4LogicalSkinSurface("SteelSurfaceELRing1", EL_ring_logic, OpSteelSurf);
+           //new G4LogicalSkinSurface("SteelSurfaceCathodeRing", Cathode_ring_logic, OpSteelSurf);
 
 
 
-        //  ----------------------- Needle Source -----------------G4LogicalSkinSurfaceG4LogicalSkinSurface------------
-        // Source
+           //  ----------------------- Needle Source -----------------G4LogicalSkinSurfaceG4LogicalSkinSurface------------
+           // Source
 
 
-
+       }
 
 
         // --- Placement ---
@@ -556,12 +576,14 @@ namespace nexus {
 
             G4ThreeVector NeedlePos = {vtx_[0]- NeedleOffset, vtx_[1] , vtx_[2] - FieldCagePos / 2};
             G4ThreeVector CollPosition = {NeedlePos[0]- 5 * mm, NeedlePos[1] , NeedlePos[2]};
-#ifndef With_GarField
-            Needle_Phys = new G4PVPlacement(NeedleRotate, NeedlePos, Needle_Logic, Needle->GetName(), FieldCage_Logic, true,0, checkOverlaps);
-#else
-            Needle_Phys = new G4PVPlacement(NeedleRotate, NeedlePos, Needle_Logic, Needle->GetName(), gas_logic, true,0, checkOverlaps);
-#endif
-            new G4LogicalBorderSurface("SteelSurface_Needle", gas_phys, Needle_Phys, OpSteelSurf);
+            if(!useSimpleGeometry_){
+                #ifndef With_GarField
+                            Needle_Phys = new G4PVPlacement(NeedleRotate, NeedlePos, Needle_Logic, Needle->GetName(), FieldCage_Logic, true,0, checkOverlaps);
+                #else
+                            Needle_Phys = new G4PVPlacement(NeedleRotate, NeedlePos, Needle_Logic, Needle->GetName(), gas_logic, true,0, checkOverlaps);
+                #endif
+                 new G4LogicalBorderSurface("SteelSurface_Needle", gas_phys, Needle_Phys, OpSteelSurf);
+            }
             // Collimator
             if (!HideCollimator_) {
                 G4Tubs *SourceHolChamber_solid = new G4Tubs("SourceHolChamber", SourceEn_holedia / 2,
@@ -759,23 +781,28 @@ namespace nexus {
         rotateZ_120->rotateZ(120. * deg);
         G4RotationMatrix *rotateZ_m120 = new G4RotationMatrix();
         rotateZ_m120->rotateZ(-120. * deg);
+        if(!useSimpleGeometry_) {
+            x_rot_3 = 5.7 * std::sin(120 * deg) * cm;
+            y_rot_3 = -5.7 * std::cos(120 * deg) * cm;
+            x_rot_2 = 5.7 * std::sin(-120 * deg) * cm;
+            y_rot_2 = -5.7 * std::cos(-120 * deg) * cm;
 
-        x_rot_3 = 5.7 * std::sin(120 * deg) * cm;
-        y_rot_3 = -5.7 * std::cos(120 * deg) * cm;
-        x_rot_2 = 5.7 * std::sin(-120 * deg) * cm;
-        y_rot_2 = -5.7 * std::cos(-120 * deg) * cm;
+            // --- Placement ---
 
-        // --- Placement ---
-
-        G4VPhysicalVolume *bracketPhysical1 = new G4PVPlacement(0, G4ThreeVector(0, (-5.7) * cm, EL_pos),
-                                                                bracket_logical, "bracketPhysical", gas_logic, true, 0,
-                                                                checkOverlaps);
-        G4VPhysicalVolume *bracketPhysical2 = new G4PVPlacement(rotateZ_120, G4ThreeVector(x_rot_2, y_rot_2, EL_pos),
-                                                                bracket_logical, "bracketPhysical", gas_logic, true, 1,
-                                                                checkOverlaps);
-        G4VPhysicalVolume *bracketPhysical3 = new G4PVPlacement(rotateZ_m120, G4ThreeVector(x_rot_3, y_rot_3, EL_pos),
-                                                                bracket_logical, "bracketPhysical", gas_logic, true, 2,checkOverlaps);
-
+            G4VPhysicalVolume *bracketPhysical1 = new G4PVPlacement(0, G4ThreeVector(0, (-5.7) * cm, EL_pos),
+                                                                    bracket_logical, "bracketPhysical", gas_logic, true,
+                                                                    0,
+                                                                    checkOverlaps);
+            G4VPhysicalVolume *bracketPhysical2 = new G4PVPlacement(rotateZ_120,
+                                                                    G4ThreeVector(x_rot_2, y_rot_2, EL_pos),
+                                                                    bracket_logical, "bracketPhysical", gas_logic, true,
+                                                                    1,
+                                                                    checkOverlaps);
+            G4VPhysicalVolume *bracketPhysical3 = new G4PVPlacement(rotateZ_m120,
+                                                                    G4ThreeVector(x_rot_3, y_rot_3, EL_pos),
+                                                                    bracket_logical, "bracketPhysical", gas_logic, true,
+                                                                    2, checkOverlaps);
+        }
 #ifndef With_GarField
         // Electrical Field
       if(SimpleField){
@@ -848,8 +875,8 @@ namespace nexus {
         // Camera
         G4OpticalSurface *opXenon_Glass = new G4OpticalSurface("CamSurfaceBorder");
         opXenon_Glass->SetMaterialPropertiesTable(opticalprops::PerfectDetector());
-        opXenon_Glass->SetModel(unified);                  // SetModel
-        opXenon_Glass->SetType(dielectric_dielectric);   // SetType
+        opXenon_Glass->SetModel(unified);                   // SetModel
+        opXenon_Glass->SetType(dielectric_metal);           // SetType
         opXenon_Glass->SetFinish(polished);                 // SetFinish
         //new G4LogicalSkinSurface("PMTSurfaceBorder",PMTLogical,opXenon_Glass);
         //new G4LogicalSkinSurface("CamSurfaceBorder",camLogical,opXenon_Glass);
@@ -871,23 +898,25 @@ namespace nexus {
         */
         new G4LogicalSkinSurface("PMTSurfaceBorder",PMTLogical,opXenon_Glass);
         new G4LogicalSkinSurface("CamSurfaceBorder",camLogical,opXenon_Glass);
+
+        /*
         //  ------------------------ Optical Surfaces ------------------------------
-        // Other Surfaces
-       /*G4OpticalSurface *opXenonToVacuum = new G4OpticalSurface("MgF2SkinSurfaces");
-       opXenonToVacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
+       G4OpticalSurface *opXenonToVacuum = new G4OpticalSurface("MgF2SkinSurfaces");
+       opXenonToVacuum->SetMaterialPropertiesTable(opticalprops::MgF2());
        opXenonToVacuum->SetModel(unified);                  // SetModel
        opXenonToVacuum->SetType(dielectric_dielectric);   // SetType
        opXenonToVacuum->SetFinish(polished);                 // SetFinish
 
         new G4LogicalSkinSurface("WindowsSkinSurface",MgF2_Vacuum_Logic,opXenonToVacuum);
         new G4LogicalSkinSurface("LensSKinSurface",lensLogical,opXenonToVacuum);
+        */
 
-       G4OpticalSurface *MgF2toVacuum= new G4OpticalSurface("MgF2toVacuumSurface");
+      /* G4OpticalSurface *MgF2toVacuum= new G4OpticalSurface("MgF2toVacuumSurface");
        MgF2toVacuum->SetMaterialPropertiesTable(opticalprops::Vacuum());
        MgF2toVacuum->SetModel(unified);                  // SetModel
        MgF2toVacuum->SetType(dielectric_dielectric);   // SetType
        MgF2toVacuum->SetFinish(polished);                 // SetFinish
-        */
+       */
        //new G4LogicalBorderSurface("LensToVacuumBorderSurface",lensPhysical,PMT_Tube_Vacuum_Phys0,MgF2toVacuum);
        //new G4LogicalBorderSurface("WindowToVacuumBorderSurface",MgF2WindowPhysical,PMT_Tube_Vacuum_Phys1,MgF2toVacuum);
 
@@ -964,7 +993,7 @@ namespace nexus {
         //Chamber
         G4LogicalVolume *Chamber = lvStore->GetVolume("CHAMBER");
         G4VisAttributes *ChamberVa = new G4VisAttributes(G4Colour(1, 1, 1,0.3));
-        ChamberVa->SetForceSolid(true);
+        ChamberVa->SetForceWireframe(true);
         //Chamber->SetVisAttributes(G4VisAttributes::GetInvisible());
         Chamber->SetVisAttributes(ChamberVa);
 
@@ -985,8 +1014,11 @@ namespace nexus {
         SourceHolderVa->SetForceSolid(true);
         Collimator->SetVisAttributes(CollimatorVa);
         */
-        G4LogicalVolume *Needle = lvStore->GetVolume("Needle");
-        Needle->SetVisAttributes(ChamberVa);
+        if(!HideSourceHolder_){
+            G4LogicalVolume *Needle = lvStore->GetVolume("Needle");
+            Needle->SetVisAttributes(ChamberVa);
+        }
+
 
 
 
@@ -1004,24 +1036,7 @@ namespace nexus {
         flangeLog_cathode->SetVisAttributes(ChamberVa);
         //flangeLog_cathode->SetVisAttributes(G4VisAttributes::GetInvisible());
 
-        // Field Rings
-        G4LogicalVolume *FRLog = lvStore->GetVolume("FR");
-        G4VisAttributes FReVis = nexus::CopperBrownAlpha();
-        FReVis.SetForceSolid(true);
-        FRLog->SetVisAttributes(FReVis);
 
-        // EL Rings
-        G4LogicalVolume *EL_RingLog = lvStore->GetVolume("EL_Ring");
-        G4VisAttributes EL_RingVis = nexus::DarkGreyAlpha();
-        EL_RingVis.SetForceSolid(true);
-        EL_RingLog->SetVisAttributes(EL_RingVis);
-
-
-        // Cathode Rings
-        G4LogicalVolume *CATHODE = lvStore->GetVolume("Cathode_Ring");
-        G4VisAttributes CATHODEVis = nexus::DarkGreyAlpha();
-        CATHODEVis.SetForceSolid(true);
-        CATHODE->SetVisAttributes(CATHODEVis);
 
         /*
         // Brackets
@@ -1032,26 +1047,47 @@ namespace nexus {
         */
 
         // PEEK
-        G4LogicalVolume *PEEKLog = lvStore->GetVolume("PEEK_Rod");
-        G4VisAttributes PEEKVis = nexus::YellowAlpha();
-        PEEKVis.SetForceSolid(true);
-        PEEKLog->SetVisAttributes(PEEKVis);
+        if(!useSimpleGeometry_){
+            // Field Rings
+            G4LogicalVolume *FRLog = lvStore->GetVolume("FR");
+            G4VisAttributes FReVis = nexus::CopperBrownAlpha();
+            FReVis.SetForceSolid(true);
+            FRLog->SetVisAttributes(FReVis);
 
-        PEEKLog = lvStore->GetVolume("PEEK_Rod_C");
-        PEEKLog->SetVisAttributes(PEEKVis);
+            // EL Rings
+            G4LogicalVolume *EL_RingLog = lvStore->GetVolume("EL_Ring");
+            G4VisAttributes EL_RingVis = nexus::DarkGreyAlpha();
+            EL_RingVis.SetForceSolid(true);
+            EL_RingLog->SetVisAttributes(EL_RingVis);
 
-        PEEKLog = lvStore->GetVolume("PEEK_Rod_B");
-        PEEKLog->SetVisAttributes(PEEKVis);
 
-        PEEKLog = lvStore->GetVolume("PEEK_Rod_BE");
-        PEEKLog->SetVisAttributes(PEEKVis);
+            // Cathode Rings
+            G4LogicalVolume *CATHODE = lvStore->GetVolume("Cathode_Ring");
+            G4VisAttributes CATHODEVis = nexus::DarkGreyAlpha();
+            CATHODEVis.SetForceSolid(true);
+            CATHODE->SetVisAttributes(CATHODEVis);
 
+            G4LogicalVolume *PEEKLog = lvStore->GetVolume("PEEK_Rod");
+            G4VisAttributes PEEKVis = nexus::YellowAlpha();
+            PEEKVis.SetForceSolid(true);
+            PEEKLog->SetVisAttributes(PEEKVis);
+
+            PEEKLog = lvStore->GetVolume("PEEK_Rod_C");
+            PEEKLog->SetVisAttributes(PEEKVis);
+
+            PEEKLog = lvStore->GetVolume("PEEK_Rod_B");
+            PEEKLog->SetVisAttributes(PEEKVis);
+
+            PEEKLog = lvStore->GetVolume("PEEK_Rod_BE");
+            PEEKLog->SetVisAttributes(PEEKVis);
+        }
 
         //PMT TUBE AND PMT BLOCK
         G4VisAttributes PmttubeVis = G4Colour(1,0,0,0.5);
 
         G4LogicalVolume *PmttubeLog0 = lvStore->GetVolume("PMT_TUBE0");
-        PmttubeVis.SetForceSolid(true);
+        //PmttubeVis.SetForceSolid(true);
+        PmttubeVis.SetForceWireframe(true);
 
         PmttubeLog0->SetVisAttributes(PmttubeVis);
         G4LogicalVolume *PmttubeBlockLog0 = lvStore->GetVolume("PMT_TUBE_BLOCK0");
@@ -1063,7 +1099,8 @@ namespace nexus {
         G4LogicalVolume *PmttubeVacuumLog1 = lvStore->GetVolume("MgF2_Vacuum");
         G4LogicalVolume *PmttubeVacuumLog2 = lvStore->GetVolume("lens_Vacuum");
         G4VisAttributes PmttubeVacuumVis = G4Colour(0,1,0,0.3);
-        PmttubeVacuumVis.SetForceSolid(true);
+        //PmttubeVacuumVis.SetForceSolid(true);
+        PmttubeVacuumVis.SetForceWireframe(true);
         PmttubeVacuumLog1->SetVisAttributes(PmttubeVacuumVis);
         PmttubeVacuumLog2->SetVisAttributes(PmttubeVacuumVis);
 

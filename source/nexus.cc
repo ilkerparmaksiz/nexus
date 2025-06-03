@@ -17,6 +17,7 @@
 #ifdef With_Opticks
 #include "SEventConfig.hh"
 #include "OPTICKS_LOG.hh"
+#include <cuda_runtime.h>
 #endif
 using namespace nexus;
 
@@ -39,7 +40,9 @@ G4int main(int argc, char** argv)
 // Opticks Initialization
 #ifdef With_Opticks
     // Line one bellow is temporary
-   OPTICKS_LOG(argc,argv); // This is needed
+   OPTICKS_LOG(argc,argv); // This is needed for opticks
+   cudaDeviceSynchronize();
+   SEventConfig::Initialize();
    //std::cout<< SEventConfig::Desc() << std::endl;
 #endif
 

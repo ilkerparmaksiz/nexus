@@ -24,6 +24,7 @@ namespace nexus {
         G4bool useCOMSOL;
         G4bool useOlderSimple;
         G4ThreeVector gGainReduction;
+        G4ThreeVector gGainSdev;
         G4double ELYield;
         G4float stepsize;
     };

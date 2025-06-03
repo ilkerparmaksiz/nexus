@@ -64,10 +64,12 @@ void HDF5Writer::Open(std::string fileName, bool debug)
   memtypeSnsPos_ = createSensorPosType();
   snsPosTable_ = createTable(group, sns_pos_table_name, memtypeSnsPos_);
 
+//#if defined(With_Opticks) or defined(With_G4OpticksTest)
     // These are for Performance Studies
     std::string Timing_Table = "Timing";
     memtypeTimingInfo_ = createTimingType();
     TimingInfoTable_ = createTable(group, Timing_Table, memtypeTimingInfo_);
+//#endif
 
 #ifdef With_Opticks
     std::string opticks_table_name = "Opticks_Hits";
@@ -76,7 +78,7 @@ void HDF5Writer::Open(std::string fileName, bool debug)
 #endif
 
     // These are for Performance Studies
-#if not defined(With_Opticks) or defined(With_G4OpticksTest)
+#if  defined(With_G4OpticksTest) or not defined(With_Opticks)
 
     std::string G4_table_name = "GEANT4_Optical_Hits";
     memtypeOpticalInfo_ = createHitOpticalType();

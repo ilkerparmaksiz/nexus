@@ -26,7 +26,7 @@
 #include <CLHEP/Units/SystemOfUnits.h>
 using namespace nexus;
 using namespace CLHEP;
-
+#include "UniformElectricDriftField.h"
 REGISTER_CLASS(XeSphere, GeometryBase)
 
 namespace nexus {
@@ -93,9 +93,22 @@ namespace nexus {
     // sensitive detector, i.e. position, time and energy deposition
     // will be stored for each step of any charged particle crossing
     // the volume.
+    UniformElectricDriftField* field = new UniformElectricDriftField();
+
+    field->SetCathodePosition(-radius_/2);
+    field->SetAnodePosition(radius_/2);
+    field->SetDriftVelocity(0.99*(mm/microsecond));
+    field->SetTransverseDiffusion(1.13*mm/sqrt(cm));
+    field->SetLongitudinalDiffusion(0.38*mm/sqrt(cm));
+
+    G4Region* drift_region = new G4Region("DRIFT");
+    drift_region->SetUserInformation(field);
+    drift_region->AddRootLogicalVolume(sphere_logic);
+
     IonizationSD* ionizsd = new IonizationSD("/XE_SPHERE");
     G4SDManager::GetSDMpointer()->AddNewDetector(ionizsd);
     sphere_logic->SetSensitiveDetector(ionizsd);
+
   }
 
 

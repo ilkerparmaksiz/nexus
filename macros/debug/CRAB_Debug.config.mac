@@ -16,8 +16,11 @@
 
 ##### GEOMETRY #####
 #/Geometry/Next100/elfield false
-#/Geometry/Next100/max_step_size 1. mm
+#/Geometry/Next100/max_step_size 1. um
 /Geometry/CRAB0/useCAD false
+
+#seed
+/nexus/random_seed 2
 
 
 ### Garfield ###
@@ -27,25 +30,28 @@
 /Geometry/CRAB0/GasFile /home/argon/Projects/Ilker/CRAB_Diffusion/CRAB/GasFiles/Xe100_8.09bar.gas
 
 # This is for shifting detectors into CRAB
-/Geometry/CRAB0/ShiftDetectors false
+/Geometry/CRAB0/ShiftDetectors true
 
 ## Turns of the reflections
 /Geometry/CRAB0/SteelReflect false
+/Geometry/CRAB0/useSimpleGeometry false
 
 ### Pressure ###
 #/Geometry/CRAB0/GasPressure 8 bar
 /Geometry/CRAB0/GasPressure 10 bar
 
 # Normaly 25510/MeV
-/Geometry/CRAB0/ScintYield 2000 #25510
-/Geometry/CRAB0/ELYield 2 #25510
+/Geometry/CRAB0/ScintYield 25510 #25510
+/Geometry/CRAB0/ELYield 100 #25510
 #### Using Uniform Electrical Fields Without Garfield ####
+
 ## for 8 bar Xenon
 #/Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
 #/Geometry/CRAB0/FieldCage_Diffusion 0.99 1.13 0.38
 ## for 10 bar Xenon
 /Geometry/CRAB0/EL_Diffusion  4.6 0.24 0.17
 /Geometry/CRAB0/FieldCage_Diffusion 0.90 0.92 0.36
+
 
 
 
@@ -56,18 +62,21 @@
 /Geometry/CRAB0/Materials CRABMaterialProperties.txt
 
 ##### GENERATOR #####
-#/Generator/SingleParticle/particle opticalphoton
-#/Generator/SingleParticle/min_energy 7.2 eV
-/Generator/SingleParticle/particle alpha
-/Generator/SingleParticle/max_energy 5.4 MeV
-/Generator/SingleParticle/min_energy 5.4 MeV
-#/Generator/SingleParticle/particle e-
-#/Generator/SingleParticle/min_energy 1 MeV
+#/Generator/SPModified/particle opticalphoton
+#/Generator/SPModified/min_energy 7.2 eV
+/Generator/SPModified/particle alpha
+/Generator/SPModified/max_energy 5.3 MeV
+/Generator/SPModified/min_energy 5.3 MeV
+#/Generator/SPModified/particle e-
+#/Generator/SPModified/min_energy 1 MeV
 
-/Generator/SingleParticle/region CENTER
+/Generator/SPModified/Mode regular
 
 
-#/Generator/SingleParticle/region NEEDLE
+/Generator/SPModified/region AD_HOC
+
+
+#/Generator/SPModified/region NEEDLE
 /Geometry/CRAB0/specific_vertex -10 10 -10 mm
 
 
@@ -101,6 +110,6 @@
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file OpticksPTest
+/nexus/persistency/output_file OpticksPTestv2_Ref_F_Simple_F_DetIn_T
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type data

@@ -63,7 +63,7 @@ namespace nexus {
 
     // Check whether the track is an optical photon
     G4ParticleDefinition* pdef = step->GetTrack()->GetDefinition();
-#ifdef With_Garfield
+#ifdef With_GarField
     if (pdef != G4OpticalPhoton::Definition() or pdef != NESTS1Photon::Definition()) return false;
 #else
       if (pdef != G4OpticalPhoton::Definition()) return false;

@@ -3,7 +3,7 @@
 ## evt=50 source runMacros.sh
 #set -x (For Debugging)
 # functions
-counter=0
+counter=1
 increment(){
   counter=$((counter+1))
 }
@@ -18,16 +18,30 @@ ExistOrCreate () {
   fi
 }
 
-export Photon=${Photon:-2000000}
+export Photon=${Photon:-1000000}
 Events=${evt:-1}
 
 NexusPath=/home/argon/Projects/Ilker/NewNexus
 BuildFolder=build_all
+
+### Mode 2
+#SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Xenon/Xenon_8bar_11k
+#SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Xenon/Xenon_5bar
 #SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Xenon/Xenon_6bar
-SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Xenon/Xenon_8bar
+#SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Xenon/Xenon_8bar
 #SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/XeMethane_101
-#SimPath=/home/argon/Projects/Ilker/NewNexus/macros/CRAB_Diffusion/XeMethane_174
-#SimPath=/home/argon/Projects/Ilker/NewNexus/macros/CRAB_Diffusion/XeMethane_338
+#SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/XeMethane_174
+#SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/XeMethane_338
+#SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/XeMethane6bar
+#SimPath=/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/XenonMethane_003/XeMethane_338
+
+##Mode0
+#
+ComonPath="/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Diffusion_Mode0"
+#SimPath="${ComonPath}/XenonMethane/XeMethane_338"
+#SimPath="/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Xenonv2/Xenon/Xenon_5bar"
+#SimPath="${ComonPath}/Xenon/Xenon_6bar"
+SimPath="${ComonPath}/XeMethane6bar"
 LogPath=${SimPath}/logs
 source $NexusPath/OpticksRun
 #Scan Directories and simulate using nohup

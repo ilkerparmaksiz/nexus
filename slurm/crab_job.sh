@@ -12,13 +12,13 @@ start=`date +%s`
 # Set the configurable variables
 JOBNAME="10bar_G4"
 
-TYPE="Reflections"
-#N_EVENTS=80
+TYPE="No_Reflections"
 N_EVENTS=80
-Reflections=true
-BuildFolder=build
+#N_EVENTS=20
+Reflections=false
+BuildFolder=buildv2
 NexusPath=/home/argon/Projects/Ilker/NewNexus
-SimPath=/media/argon/5TB2_rooks/CRAB/Sim/Jan_20_2025
+SimPath=/media/argon/5TB2_rooks/CRAB/Test/June_2_2025
 alias mc='(cd "${NexusPath}")'
 #echo "CRABPATH is $CRABPATH"
 ## if the folder does nt exist , this will create it

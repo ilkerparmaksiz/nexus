@@ -51,6 +51,7 @@ namespace nexus {
 
   G4bool IonizationClustering::IsApplicable(const G4ParticleDefinition& pdef)
   {
+
     if (pdef == *G4OpticalPhoton::Definition() ||
         pdef == *IonizationElectron::Definition()) return false;
 
@@ -148,6 +149,7 @@ namespace nexus {
     G4LorentzVector post_point(step.GetPostStepPoint()->GetPosition(),
                   			       step.GetPostStepPoint()->GetGlobalTime());
     rnd_->SetPoints(pre_point, post_point);
+
 
 
     for (G4int i=0; i<num_charges; i++) {

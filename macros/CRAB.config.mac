@@ -41,11 +41,11 @@
 /Geometry/CRAB0/ShiftDetectors false
 
 ## Turns of the reflections
-/Geometry/CRAB0/SteelReflect true
-
+/Geometry/CRAB0/SteelReflect false
+/Geometry/CRAB0/useSimpleGeometry false
 # Normaly 25510/MeV
 /Geometry/CRAB0/ScintYield 25510 #25510
-/Geometry/CRAB0/ELYield 925 #25510
+/Geometry/CRAB0/ELYield 925 #925
 #### Using Uniform Electrical Fields Without Garfield ####
 ## for 8 bar Xenon
 #/Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19
@@ -88,7 +88,7 @@
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file /media/argon/5TB2_rooks/CRAB/ReflectionsON_10bar_160MSkip_10mmv2 #output/Oct_13_2024/OpticksTest_With_ReflectionOff_2k_All_160MSkip
+/nexus/persistency/output_file t #OpticksOnly_ReflectionsOFF_CAM_GAS_May30
 
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type run

@@ -133,11 +133,14 @@ namespace nexus{
         G4ThreeVector FieldCage_Diffusion;
         G4ThreeVector GainReduction;
         G4bool ShiftDetectors;
+        G4bool useSimpleGeometry_;
         G4bool SimpleField;
         G4bool Reflections;
         G4bool useCOMSOL_;
         G4bool useOlderSimple_;
         G4float ComsolStepsize;
+
+
 
     };
 }

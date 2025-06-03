@@ -1,0 +1,21 @@
+/PhysicsList/RegisterPhysics NexusPhysics
+/PhysicsList/RegisterPhysics G4EmStandardPhysics_option4
+/PhysicsList/RegisterPhysics G4DecayPhysics
+/PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
+/PhysicsList/RegisterPhysics G4StepLimiterPhysics
+/PhysicsList/RegisterPhysics G4OpticalPhysics
+
+/nexus/RegisterGeometry XeSphere
+/nexus/RegisterGenerator Decay0Interface
+/nexus/RegisterPersistencyManager PersistencyManager
+
+
+### ACTIONS
+
+/nexus/RegisterRunAction DefaultRunAction
+/nexus/RegisterEventAction DefaultEventAction
+/nexus/RegisterTrackingAction OpticalTrackingAction
+#/nexus/RegisterSteppingAction SaveAllSteppingAction
+
+
+/nexus/RegisterMacro macros/Xe136.config.mac

@@ -23,6 +23,7 @@
 #include <G4ParticleDefinition.hh>
 #include "decay0.h"
 #include <iostream>
+#include "G4Electron.hh"
 using namespace nexus;
 
 REGISTER_CLASS(Decay0Interface, G4VPrimaryGenerator)
@@ -126,11 +127,17 @@ void Decay0Interface::GeneratePrimaryVertex(G4Event* event)
         for (std::vector<decay0Part>::const_iterator itp = theParts.begin(); itp != theParts.end(); itp++) {
           G4ParticleDefinition* g4code =
              G4ParticleTable::GetParticleTable()->FindParticle(itp->pdgCode_);
+
           G4PrimaryParticle* particle =
 	     new G4PrimaryParticle(g4code, MeV*itp->pmom_[0], MeV*itp->pmom_[1], MeV*itp->pmom_[2]);
          // create a primary vertex for the particle
+            if(particle->GetParticleDefinition()->GetParticleName()=="ie-"){
+                particle->SetParticleDefinition(G4Electron::Definition());
+            }
+            std::cout << "X " <<particle_position.x() << " Y " << particle_position.y() << " Z " << particle_position.z() << std::endl;
           G4PrimaryVertex* vertex =
               new G4PrimaryVertex(particle_position, particle_time*second);
+
          vertex->SetPrimary(particle);
          event->AddPrimaryVertex(vertex);
         }

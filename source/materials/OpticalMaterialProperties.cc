@@ -132,18 +132,21 @@ namespace opticalprops {
 
         std::vector<G4double> ri_energy;
         std::vector<G4double> Reflectivity;
+        //std::vector<G4double> AbsLength;
+
         //std::vector<G4double> Transmittance;
+
         for (int i = 0; i < ri_entries; i++) {
             ri_energy.push_back(optPhotMinE_ + i * eWidth);
             RIndex.push_back(seq.RefractiveIndex(h_Planck * c_light / ri_energy[i]));
             Reflectivity.push_back(1);
-
+            //AbsLength.push_back(noAbsLength_);
             //G4cout << "* MgF2 rIndex:  " << std::setw(5)
             // << (h_Planck*c_light/ri_energy[i])/nm << " nm -> " << RIndex[i] << G4endl;
         }
         mpt->AddProperty("RINDEX", ri_energy, RIndex);
         mpt->AddProperty("REFLECTIVITY", ri_energy, Reflectivity);
-
+        //mpt->AddProperty("ABSLENGTH", ri_energy, AbsLength);
         return mpt;
     }
 
@@ -847,8 +850,8 @@ namespace opticalprops {
         }else{
 
                 REFLECTIVITY = {
-                        0, 0, 0, 0,
-                        0, 0, 0
+                        0.0, 0.0, 0.0, 0.0,
+                        0.0, 0.0, 0.0
                 };
                 //std::vector<G4double> EFFICIENCY;
                 /*EFFICIENCY =  {
@@ -1822,28 +1825,41 @@ namespace opticalprops {
         return mpt;
     }
 
-    // Stainles Steel Optical Properties Table
+    // Stainless Steel Optical Properties Table
     G4MaterialPropertiesTable *STEEL(G4bool ref) {
         G4MaterialPropertiesTable *mpt = new G4MaterialPropertiesTable();
 
+
         // REFLECTIVITY
-        std::vector<G4double> ENERGIES = {
+        const G4int ri_entries = 200;
+        G4double eWidth = (optPhotMaxE_ - optPhotMinE_) / ri_entries;
+        std::vector<G4double> REFLECTIVITY;
+        std::vector<G4double> ENERGIES;
+        for (int i = 0; i < ri_entries; i++) {
+            ENERGIES.push_back(optPhotMinE_ + i * eWidth);
+            if (ref) REFLECTIVITY.push_back(0.2);
+            else REFLECTIVITY.push_back(0.0);
+        }
+
+        /*
+          std::vector<G4double> ENERGIES = {
                 optPhotMinE_, 7.29 * eV, optPhotMaxE_
         };
         std::vector<G4double> REFLECTIVITY;
         if(ref) REFLECTIVITY = {0.2, 0.2, 0.2};
         else
         {
-            REFLECTIVITY = { 0,0,0};
+            REFLECTIVITY = { 0 , 0 , 0 };
 
-            /*std::vector<G4double> EFFICIENCY;
-            EFFICIENCY = { 0.00,0.00,0.00};
-            mpt->AddProperty("EFFICIENCY", ENERGIES, EFFICIENCY);
-             */
-            }
+            //std::vector<G4double> EFFICIENCY;
+            //EFFICIENCY = { 0.00,0.00,0.00};
+            //mpt->AddProperty("EFFICIENCY", ENERGIES, EFFICIENCY);
+
+        } */
+
 
         // REFLEXION BEHAVIOR
-        std::vector<G4double> ENERGIES_2 = {optPhotMinE_, optPhotMaxE_};
+        //std::vector<G4double> ENERGIES_2 = {optPhotMinE_, optPhotMaxE_};
         // Specular reflection about the normal to a microfacet.
         // Such a vector is chosen according to a gaussian distribution with
         // sigma = SigmaAlhpa (in rad) and centered in the average normal.
@@ -1857,7 +1873,9 @@ namespace opticalprops {
         //mpt->AddProperty("SPECULARLOBECONSTANT", ENERGIES_2, specularlobe);
         //mpt->AddProperty("SPECULARSPIKECONSTANT", ENERGIES_2, specularspike);
         //mpt->AddProperty("BACKSCATTERCONSTANT", ENERGIES_2, backscatter);
+
         mpt->AddProperty("REFLECTIVITY", ENERGIES, REFLECTIVITY);
+
         return mpt;
     }
 
@@ -1872,7 +1890,7 @@ namespace opticalprops {
         std::vector<G4double> ri_energy;
         for (int i = 0; i < ri_entries; i++) {
             ri_energy.push_back(optPhotMinE_ + i * eWidth);
-            REFLECTIVITY.push_back(0);
+            REFLECTIVITY.push_back(0.0);
             EFFICIENCY.push_back(1);
         }
 
