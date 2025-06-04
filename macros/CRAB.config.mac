@@ -88,7 +88,7 @@
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file t #OpticksOnly_ReflectionsOFF_CAM_GAS_May30
+/nexus/persistency/output_file t #out/OpticksOnly_ReflOff
 
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type run

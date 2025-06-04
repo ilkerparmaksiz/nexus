@@ -59,7 +59,7 @@ hsize_t createTimingType()
     hsize_t memtype = H5Tcreate (H5T_COMPOUND, sizeof (timing_t));
     H5Tinsert (memtype, "event_id", HOFFSET (timing_t , event_id), H5T_NATIVE_INT64);
     H5Tinsert (memtype, "photons", HOFFSET (timing_t , photons), H5T_NATIVE_INT64);
-    H5Tinsert (memtype, "time", HOFFSET (timing_t , time), H5T_NATIVE_DOUBLE);
+    H5Tinsert (memtype, "time", HOFFSET (timing_t , time), H5T_NATIVE_FLOAT);
 #ifdef With_G4OpticksTest
     H5Tinsert (memtype, "G4Photon", HOFFSET (timing_t , G4Photon), H5T_NATIVE_INT64);
     H5Tinsert (memtype, "OpticksPhoton", HOFFSET (timing_t , OpticksPhoton), H5T_NATIVE_INT64);

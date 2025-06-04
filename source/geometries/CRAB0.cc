@@ -366,7 +366,7 @@ namespace nexus {
         G4Tubs *FieldCage_Solid = new G4Tubs("ACTIVE", 0., Active_diam / 2., FielCageGap / 2, 0., twopi);
         G4LogicalVolume *FieldCage_Logic = new G4LogicalVolume(FieldCage_Solid, gxe, "ACTIVE");
 #ifndef With_GarField
-        new G4PVPlacement(0,G4ThreeVector(0,0,FieldCagePos/2),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,checkOverlaps);
+        //new G4PVPlacement(0,G4ThreeVector(0,0,FieldCagePos/2),FieldCage_Logic,FieldCage_Logic->GetName(),gas_logic, 0,0,checkOverlaps);
 #endif
         // Field Rings
         G4double FR_ID = 8.6 * cm; // Field Ring Inner Diameter
@@ -829,7 +829,7 @@ namespace nexus {
             G4Region* drift_region = new G4Region("DRIFT");
 
             drift_region->SetUserInformation(field);
-            drift_region->AddRootLogicalVolume(FieldCage_Logic);
+            drift_region->AddRootLogicalVolume(gas_logic);
             // For CRAB Assuming we have 10 bar gas and Efield is 19,298.20 V/cm
             /// THIS NEEDS TO BE CHANGED
 
@@ -937,8 +937,8 @@ namespace nexus {
         SDManager->AddNewDetector(ionisd);
 
 #ifndef  With_GarField
-        //gas_logic->SetSensitiveDetector(ionisd);
-        FieldCage_Logic->SetSensitiveDetector(ionisd);
+        gas_logic->SetSensitiveDetector(ionisd);
+        //FieldCage_Logic->SetSensitiveDetector(ionisd);
 #endif
 
 
