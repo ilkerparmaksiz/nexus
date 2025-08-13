@@ -260,16 +260,7 @@ void SingleParticleGeneratorModified::GenerateFromSurface(G4Event* evt){
     pmod = std::sqrt(energy*energy - mass*mass);
 
     // IsoTropic Emmision
-    G4ThreeVector SphericalCoord;
-    G4double iniPhi=0;
-    G4double deltaPhi_=pi;
-    G4double deltatheta=twopi;
-
-    G4double phi = (iniPhi + (G4UniformRand() * deltaPhi_));
-    G4double theta=(iniPhi+(G4UniformRand() * deltatheta));
-    G4double rad = 1;
-    SphericalCoord ={rad*sin(phi)*cos(theta),rad*sin(phi)*sin(theta),rad*cos(phi)};
-    p=SphericalCoord*pmod;
+    p=pmod*G4RandomDirection();
 
 
 

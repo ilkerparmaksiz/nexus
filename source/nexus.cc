@@ -39,7 +39,6 @@ G4int main(int argc, char** argv)
 
 // Opticks Initialization
 #ifdef With_Opticks
-    // Line one bellow is temporary
    OPTICKS_LOG(argc,argv); // This is needed for opticks
    cudaDeviceSynchronize();
    SEventConfig::Initialize();

@@ -45,7 +45,7 @@
 /Geometry/CRAB0/useSimpleGeometry false
 # Normaly 25510/MeV
 /Geometry/CRAB0/ScintYield 25510 #25510
-/Geometry/CRAB0/ELYield 0 #925
+/Geometry/CRAB0/ELYield 925 #925
 #### Using Uniform Electrical Fields Without Garfield ####
 ## for 8 bar Xenon
 #/Geometry/CRAB0/EL_Diffusion  2.01 0.45 0.19

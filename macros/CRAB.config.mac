@@ -41,7 +41,7 @@
 /Geometry/CRAB0/ShiftDetectors false
 
 ## Turns of the reflections
-/Geometry/CRAB0/SteelReflect false
+/Geometry/CRAB0/SteelReflect true
 /Geometry/CRAB0/useSimpleGeometry false
 # Normaly 25510/MeV
 /Geometry/CRAB0/ScintYield 25510 #25510
@@ -88,7 +88,7 @@
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file t #out/OpticksOnly_ReflOff
+/nexus/persistency/output_file t #out/OpticksOnly_ReflOn_1k
 
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type run

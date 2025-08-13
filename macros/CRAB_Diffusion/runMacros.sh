@@ -18,7 +18,7 @@ ExistOrCreate () {
   fi
 }
 
-export Photon=${Photon:-1000000}
+export Photon=${Photon:-5000000}
 Events=${evt:-1}
 
 NexusPath=/home/argon/Projects/Ilker/NewNexus
@@ -37,11 +37,11 @@ BuildFolder=build_all
 
 ##Mode0
 #
-ComonPath="/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Diffusion_Mode0"
+ComonPath="/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/CorrectionFactor"
 #SimPath="${ComonPath}/XenonMethane/XeMethane_338"
 #SimPath="/media/argon/5TB2_rooks/CRAB/Sim/CRAB_Diffusion/Xenonv2/Xenon/Xenon_5bar"
 #SimPath="${ComonPath}/Xenon/Xenon_6bar"
-SimPath="${ComonPath}/XeMethane6bar"
+SimPath="${ComonPath}/XeMethane_338"
 LogPath=${SimPath}/logs
 source $NexusPath/OpticksRun
 #Scan Directories and simulate using nohup

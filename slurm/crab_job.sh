@@ -18,7 +18,7 @@ N_EVENTS=33
 Reflections=true
 BuildFolder=buildv2
 NexusPath=/home/argon/Projects/Ilker/NewNexus
-SimPath=/home/argon/Projects/Ilker/NewNexus/out/June_4_2025
+SimPath=/home/argon/Projects/Ilker/NewNexus/out/June_4_2025_P2
 alias mc='(cd "${NexusPath}")'
 #echo "CRABPATH is $CRABPATH"
 ## if the folder does nt exist , this will create it
